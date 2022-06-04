@@ -1,14 +1,11 @@
+:toc:
+
+:rootpath: ./
 
 = NoteBook
 
-
-
-
-
-
-
 include::C++知识点总结/C++常见知识点.adoc[C++常见知识点总结]
-include::
+include::C++知识点总结/高性能相关.adoc[高性能相关]
 
 
 

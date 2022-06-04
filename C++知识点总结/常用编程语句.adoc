@@ -1,0 +1,30 @@
+
+== 常用编程语句记录
+
+
+
+
+=== 位操作
+
+==== 上调到字节对其大小
+[source, cpp]
+----
+uint32_t RoundUp(uint32_t x, uint32_t align) {
+    return (x + align - 1) & ~ (align - 1);
+}
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
