@@ -1,0 +1,15 @@
+
+// 保证所有的目录层级都可以正常显示图片
+:path: 算法/
+:imagesdir: ../image/
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+endif::rootpath[]
+
+
+== 常用算法
+
+
+
