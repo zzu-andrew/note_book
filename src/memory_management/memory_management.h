@@ -23,6 +23,9 @@ public:
     uint32_t GetCount() const {
         return m_count;
     }
+    void SetCount(uint32_t count) {
+        m_count = count;
+    }
 
 private:
     uint32_t m_count{};

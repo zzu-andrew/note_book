@@ -35,6 +35,11 @@ int main(int argc, char * argv[]) {
     // PlacementNew 测试
     PlacementNew();
 
+    const MemoryManagement memoryManagement;
+    memoryManagement.GetCount();
+    //MemoryManagement.SetCount();
+
+
 
 
 

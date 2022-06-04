@@ -1,5 +1,6 @@
 
 :toc:
+
 == C++常见知识点总结
 === 语言类
 ==== 1. 某文件中定义的静态全局变量(静态外部变量(函数外部定义))其作用域是？
@@ -117,7 +118,7 @@ static修饰的函数(C语言中)，情况和修饰全局变量大同小异，�
 - C++中的static
 如果使用static修饰C++类中的函数，则说明该函数不属于该类的任何特定对象；如果对类中某个变量进行修饰，表示该变量为类以及其所有的对象所有。它们在存储空间中都只存在一个副本，可以通过类或者对象去调用。
 
-==== const含义及其实现机制
+==== 14. const含义及其实现机制
 
 const可以用来限定特定变量，以通知编译器该变量不可被修改。要习惯使用const，这样可以避免在函数中修改某些不应该修改的变量。
 const的在不同场景的中的表现有些不同。
@@ -130,8 +131,42 @@ const的在不同场景的中的表现有些不同。
  2. 修饰函数返回值，声明为函数返回值为const之后const可以对返回值起到同样的保护作用，常用来返回类中不想被外部更改的变量
 - const在类中
  1. const修饰的类成员变量，只能在构造函数的初始化列表中进行初始化，const修饰的成员函数int function() const;，其意义是该函数不能修改所在类中的任何成员变量
+- 修饰类对象
+ 1. 常量对象只能调用常量函数，别的成员函数不能调用
+
+.memory_management.cpp
+[source, cpp]
+----
+    const MemoryManagement memoryManagement;
+    memoryManagement.GetCount();
+    //MemoryManagement.SetCount();
+----
+
+==== 15. extern关键字
+- 用来修饰变量或者函数，说明此变量或者函数是在别处定义，这里要进行引用，需要注意的是，extern有作用域，在一个函数中extern的只能在该函数中使用
+- C++extern还有另外一个作用，可以用来知识C、C++的调用规范比如在C++中调用C函数需要使用extern "C"声明要引用的函数，这是给连接器用的，告诉连接器，在链接的时候用C函数的规范来进行链接，这样做的主要原因是因为C编译器编译后的代码命名和C++编译器编译后的命名规则不一样。
+
+#说明#
+extern的声明的位置和作用域相关，如果在一个函数中声明extern，那么extern声明的函数只能在该函数中使用。使用extern声明函数可以避免include引入所有的函数声明，提升编译速度
 
 
+
+[source, cpp]
+----
+uint32_t RoundUp(uint32_t x, uint32_t align) {
+    // extern有作用域在一个函数中声明extern只能在该函数中使用
+    extern void Externally();
+    Externally();
+    return (x + align - 1) & ~ (align - 1);
+}
+
+int main(int argc, char *argv[]) {
+    std::cout << RoundUp(13, 8) << endl;
+    // extern也有作用域
+    //Externally();
+    return 0;
+}
+----
 
 
 
