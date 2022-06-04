@@ -18,9 +18,14 @@ public:
         cout << "delete memory_management" << endl;
     };
 
+    // const修饰的函数，说明这个函数不能修改任何成员变量
+    // 其实这里的const是用来修饰隐含参数this指针用的
+    uint32_t GetCount() const {
+        return m_count;
+    }
 
 private:
-
+    uint32_t m_count{};
 
 
 };
