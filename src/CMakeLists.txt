@@ -10,4 +10,5 @@ add_executable(main
 add_executable(memory_management memory_management/memory_management.cpp)
 
 target_include_directories(memory_management
-        PUBLIC memory_management)
+        PUBLIC memory_management
+        PUBLIC ../inc)

@@ -39,6 +39,8 @@ int main(int argc, char * argv[]) {
     memoryManagement.GetCount();
     //MemoryManagement.SetCount();
 
+    // 纯虚函数实现的基类实现
+    Implementation implementation;
 
 
 

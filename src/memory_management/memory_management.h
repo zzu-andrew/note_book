@@ -6,6 +6,7 @@
 #define NODE_BOOKS_MEMORY_MANAGEMENT_H
 
 #include <iostream>
+#include "Interface.h"
 
 using namespace std;
 
@@ -30,8 +31,18 @@ public:
 private:
     uint32_t m_count{};
 
-
 };
+
+
+class Implementation : public Interface {
+public:
+    int32_t Init() override {
+        return 0;
+    }
+};
+
+
+
 
 
 #endif //NODE_BOOKS_MEMORY_MANAGEMENT_H
