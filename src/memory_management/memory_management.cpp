@@ -42,10 +42,8 @@ int main(int argc, char * argv[]) {
     // 纯虚函数实现的基类实现
     Implementation implementation;
 
-
-
-
-
+    // 即使定义的子类对象，在父类的构造函数中也是执行的父类的虚函数
+    Dog dog;
 
 
 

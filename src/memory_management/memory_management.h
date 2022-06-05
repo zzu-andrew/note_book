@@ -41,6 +41,37 @@ public:
     }
 };
 
+// 构造函数中执行虚函数
+class Animation {
+public:
+    Animation() {
+        Speak();
+    };
+    virtual ~Animation() = default;
+    virtual int32_t Speak() {
+        std::cout << "Animation speak..." << std::endl;
+        return 0;
+    }
+    virtual Animation *Clone() {
+        return this;
+    }
+};
+
+class Dog : public Animation {
+public:
+    Dog() {
+        //this->Speak();
+    }
+    ~Dog() override = default;
+    int32_t Speak() override {
+        std::cout << "wang wang..." << std::endl;
+        return 0;
+    }
+
+    Dog *Clone() override {
+        return this;
+    }
+};
 
 
 
