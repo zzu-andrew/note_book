@@ -73,6 +73,35 @@ public:
     }
 };
 
+// 通过将构造函数或者析枸函数私有化，可以防止该类被继承
+//
+class NotImplemented {
+public:
+    // 类构造函数或析枸函数私有化之后，只能通过类static函数中进行创建
+    // 不能在外部创建
+    static NotImplemented* GetInstance() {
+        return new NotImplemented;
+    }
+
+    static NotImplemented& GetInstanceRef() {
+        static NotImplemented notImplemented;
+        return notImplemented;
+    }
+
+private:
+    NotImplemented() = default;
+    ~NotImplemented() = default;
+};
+
+class NotImplementedImpl : public NotImplemented {
+public:
+    // Explicitly defaulted default constructor is implicitly deleted
+    //NotImplementedImpl() = default;
+    //~NotImplementedImpl() = default;
+
+};
+
+
 
 
 
