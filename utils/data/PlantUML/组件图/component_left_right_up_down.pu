@@ -1,0 +1,9 @@
+@startuml left
+[Component]-left-> left
+[Component]-right-> right
+[Component]-up-> up
+[Component]-down-> down
+@enduml
+
+
+

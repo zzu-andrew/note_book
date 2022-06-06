@@ -1,0 +1,14 @@
+@startuml note
+' 在关系之间使用标签来说明时, 使用 : 后接标签文字。
+' 对元素的说明,你可以在每一边使用 "" 来说明.
+Class01 "1" *-- "many" Class02 : contains
+Class03 o-- Class04 : aggregation
+Class05 --> "1" Class06
+
+' 在标签的开始或结束位置添加 < 或 > 以表明是哪个对象作用到哪个对象上。
+
+class Car
+Driver - Car : drives >
+Car *- Wheel : have 4 >
+Car -- Person : < owns
+@enduml
