@@ -1,0 +1,60 @@
+:toc:
+
+// 保证所有的目录层级都可以正常显示图片
+:path: 网络/
+:imagesdir: ../image/
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+endif::rootpath[]
+
+
+== 网络常见知识点
+
+
+
+=== 如果让你设计一个聊天应用层协议，需要考虑哪些问题？
+1. 要考虑基于哪些网络层，一般要基于传输层和应用层来分工完成整个聊天应用的通信
+2. 应用层还需要传输一些信息来控制程序的运行过程，因此还需要自行定义应用层协议
+ - TCP/Websocket协议维护长连接
+ - UDP进行消息/文件的传输和接收
+ - HTTP/HTTPS完成用户登录，用户注销等
+ - 设计心跳保活命令
+
+[cols=2,3]
+|===
+2+|Header 1
+
+|Column 1, row 1
+|Column 2, row 1
+
+|Column 1, row 2
+|Column 2, row 2
+
+|Column 1, row 3
+|Column 2, row 3
+
+|Column 1, row 4
+|Column 2, row 4
+
+|Column 1, row 5
+|Column 2, row 5
+
+|Column 1, row 6
+|Column 2, row 6
+|===
+
+
+|===
+| id | name    | age | sex | demo | test        |
+
+| 1  | Roberta | 39  | M   | love | 11111111111 | 试试中文
+| 2  | Oliver  | 25  | M   | live | zhong guo   |
+| 3  | Shayna  | 18  | F   | love | wu han      | 中文，测试一下试试看
+| 4  | Fechin  | 18  | M   |      |             |
+|===
+
+
+
+

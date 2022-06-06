@@ -1,0 +1,168 @@
+:toc:
+
+// 保证所有的目录层级都可以正常显示图片
+:path: utils/
+:imagesdir: ../image/
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+endif::rootpath[]
+
+
+
+== AsciiDocumentation
+
+=== 文档头
+
+
+=== 标题
+
+
+=== 段落
+
+=== 块结构
+
+=== 列表
+
+
+=== 文本格式
+
+
+=== 其他标签
+
+
+
+
+
+
+
+=== 表格
+
+- 除非制定了cols属性，否则列的数量等于块分隔符之间第一行(非空)上的单元格分隔符字符的数量
+- 当空白符跟随第一个非空行时，第一行的单元格将升迁为表标题
+
+.Table Name
+|===
+|Header 1 |Header 2
+|Column 1, row 1
+|Column 2, row 1
+|===
+
+.Table Name
+|===
+|Header 1 |Header 2
+// 加空白行，第一行将升迁为标题行
+
+|Column 1, row 1
+|Column 2, row 1
+|===
+
+- cols属性中(*)是重复运算符，意味着在列的其余部分重复列规范
+- 当头的单元格没有在一行上定义时，必须使用cols属性设置表中的列数，使用%header选项或者.=header属性将第一行提升为表头
+
+.Cols Test
+// 指定表为3列，并指定相对宽度
+[cols="1,1,2", options="header"]
+|===
+|Header 1
+|Header 2
+|Header 3
+
+|Column 1, row 1
+|Column 2, row 1
+|Column 3, row 1
+
+|===
+
+.Cols Test
+// 指定为3列，并且后面列使用第一列的设置格式, %header 将第一行提升为标题行
+[%header, cols=3*]
+|===
+|Header 1
+|Header 2
+|Header 3
+
+|Column 1, row 1
+// 该列占用两列
+2+a|Column 2, row 1
+
+|===
+
+- 包含其他标签的表
+加a之后会将表格中的数据按照asciidoc语法格式化
+
+[cols="2,2,5a"]
+|===
+|Firefox
+|Browser
+|Mozilla Firefox is an open-source web browser.
+
+It's designed for:
+
+* standards compliance
+* performance
+* portability
+
+http://getfirefox.com[Get Firefox]!
+|===
+
+- 引入csv表格
+
+[%header, format=csv]
+|===
+name, row
+Animation, 1
+|===
+
+// csv表格速记录
+,===
+Alice,Bob,Gen
+
+1, 2 ,3
+,===
+
+// 可以直接引入csv表格
+[%header, format=csv]
+|===
+include::{rootpath}{path}data/fake_data.csv[csv文件]
+|===
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=== 属性
+
+
+
+
+
+
+
+https://blog.csdn.net/weixin_34409741/article/details/94689288[asciidoc使用说明]
+
