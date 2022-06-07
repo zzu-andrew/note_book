@@ -3,13 +3,7 @@
 //
 
 #include <iostream>
-
-
 using namespace std;
-
 void Externally() {
     std::cout << "Externally" << std::endl;
 }
-
-
-

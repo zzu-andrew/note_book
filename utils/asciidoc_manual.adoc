@@ -1,45 +1,644 @@
+
 :toc:
 
 // 保证所有的目录层级都可以正常显示图片
 :path: utils/
 :imagesdir: ../image/
+:srcdir: ../src
+:datadir: data/
 
 // 只有book调用的时候才会走到这里
 ifdef::rootpath[]
 :imagesdir: {rootpath}{path}{imagesdir}
+
+:srcdir: {rootpath}../src/
+:datadir: {rootpath}{path}../data/
 endif::rootpath[]
 
 ifndef::rootpath[]
 :rootpath: ../
+
+:srcdir: {rootpath}{path}../src/
+:datadir: {rootpath}{path}/data/
 endif::rootpath[]
 
 
-
 == AsciiDocumentation
+AsciiDoc是一种文本文档格式(轻量级标记语言)，常用来编写文档、文章、电子书、幻灯片、网页、手册页和博客等
+
+- AsciiDoc文件可以翻译成HTML、PDF、EPUB、手册等
+- 高度可配置，用户可以定制和扩展源文件和后端输出标记
+- 软件免费，GNU通用许可协议
+
 
 === 文档头
-
+可以包含：文档头、作者、修订行、自定义属性等
+[source, asciidoc]
+----
+= 文档头
+Doc Writer <doc.writer@asciidoctor.org>
+v1.0, 2018-04-11
+:toc:
+:imagesdir: assets/images
+:homepage: https://asciidoctor.org My document provides...
+----
 
 === 标题
+标题以=开头，需要注意以下事项：
 
+- 需要靠左侧顶格
+- 0级标题(默认时)只能有一个0级标题，并且它必须处于文档头部
+- =的数目和HTML中输出的标题级别相匹配
+
+[source, asciidoc]
+----
+= 文档标题 (0级) =
+== 段落标题 (1级) ==
+=== 段落标题 (2级) ===
+==== 段落标题 (3级) ====
+===== 段落标题 (4级) =====
+----
 
 === 段落
+段落不需要任何特殊的标记，段落只需要是一段连续的一行或者多行，但是开始一个新的段落需要用一个空行进行分隔。
+
+文档的大部分内容是段落文本，因此asciidoc不需要任何特殊的标记或者属性来指定段落内容
+
+==== 换行
+在asciidoc中，相邻的连续文本形成段落元素，若要在另一个元素之后开始新的段落，则插入空行，然后继续键入内容即可。
+
+因为AsciiDoc转换文档时，相邻的文本行会被合并为单个段落，这意味着可以包装段落文本或将每个句子或短语放在单独的行上，输出时是不会出现换行的。 +
+如果希望保留段落中的换行符，可以使用加号( +)或者hardbreaks属性，这样会导致每一行之后增加可见的换行符标记
+
+添加换行属性
+
+[%hardbreaks]
+第一行
+第二行
+
+通过将 hardbreaks 属性添加到文档头部，可以在整个文档中保留换行符。
+
+[source,asciidoc]
+----
+:hardbreaks:
+......
+Rubies are red,
+Topazes are blue.
+----
+
+==== 文字段落
+至少一个空格开头的文字为文字段落，文字段落所有行必须是相邻的，文字段落显示为预格式化文本，文本以固定宽度字体显示，空格和换行符都会被保留下来
+
+==== 提示段落
+
+|===
+|标签 |说明
+
+|NOTE
+|注释
+
+|TIP
+|提示
+
+|WARNING
+|警告
+
+|IMPORTANT
+|重要
+
+|CAUTION
+|注意
+
+|===
+
+NOTE: New data
+
+TIP: 提示
+
+- 当想对一一整块内容使用警告时，可以将标签设置为块上属性
+
+[IMPORTANT]
+.Feeding the Werewolves
+====
+While werewolves are hardy community members, keep in mind the following dietary concerns:
+
+. They are allergic to cinnamon.
+. More than two glasses of orange juice in 24 hours makes them howl in harmony with alarms and sirens. . Celery makes them sad.
+====
+
+- 可以使用icons指定图标(部分编辑器上有效)
+
+[icons = "../image/icon.png"]
+NOTE: What lovely war.
+
+
+- 使用caption参数定义经过标题返回文本信息，
+
+[icons=None, caption="特殊提示"]
+NOTE: What lovely war.
+
+- 可以使用note-caption替换NOTE字符，同理可以替换其他的提示字符
+
+:note-caption: ?
+
+[NOTE]
+It's possible to use Unicode glyphs as admonition icons.
+
+==== 引文段落
+- 将引文样式应用到段落上，将更改字体大小
+- 自动化格式文本
+- 可以采用(.)的方式设置引文角色和分配到段落上
+
+[.lead]
+This text will be styled as a lead paragraph (i.e., larger font).
+
+
+
 
 === 块结构
 
+任何块都可以有一个标题，位于块的上方，块标题是以一个点开始的文本行
+
+文本块是以空格开头或使用文字块界定符(....)界定的区块
+
+.标题
+....
+Lazarus: Where is the *defensive operations manual*?
+
+Computer: Calculating ...
+Can not locate object that you are not authorized to know exists.
+Would you like to ask another question?
+
+Lazarus: Did the werewolves tell you to say that?
+
+Computer: Calculating ...
+....
+
+- 当希望整个文本是文本块，并且不希望有缩进时，可在元素的顶部设置文本属性
+
+[literal]
+error: The requested operation returned error: 1954 Forbidden search for defensive operations manual
+absolutely fatal: operation initiation lost in the dodecahedron of doom would you like to die again? y/n
+
+==== 注释块
+注释块不会输出到目标文件，行注释以两个//开头，常用于分隔元素，如两个相邻的列表
+// A single-line comment
+
+- 块注释
+////
+添加块注释，上下三个/// 分隔的注释为块注释
+////
+
+==== 列表块
+- 可用于计算机输出和文件列表，常用于程序代码
+- 特殊字符不替换
+- 包含分隔的列表块有四个连字符(----)组成的行包围
+
+
+[listing]
+This is an example of a paragraph styled with `listing`.
+Notice that the monospace markup is preserved in the output.
+
+
+.app.rb
+[source,ruby]
+----
+require 'sinatra'
+
+get '/hi' do "Hello World!" end
+----
+
+- 列表块支持自定义语法替换
+
+:version: 1.5.6.1
+
+[source,xml,subs="verbatim,attributes"]
+----
+<dependency>
+<groupId>org.asciidoctor</groupId>
+<artifactId>asciidoctor-java-integration</artifactId>
+<version>{version}</version>
+</dependency>
+----
+
+- 可添加nowrap支持滚动，增加之后如果一行上内容显示不全可通过滚动条查看
+
+[source%nowrap, cpp]
+----
+#ifndef NODE_BOOKS_MEMORY_MANAGEMENT_H #define NODE_BOOKS_MEMORY_MANAGEMENT_H #include <iostream> #include "Interface.h" using namespace std;class MemoryManagement { public: private:    uint32_t m_count{}; };
+#endif //NODE_BOOKS_MEMORY_MANAGEMENT_H
+----
+
+- 可以结合代码注释给代码块添加标注
+
+[source,ruby]
+----
+require 'sinatra' // <1>
+
+get '/hi' do // <2>
+"Hello World!" // <3>
+end
+----
+<1> Library import
+<2> URL mapping
+<3> HTTP response body
+
+注释会自动生成序号注释，每个注释占用一行
+
+- 可以直接引入源码文件
+
+[source, cpp]
+----
+include::{srcdir}extern.cpp[]
+----
+
+- 也可以只引入源码的指定行
+
+[source, cpp]
+----
+include::{srcdir}extern.cpp[lines=7..9]
+----
+
+==== 侧边栏块
+
+侧边栏块以****为行围住，侧边栏有底色有边框显示
+
+.AsciiDoc history
+****
+AsciiDoc was first released in Nov 2002 by Stuart Rackham.
+It was designed from the start to be a shorthand syntax
+for producing professional documents like DocBook and LaTeX.
+****
+
+==== 引用文本块
+
+引用文本块，左上角会有一个双引号提示符
+
+____
+QuoteBlock
+____
+
+- 负责引用块
+
+[quote, Abraham Lincoln, Address delivered at the dedication of the Cemetery at Gettysburg]
+____
+Four score and seven years ago our fathers brought forth
+on this continent a new nation...
+____
+
+[quote, Albert Einstein]
+A person who never made a mistake never tried anything new.
+
+____
+A person who never made a mistake never tried anything new.
+____
+
+[quote, Charles Lutwidge Dodgson, 'Mathematician and author, also known as http://en.wikipedia.org/wiki/Lewis_Carroll[Lewis Carroll]']
+____
+If you don't know where you are going, any road will get you there.
+____
+
+- 缩写引用块
+
+"I hold it that a little rebellion now and then is a good thing,
+and as necessary in the political world as storms in the physical."
+-- Thomas Jefferson, Papers of Thomas Jefferson: Volume 11
+
+- 案例文本块
+
+.app
+====
+ExampleBlock
+====
+
+- 当然上面的这些可以混合嵌套使用
+
+.Sample document
+====
+Here's a sample AsciiDoc document:
+
+[listing]
+....
+= Title of Document
+Doc Writer
+:toc:
+
+This guide provides...
+....
+
+The document header is useful, but not required.
+====
+
+:note-caption: NOTE
+
+[NOTE]
+====
+An admonition block may contain complex content.
+
+.A list
+- one
+- two
+- three
+
+Another paragraph.
+====
+
+- 开放块
+
+--
+An open block can be an anonymous container,
+or it can masquerade as any other block.
+--
+
+[source]
+--
+puts "I'm a source block!"
+--
+
 === 列表
 
+- 通过在第一个列表之后插入一个空白行和一行注释可以将两个相邻列表分开
+- 约定使用(//)作为注释向其他作者提供一个提示，也用来分隔列表
+
+所有开头的列表，无论你是按照哪个字幕写的开头，都会自动进行升序排序，并且自动对标识符进行升序，书写的人不用担心标识符信息不符
+[source, bash]
+----
+1.   阿拉伯数字标注的列表项目.
+a.   小写字母标注的列表项目.
+F.   大写字母标注的列表项目.
+iii) 小写罗马数字标注的列表项目.
+IX)  大写罗马数字标注的列表项目.
+----
+
+1. 大
+1. 小
+
+==== 无序列表
+
+- List item.
+* List item.
+** List item.
+*** List item. **** List item. ***** List item.
+
+//
+==== 自定义列表
+
+字母或者数字开始，1-4个冒号或两个分号结束
+
+Operating Systems::
+Linux:::
+. Fedora
+* Desktop
+. Ubuntu
+* Desktop
+* Server
+BSD:::
+. FreeBSD
+. NetBSD
+
+Cloud Providers::
+PaaS:::
+. OpenShift
+. CloudBees
+IaaS:::
+. Amazon EC2
+. Rackspace
+
+==== 问答列表
+
+[qanda]
+What is Asciidoctor?::
+An implementation of the AsciiDoc processor in Ruby.
+What is the answer to the Ultimate Question?::
+42
+
+==== 复选框列表
+
+* [*] checked
+* [x] also checked
+* [ ] not checked
+* normal list item
+
+==== 单行标记
+//
+first term:: definition of first term
+second term:: definition of second term
+
+==== 多行标记
+
+first term::
+definition of +
+first term
+
+second term::
+definition of second term
+
+==== 术语列表
+
+用于关键术语的解释
+
+[glossary]
+术语1::
+解释1.
+术语2::
+解释2.
 
 === 文本格式
 
+==== 粗体
 
-=== 其他标签
+*bold* & **data**
+
+==== 斜体
+
+_italic phrase_ & __character__
+
+==== 等宽字体
+
+`monospace phrase` & ``char data``
+
+如果在等宽字体中用到({name})这样的格式需要直译，那么可以使用(+和+)或者使用转义符号(\)或者(`)进行转义
+
+You can reference the value of a document attribute using the syntax `+{name}+`, where `\{name\}`  `{name}` is the attribute name.
+
+- 当然可以将这些字体进行混合使用
+
+`*_monospace bold italic phrase_*` & ``**__char__**``acter``**__s__**``
+
+==== 标记字体颜色(黄色高亮)
+
+Werewolves are allergic to #cassia cinnamon#.
+
+==== 字体缩小
+
+Did the werewolves read the [.small]##small print##?
+
+==== 字体扩大
+
+[.big]##O##nce upon an infinite loop.
+
+==== 添加删除线
+
+We need [.line-through]#ten# make that twenty VMs.
+
+==== 添加下划线
+
+Where did all the [.underline]#cores# run off to?
+
+==== 添加上标
+
+^super^script phrase
+
+==== 添加下标
+
+~sub~script phrase
+
+//
+==== 文本替换
+
+[cols="1,1,2"]
+|===
+|符号 |显示 |说明
+
+| \(C)
+| (C)
+|版权
+
+|\(TM)
+|(TM)
+|商标
+
+|\(R)
+|(R)
+|注册商标
+
+|\->
+|->
+|右箭头
+
+|\<-
+|<-
+|左箭头
+
+|\=>
+|=>
+|右双箭头
+
+|\<=
+|<=
+|左双箭头
+// 具体参考 HTML实体编码 https://www.habaijian.com/
+|\&#x278a;
+|&#x278a;
+|数字
+
+|\--
+|--
+|破折号
+
+|===
+
+//
+==== 添加水平线
+三个以上的单引号，会添加水平线
+
+''''
+
+==== 添加分隔符
+分隔符会将段落文本之间使用空行分隔开
+
+分开
+
+<<<
+符号
+
+==== 添加外部超链接
+
+https://asciidoctor.org - automatic!
+
+https://asciidoctor.org[Asciidoctor]
+
+https://github.com/asciidoctor[Asciidoctor @ *GitHub*]
+
+- 具有空格和特殊字符的可以按照下述方式添加
+
+link:++https://example.org/?q=[a b]++[URL with special characters]
+
+link:https://example.org/?q=%5Ba%20b%5D[URL with special characters]
+
+==== 本地路径
+
+- 绝对路径
+
+link:/home/works/dataSize/details.pdf[test data]
+
+- 相对路径
+
+link:index.html[Docs]
+
+==== 电子邮件
+
+devel@discuss.arquillian.org
+
+mailto:devel@discuss.arquillian.org[Discuss Arquillian]
+
+mailto:devel-join@discuss.arquillian.org[Subscribe, Subscribe me, I want to join!]
+
+irc://irc.freenode.org/#fedora
+//
+
+==== 锚点
+
+添加锚点之后，在连接锚点的地方可以通过点击跳转到指定地方
+
+锚点：[[A88]]
+链接：<<A88,chapter titles>>
+
+==== 图片
+
+[source, bash]
+----
+image::sunset.jpg[]
+
+image::sunset.jpg[Sunset]
+
+.A mountain sunset
+[#img-sunset]
+[caption="Figure 1: ",link=https://www.flickr.com/photos/javh/5448336655]
+image::sunset.jpg[Sunset,300,200]
+image::https://asciidoctor.org/images/octocat.jpg[GitHub mascot]
+----
 
 
+==== 视频
 
+- 添加块视频
 
+[source, bash]
+----
+video::video_file.mp4[]
 
+video::video_file.mp4[width=640, start=60, end=140, options=autoplay]
+----
 
+==== 文本行中添加源码(等宽字体)
+
+Reference code like `types` or `methods` inline.
+
+Output literal monospace text such as `+{backtick}+` by
+enclosing the text in pluses, then again in backticks.
+
+==== 文档目录
+
+使用 `:toc:` 添加文档目录
+
+==== 添加脚注
+
+// 以下内容会出现在当前文档的尾部，具体看文档末尾
+[source, bash]
+----
+A statement.footnote:[Clarification about this statement.] A bold statement!footnoteref:[disclaimer,Opinions are my own.] Another bold statement.footnoteref:[disclaimer]
+----
 
 === 表格
 
@@ -129,25 +728,29 @@ Alice,Bob,Gen
 // 可以直接引入csv表格
 [%header, format=csv]
 |===
-include::{rootpath}{path}data/fake_data.csv[csv文件]
+include::{datadir}fake_data.csv[csv文件]
+|===
+
+- 引入DSV表格
+// DSV数据
+:===
+Artist:Track:Genre
+
+Robyn:Indestructable:Dance
+:===
+
+- 带格式化、对其和合并单元的表
+
+[cols="e,m,^,>s", width="25%"]
+|===
+|1 >s|2 |3 |4 ^|5 2.2+^.^|6 .3+<.>m|7 ^|8 |9 2+>|10
 |===
 
 
+=== 图表
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+https://blog.csdn.net/somken/article/details/108262323
 
 
 
@@ -158,11 +761,56 @@ include::{rootpath}{path}data/fake_data.csv[csv文件]
 
 === 属性
 
+- 可以使用双冒号来定义属性
+
+:url-home: https://asciidoctor.org
+:link-docs: https://asciidoctor.org/docs[documentation]
+:summary: Asciidoctor is a mature, plain-text document format for \
+       writing notes, articles, documentation, books, and more. \ It's also a text processor & toolchain for translating \ documents into various output formats (i.e., backends), \ including HTML, DocBook, PDF and ePub. :checkedbox: pass:normal[{startsb}&#10004;{endsb}] Check out {url-home}[Asciidoctor]! {summary} Be sure to read the {link-docs} too! {checkedbox} That's done!
+
+- 计数器属性的使用
+
+[caption=""]
+.Parts{counter2:index:0}
+|===
+|Part Id |Description
+
+|PX-{counter:index} |Description of PX-{index}
+|PX-{counter:index}|Description of PX-{index}
+
+|===
+
+==== 转义直译
+
+- `\`可以将转义字符进行直译
+
+\*Stars* is not rendered as bold text.
+The asterisks around the word are preserved.
+
+\{author} is not resolved to the author name. The curly brackets around the word are preserved. `A\--Z` connects A to Z in monospace using two dashes. The dashes are not replaced by an em dash. \[[Word]] is not interpreted as an anchor. The double brackets around the word are preserved. [\[[Word]]] is not interpreted as a bibliography anchor. The triple brackets around the word are preserved. In these cases, the backslash character is automatically removed.
+
+- (+)号也能对转义字符进行直译
+
+`+Text inside {plus} characters+` is not formatted.
+However, special characters like +<+ and +>+ are still escaped.
+
+- pass宏直译
+
+pass:[<u>underline me</u>] is also underlined.
+
+- (+++)直译
+
++++<u>underline me</u>+++ is underlined.
 
 
-
+NOTE: 另外asciidoc兼容markdown语法
 
 
 
 https://blog.csdn.net/weixin_34409741/article/details/94689288[asciidoc使用说明]
 
+'''
+// 添加脚注
+// 以下内容会出现在当前文档的尾部，按照脚注进行显示
+
+A statement .footnote:[Clarification about this statement.] A bold statement!footnoteref:[disclaimer,Opinions are my own.] Another bold statement.footnoteref:[disclaimer]
