@@ -331,8 +331,77 @@ public:
 
 虚继承的特点，在任何派生类中的virtual基类总用一个共享的对象来表示
 
-image::image-2022-06-05-21-15-23-655.png[虚继承]
+[plantuml,sample-plantuml-diagram,alt="Class diagram", width="100", height="60"]
+----
+@startuml simple
+' object
 
+object A
+object B
+object C
+object D
+
+C <|-- B
+C <|-- A
+B <|-- D
+A <|-- D
+
+@enduml
+----
+
+=== 设计一个不能被继承的类
+
+ 通过将构造函数或析枸函数私有化可以防止该类被继承
+
+[source, cpp]
+----
+class NotImplemented {
+public:
+    // 类构造函数或析枸函数私有化之后，只能通过类static函数中进行创建
+    // 不能在外部创建，因此如果只实现一个返回指针的instance函数
+    // 就能保证该类只在堆中能够创建
+    static NotImplemented* GetInstance() {
+        return new NotImplemented;
+    }
+
+    static NotImplemented& GetInstanceRef() {
+        static NotImplemented notImplemented;
+        return notImplemented;
+    }
+
+private:
+    NotImplemented() = default;
+    ~NotImplemented() = default;
+};
+
+class NotImplementedImpl : public NotImplemented {
+public:
+    // Explicitly defaulted default constructor is implicitly deleted
+    NotImplementedImpl() = default;
+    ~NotImplementedImpl() = default;
+
+};
+----
+
+如果想创建只能在栈上进行实例化的类，可以将函数operator new和operator delete定义为私有，这样无法在外部使用new和delete调用operator new和operator delete，该类的对象只能在栈上创建。
+
+=== 内存分配
+- 静态存储区分配。内存在程序编译期间就已经分配好，这块内存在程序整个运行期间都存在，例如全局变量，static 变量
+- 在栈上创建，在执行函数时，函数内部局部变量的存储单元都可以在栈上创建，函数执行结束时这些存储单元自动被释放，栈内存分配运算内置于处理器的指令集中，效率很高，但是分配器的内存容量有限。
+- 从堆上分配，亦称为动态分配，程序在运行的时候Malloc或者new申请任意多的内存，程序员自己负责在何时用free或delete释放内存，动态内存的生存期由我们决定，使用灵活，但是问题也多
+
+=== 指针问题
+将一个数组当成参数传递给函数，回退化为指针，说是指针退化，不如说是数组退化为指针
+
+[source, cpp]
+----
+void function(char a[64]) {
+
+}
+----
+
+
+《C语言陷阱》
 
 
 
