@@ -35,7 +35,6 @@ include::网络/HTTP.adoc[HTTP]
 
 include::utils/asciidoc_manual.adoc[AsciiDoc教程]
 
-include::utils/data/fake_data.csv
 
 
 

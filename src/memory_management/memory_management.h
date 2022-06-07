@@ -55,6 +55,12 @@ public:
     virtual Animation *Clone() {
         return this;
     }
+
+    // 重定义
+    int32_t OutPutCount(int32_t count) {
+        std::cout << "Animation : " <<  count << endl;
+        return 0;
+    }
 };
 
 class Dog : public Animation {
@@ -70,6 +76,11 @@ public:
 
     Dog *Clone() override {
         return this;
+    }
+
+    int32_t OutPutCount(int32_t count) {
+        std::cout << "Animation : " <<  count << endl;
+        return 0;
     }
 };
 

@@ -26,6 +26,7 @@ int main(int argc, char *argv[]) {
     // extern也有作用域
     //Externally();
 
+
     return 0;
 }
 

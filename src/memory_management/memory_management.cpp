@@ -45,6 +45,10 @@ int main(int argc, char * argv[]) {
     // 即使定义的子类对象，在父类的构造函数中也是执行的父类的虚函数
     Dog dog;
 
+    //
+    auto lpAnimation = new Animation();
+    lpAnimation->OutPutCount(12);
+
 
 
 
