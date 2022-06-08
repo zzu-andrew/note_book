@@ -749,6 +749,57 @@ Robyn:Indestructable:Dance
 
 === 图表
 
+==== 气泡图
+
+[chart,bubble,file="bubble.png"]
+--
+//April
+1,  4
+3,  10
+6,  15
+9,  8
+12, 5
+--
+
+[chart,bar,file="bar.png"]
+--
+//April
+1,  4
+3,  10
+6,  15
+9,  8
+12, 5
+
+//May
+1,  20
+3,  15
+6,  13
+9,  12
+12, 14
+--
+
+[chart,line,file="line.png"]
+[chart,line,file="line.png"]
+--
+//April
+1,  3
+2,  5
+6,  8
+9,  8
+12, 5
+18, 7
+
+//May
+1,  18
+2,  15
+6,  13
+9,  12
+12, 14
+19, 14
+--
+
+
+
 
 https://blog.csdn.net/somken/article/details/108262323
 

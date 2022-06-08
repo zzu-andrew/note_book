@@ -1,0 +1,32 @@
+
+:toc:
+
+// 保证所有的目录层级都可以正常显示图片
+:path: C++知识点总结/
+:imagesdir: ../image/
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+endif::rootpath[]
+
+== Linux命令
+
+
+
+
+
+
+常用指令
+
+
+怎样查看进程ID
+怎样创建软连接硬链接 以及怎样查看
+
+
+
+
+
+
+
+
