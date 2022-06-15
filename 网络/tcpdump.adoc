@@ -13,11 +13,39 @@ endif::rootpath[]
 
 == tcpdump
 
+tcpdump - dump traffic on a network interface
 
+
+[IMPORTANT]
+.Feeding the Werewolves
+====
+Usage: tcpdump [-aAbdDefhHIJKlLnNOpqStuUvxX#] [ -B size ] [ -c count ]
+[ -C file_size ] [ -E algo:secret ] [ -F file ] [ -G seconds ]
+[ -i interface ] [ -j tstamptype ] [ -M secret ] [ --number ]
+[ -Q in|out|inout ]
+[ -r file ] [ -s snaplen ] [ --time-stamp-precision precision ]
+[ --immediate-mode ] [ -T type ] [ --version ] [ -V file ]
+[ -w file ] [ -W filecount ] [ -y datalinktype ] [ -z postrotate-command ]
+[ -Z user ] [ expression ]
+====
 
 === 认识tcpdump
+刚开始接触tcpdump肯定会被这些参数给吓到，其实实际使用中只需要掌握几个关键的参数就行了。
+53端口是DNS使用的端口，DNS分为查询和应答：
+DSN requires -- DNS response
+[source, bash]
+----
+andrew@andrew-G3-3590:~$ sudo tcpdump -i any port 53
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on any, link-type LINUX_SLL (Linux cooked v1), capture size 262144 bytes
+00:06:03.875169 IP localhost.47870 > localhost.domain: 3209+ [1au] A? api.yiban.io. (41)
+00:06:03.875609 IP localhost.domain > localhost.47870: 3209 1/0/1 A 111.230.120.127 (57)
+00:06:03.876314 IP localhost.45144 > localhost.domain: 12890+ [1au] PTR? 53.0.0.127.in-addr.arpa. (52)
+00:06:03.876639 IP localhost.domain > localhost.45144: 12890 1/0/1 PTR localhost. (75)
+00:06:04.057558 IP localhost.45872 > localhost.domain: 63926+ [1au] A? accounts.google.com. (48)
+00:06:04.057946 IP localhost.domain > localhost.45872: 63926 1/0/1 A 142.251.42.237 (64)
 
-
+----
 
 
 
