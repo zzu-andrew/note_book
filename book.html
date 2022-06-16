@@ -441,6 +441,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
+<li><a href="#_c">C++</a></li>
 <li><a href="#_c常见知识点总结">C++常见知识点总结</a>
 <ul class="sectlevel2">
 <li><a href="#_关键字作用解释">关键字作用解释</a></li>
@@ -461,6 +462,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_16_宏定义和内联函数的区别">16. 宏定义和内联函数的区别</a></li>
 <li><a href="#_stl原理及实现">STL原理及实现</a></li>
 <li><a href="#_虚函数">虚函数</a></li>
+<li><a href="#_设计一个不能被继承的类">设计一个不能被继承的类</a></li>
+<li><a href="#_内存分配">内存分配</a></li>
+<li><a href="#_指针问题">指针问题</a></li>
+<li><a href="#_重载和重写的区别">重载和重写的区别</a></li>
+<li><a href="#_重载重写和重定义">重载、重写和重定义</a></li>
 </ul>
 </li>
 <li><a href="#_placement_new">placement new</a></li>
@@ -469,10 +475,51 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_位操作">位操作</a></li>
 </ul>
 </li>
+<li><a href="#_网络">网络</a></li>
+<li><a href="#_tcpdump">tcpdump</a>
+<ul class="sectlevel2">
+<li><a href="#_认识tcpdump">认识tcpdump</a></li>
+</ul>
+</li>
+<li><a href="#_http">HTTP</a></li>
+<li><a href="#_分布式">分布式</a></li>
+<li><a href="#_utils">utils</a></li>
+<li><a href="#_asciidocumentation">AsciiDocumentation</a>
+<ul class="sectlevel2">
+<li><a href="#_文档头">文档头</a></li>
+<li><a href="#_标题">标题</a></li>
+<li><a href="#_段落">段落</a></li>
+<li><a href="#_块结构">块结构</a></li>
+<li><a href="#_列表">列表</a></li>
+<li><a href="#_文本格式">文本格式</a></li>
+<li><a href="#_表格">表格</a></li>
+<li><a href="#_图表">图表</a></li>
+<li><a href="#_属性">属性</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Author : Achou.Wang &lt;<a href="mailto:564631192@qq.com">564631192@qq.com</a>&gt;</p>
+</div>
+<div class="paragraph">
+<p>Wechat official account : 码上有话</p>
+</div>
+<div class="paragraph">
+<p>v0.1, 2022-6-7</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_c">C++</h2>
+<div class="sectionbody">
+
+</div>
+</div>
 <div class="sect1">
 <h2 id="_c常见知识点总结">C++常见知识点总结</h2>
 <div class="sectionbody">
@@ -1018,7 +1065,7 @@ hash_map,hash_set,hash_multset,hash_multimap- 基于hash table实现</p>
 <div class="sect3">
 <h4 id="_为什么需要虚析枸函数什么时候不需要父类的析枸函数为什么需要定义为虚函数">为什么需要虚析枸函数，什么时候不需要，父类的析枸函数为什么需要定义为虚函数</h4>
 <div class="paragraph">
-<p>一般在析枸函数中会进行资源的释放，而析枸函数不被调用的话就会造成内存泄露，这样是为了当用一个基类指针删除一个派生类对象时，派生类对象的析枸函数也能被调用。
+<p>一般在析枸函数中会进行资源的释放，而析枸函数没有被调用的话就会造成内存泄露，这样是为了当用一个基类指针删除一个派生类对象时，派生类对象的析枸函数也能被调用。
 因此，并不是所有类都需要定义虚析枸函数，当一个类被用作基类函数的时候，才需要把析枸函数写成虚析枸函数。</p>
 </div>
 </div>
@@ -1038,12 +1085,373 @@ hash_map,hash_set,hash_multset,hash_multimap- 基于hash table实现</p>
 </ul>
 </div>
 <div class="paragraph">
+<p>虚函数表现多态时不能被内联：虚函数运行时需要的代价主要是虚函数不能是内联函数。因为内联函数是在编译期间用被调用的函数体替换函数调用的指令,但是虚函数时在运行期间才能决定到底调用哪个函数，所以虚函数没法在编译期间就进行展开。
+<span class="yellow">当然如果使用对象直接调用虚函数它是可以被内联的，但是大多数虚函数是通过对象的指针或引用被调用的，这种调用时不能被内联，而这种调用方式是通常标准的调用方式(谁会定义虚函数使用对象调用呢？ 这不是多此一举吗)</span></p>
+</div>
+<div class="paragraph">
+<p>构造函数不能是虚函数，而且构造函数中调用虚函数，实际执行的是虚函数对应的函数，因为自己没有构造好，多态也是被disable的。</p>
+</div>
+<div class="paragraph">
+<p>静态成员是属于整个类的，不是针对对象而来的，同时其函数指针存放也不同于一般的成员函数，其无法成为一个对象的虚函数的指针，因此无法被定义为虚函数</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_为什么需要纯虚函数">为什么需要纯虚函数？</h4>
+<div class="paragraph">
+<p>纯虚函数：在基类中只有声明没有定义，但要求任何派生类都要对纯虚函数进行实现，在基类中通过函数原型后面添加=0来声明纯虚函数 <span class="blue">virtual int32_t Init() = 0;</span></p>
+</div>
+<div class="paragraph">
+<p>引入纯虚函数的原因：</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>为了使用多态特性，我们常常需要在基类中定义各种虚拟函数</p>
+</li>
+<li>
+<p>在很多情况下，基类本身生成对象是不合理的，例如动物作为基类，可以派生狮子、老虎、孔雀、青蛙，将动物生成对象显然不合适。</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>为了解决以上问题，引入纯虚函数概念，将函数定义为纯虚函数，则编译器要求派生类中必须予以重写以实现多态性，同时含有纯虚函数的类称为抽象类，它不能生成对象。声明了纯虚函数的类不能创建实例，只能创建它的派生类的实例。</p>
+</div>
+<div class="paragraph">
+<p>定义了纯虚函数的类，相当于java的接口。纯虚函数让所有类的对象(派生类)都可以执行纯虚函数的动作，但类无法为纯虚函数提供一个合理地缺省实现。所以纯虚函数的声明就是在告诉类的设计者，你必须提供一个纯虚函数的实现，但我不知道你会怎样实现它。</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_虚函数常见问题">虚函数常见问题</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>虚函数是动态绑定的，也就是说使用虚函数指针能够正确找到实际类对象对应的函数。</p>
+</li>
+<li>
+<p>构造函数不能是虚函数，而且构造函数中执行虚函数，实际上是执行父类对应的函数，因为构造函数中自己类的对象还没有构造好，多态时被disable的。实际测试：即使定义的是子类对象，在父类中调用虚函数执行父类的，在子类中调用虚函数执行的是子类的。</p>
+</li>
+<li>
+<p>析枸函数可以是虚函数，有继承的复杂的类中虚析枸函数往往还是必须的</p>
+</li>
+<li>
+<p>将一个函数定义为纯虚函数，实际上是将这个类定义为抽象类，不能实例化对象</p>
+</li>
+<li>
+<p>纯虚函数通常没有函数体, 使用=0声明函数是一个纯虚函数，我们可以为纯虚函数在类外定义函数体，但是通常没有必要。</p>
+</li>
+<li>
+<p>析枸函数可以是一个纯虚函数，但是纯虚析枸函数必须有定义体，因为析枸函数的调用在子类对象中是隐含的，</p>
+</li>
+<li>
+<p>非纯虚函数必须有定义体，不然是一个错误</p>
+</li>
+<li>
+<p>派生类的override虚函数定义必须和父类的完全一致。除了一个特例，如果父类中的返回值是一个指针或者引用，子类override时可以返回这个指针(或引用)的派生。 例如:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cpp"><span style="color:#080;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">Animation</span> {
+<span style="color:#088;font-weight:bold">public</span>:
+    <span style="color:#088;font-weight:bold">virtual</span> ~Animation() = <span style="color:#080;font-weight:bold">default</span>;
+    <span style="color:#088;font-weight:bold">virtual</span> Animation *Clone() {
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#950">this</span>;
+    }
+};
+
+<span style="color:#080;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">Dog</span> : <span style="color:#088;font-weight:bold">public</span> Animation {
+<span style="color:#088;font-weight:bold">public</span>:
+    ~Dog() <span style="color:#088;font-weight:bold">override</span> = <span style="color:#080;font-weight:bold">default</span>;
+    Dog *Clone() <span style="color:#088;font-weight:bold">override</span> {
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#950">this</span>;
+    }
+};</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_为什么需要虚继承虚继承实现的原理解析">为什么需要虚继承？虚继承实现的原理解析？</h4>
+<div class="paragraph">
+<p>虚继承是多重继承中特有的概念，如图A，B都继承自C，D又继承了B和A，如果不使用虚继承，D中就会有两份C的函数和变量，为了节省内存，可以讲A,B对C的继承定义为虚继承，这样就能保证D中只有一份C的变量和函数。虚继承在一般的应用中很少被用到，所以往往被忽视，这也主要是因为在C++中多重继承不推荐也不常用，而一旦离开了多重继承虚继承就失去了存在的必要，因为这样只会降低使用效率和占用更多的空间。</p>
+</div>
+<div class="paragraph">
+<p>虚继承的特点，在任何派生类中的virtual基类总用一个共享的对象来表示</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./image/sample-plantuml-diagram.png" alt="Class diagram" width="100" height="60">
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_设计一个不能被继承的类">设计一个不能被继承的类</h3>
+<div class="literalblock">
+<div class="content">
+<pre>通过将构造函数或析枸函数私有化可以防止该类被继承</pre>
+</div>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">单例实现原理说明</div>
+<div class="paragraph">
+<p>静态函数相当于全局执行代码，除了域的范围（执行时的函数栈）区别，在执行上，它与任何正在执行的代码没有区别。而一个类的实例化（new ClassType()）这种操作，也是一句合法的代码，只要不被访问限制，在任何地方都可以执行。private这种限定词，将一个方法限定在只有与这个方法同类的方法中才可以使用。而某一个类的静态方法，属于这个类。在限定的语义上，它拥有调用private方法的权限。这种限定是在逻辑层面建立的，也就是，并非计算机的汇编层面或者原理层面导致这样的，而是c++这门语言强行实现并规定的</p>
+</div>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cpp"><span style="color:#080;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">NotImplemented</span> {
+<span style="color:#088;font-weight:bold">public</span>:
+    <span style="color:#777">// 类构造函数或析枸函数私有化之后，只能通过类static函数中进行创建</span>
+    <span style="color:#777">// 不能在外部创建，因此如果只实现一个返回指针的instance函数</span>
+    <span style="color:#777">// 就能保证该类只在堆中能够创建</span>
+    <span style="color:#088;font-weight:bold">static</span> NotImplemented* GetInstance() {
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#080;font-weight:bold">new</span> NotImplemented;
+    }
+
+    <span style="color:#088;font-weight:bold">static</span> NotImplemented&amp; GetInstanceRef() {
+        <span style="color:#088;font-weight:bold">static</span> NotImplemented notImplemented;
+        <span style="color:#080;font-weight:bold">return</span> notImplemented;
+    }
+
+<span style="color:#088;font-weight:bold">private</span>:
+    NotImplemented() = <span style="color:#080;font-weight:bold">default</span>;
+    ~NotImplemented() = <span style="color:#080;font-weight:bold">default</span>;
+};
+
+<span style="color:#080;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">NotImplementedImpl</span> : <span style="color:#088;font-weight:bold">public</span> NotImplemented {
+<span style="color:#088;font-weight:bold">public</span>:
+    <span style="color:#777">// Explicitly defaulted default constructor is implicitly deleted</span>
+    NotImplementedImpl() = <span style="color:#080;font-weight:bold">default</span>;
+    ~NotImplementedImpl() = <span style="color:#080;font-weight:bold">default</span>;
+
+};</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+如果想创建只能在栈上进行实例化的类，可以将函数operator new和operator delete定义为私有，这样无法在外部使用new和delete调用operator new和operator delete，该类的对象只能在栈上创建。
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_内存分配">内存分配</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>静态存储区分配。内存在程序编译期间就已经分配好，这块内存在程序整个运行期间都存在，例如全局变量，static 变量</p>
+</li>
+<li>
+<p>在栈上创建，在执行函数时，函数内部局部变量的存储单元都可以在栈上创建，函数执行结束时这些存储单元自动被释放，栈内存分配运算内置于处理器的指令集中，效率很高，但是分配器的内存容量有限。</p>
+</li>
+<li>
+<p>从堆上分配，亦称为动态分配，程序在运行的时候Malloc或者new申请任意多的内存，程序员自己负责在何时用free或delete释放内存，动态内存的生存期由我们决定，使用灵活，但是问题也多</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_指针问题">指针问题</h3>
+<div class="paragraph">
+<p>将一个数组当成参数传递给函数，回退化为指针，说是指针退化，不如说是数组退化为指针</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cpp"><span style="color:#088;font-weight:bold">void</span> function(<span style="color:#0a8;font-weight:bold">char</span> a[<span style="color:#00D">64</span>]) {
+
+}</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_指针和引用的区别">指针和引用的区别</h4>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>指针是一个实体,而引用是一个别名</p>
+</li>
+<li>
+<p>引用无需解引用，指针需要</p>
+</li>
+<li>
+<p>引用只能在定义时被初始化一次，之后不可变，指针可变</p>
+</li>
+<li>
+<p>引用没有const，指针有const</p>
+</li>
+<li>
+<p>引用不能为空，指针可以为空</p>
+</li>
+<li>
+<p>sizeof引用是引用对象的大小，sizeof指针是指针本身的大小</p>
+</li>
+<li>
+<p>指针和引用搞得自增(++)运算意义不一样</p>
+</li>
+<li>
+<p>从内存分配上来看，程序为指针分配内存区域，而引用不需要分配内存区域</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_智能指针">智能指针</h4>
+<div class="exampleblock">
+<div class="content">
+<div class="paragraph">
+<p>智能指针：实际上行为类似于指针的类对象，它的一种通用实现方法是采用引用计数的方法</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>智能指针将一个计数器于类指向的对象相关联，引用计数跟踪共有多少个对象共享同一指针</p>
+</li>
+<li>
+<p>每次创建类的新对象时，初始化指针并将引用计数设置为1</p>
+</li>
+<li>
+<p>当对象作为另一个对象的副本而创建时，拷贝构造函数拷贝指针并增加与之相应的引用计数</p>
+</li>
+<li>
+<p>对一个对象进行赋值时，赋值操作符减少左操作符对象的引用计数，增加右操作符的引用计数</p>
+</li>
+<li>
+<p>调用析枸函数时，构造函数减少引用计数</p>
+</li>
+<li>
+<p>实现智能指针有两个经典的策略：</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>引入辅助类</p>
+</li>
+<li>
+<p>使用句柄类</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_重载和重写的区别">重载和重写的区别</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>override(重写)</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>方法名、参数、返回值相同</p>
+</li>
+<li>
+<p>子方法不能缩小父类方法的访问权限</p>
+</li>
+<li>
+<p>子类方法不能抛出比父类方法更多的异常(但子类方法可以不抛出异常,因为子类和父类的关系是is-a的关系，所有能使用父类的地方肯定都能使用子类代替，要是子类能抛出更多的异常，那么按照调用父类方法使用的地方就会出现问题)</p>
+</li>
+<li>
+<p>存在父类和子类之间</p>
+</li>
+<li>
+<p>方法被定义为final不能进行重写</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>overload(重载)</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>参数类型、个数、顺序至少一个不相同</p>
+</li>
+<li>
+<p>不能重载只有返回值不同的方法名</p>
+</li>
+<li>
+<p>存在与父类和子类、同类中</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_重载重写和重定义">重载、重写和重定义</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">重载</div>
+<div class="ulist">
+<ul>
+<li>
+<p>仅仅函数名相同，参数个数、类型、返回值、参数顺序总有一个不同的</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><span class="blue">关联知识</span>：函数匹配规则，类成员函数重载，模板函数重载</p>
+</div>
+</div>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">重写(也称为覆盖)</div>
+<div class="ulist">
+<ul>
+<li>
+<p>发生在基类和派生类之间</p>
+</li>
+<li>
+<p>重写的函数除了函数体不同其他的都一致(返回值为指针时子类可以返回子类地想类型的指针或引用)</p>
+</li>
+<li>
+<p>被重写的函数，在父类中必须有virtual修饰</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">重定义(隐藏)</div>
+<div class="ulist">
+<ul>
+<li>
+<p>派生类重定义与基类同名的函数</p>
+</li>
+<li>
+<p>若基类为非虚函数，只要函数名相同(不管参数列表是否相同)</p>
+</li>
+<li>
+<p>若基类为虚函数，参数列表需不同(因为参数，返回值都相同为重写; 参数相同，返回值不同编译不通过，说明函数继承时，是否重写看的是函数参数)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>《C语言陷阱》</p>
+</div>
+<div class="paragraph">
 <p><a href="https://baijiahao.baidu.com/s?id=1718109965042627128&amp;wfr=spider&amp;for=pc" class="bare">https://baijiahao.baidu.com/s?id=1718109965042627128&amp;wfr=spider&amp;for=pc</a></p>
 </div>
 <div class="paragraph">
 <p>this指针是右值
 虚函数也能被inline修饰，只是当虚函数实现多态时就算使用了inline关键字照样不会被内联</p>
-</div>
 </div>
 </div>
 </div>
@@ -1098,10 +1506,1909 @@ hash_map,hash_set,hash_multset,hash_multimap- 基于hash table实现</p>
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_网络">网络</h2>
+<div class="sectionbody">
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="_tcpdump">tcpdump</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>tcpdump - dump traffic on a network interface</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="title">Feeding the Werewolves</div>
+<div class="paragraph">
+<p>Usage: tcpdump [-aAbdDefhHIJKlLnNOpqStuUvxX#] [ -B size ] [ -c count ]
+[ -C file_size ] [ -E algo:secret ] [ -F file ] [ -G seconds ]
+[ -i interface ] [ -j tstamptype ] [ -M secret ] [ --number ]
+[ -Q in|out|inout ]
+[ -r file ] [ -s snaplen ] [ --time-stamp-precision precision ]
+[ --immediate-mode ] [ -T type ] [ --version ] [ -V file ]
+[ -w file ] [ -W filecount ] [ -y datalinktype ] [ -z postrotate-command ]
+[ -Z user ] [ expression ]</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_认识tcpdump">认识tcpdump</h3>
+<div class="paragraph">
+<p>刚开始接触tcpdump肯定会被这些参数给吓到，其实实际使用中只需要掌握几个关键的参数就行了。</p>
+</div>
+<div class="sect3">
+<h4 id="_抓包">抓包</h4>
+<div class="paragraph">
+<p>53端口是DNS使用的端口，DNS分为查询和应答：
+DSN requires&#8201;&#8212;&#8201;DNS response，来让我们看一下我们的电脑在查询哪些DNS</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>-i : 指定网卡 any代表所有网卡
+port : 指定端口</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">andrew@andrew-G3-3590:~$ sudo tcpdump -i any port 53
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on any, link-type LINUX_SLL (Linux cooked v1), capture size 262144 bytes
+00:06:03.875169 IP localhost.47870 &gt; localhost.domain: 3209+ [1au] A? api.yiban.io. (41)
+00:06:03.875609 IP localhost.domain &gt; localhost.47870: 3209 1/0/1 A 111.230.120.127 (57)
+00:06:03.876314 IP localhost.45144 &gt; localhost.domain: 12890+ [1au] PTR? 53.0.0.127.in-addr.arpa. (52)
+00:06:03.876639 IP localhost.domain &gt; localhost.45144: 12890 1/0/1 PTR localhost. (75)
+00:06:04.057558 IP localhost.45872 &gt; localhost.domain: 63926+ [1au] A? accounts.google.com. (48)
+00:06:04.057946 IP localhost.domain &gt; localhost.45872: 63926 1/0/1 A 142.251.42.237 (64)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>我有个程序，监听所有的网卡上，监听端口是1668，我应该如何抓包</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">tcpdump -i any port 1668</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>如果我已经知道对方会连接我的IP: 192..168.1.102</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">tcpdump port 1668 and host 192.168.1.102</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>如果我想将当前网络数据保存，便于后期查看，可以使用-w将数据进行落盘</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">tcpdump -w packets.pcap</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>上面的抓包都不会显示具体的数据内容，如果我想看我发送的数据正确与否可以添加-A
+当然如果想从网络数据中过滤自己想要的数据使用ngrep更加合适一点</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash"># 抓 80端口的数据，并将数据内容打印出来
+tcpdump -A port 80</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>默认情况下，tcpdump会显示host主机名而不是IP地址，如果想显示IP地址而不是主机名可以添加-n选项</p>
+</div>
+<div class="paragraph">
+<p>如果想看下抓包过程中的网卡信息，可以添加-选项</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">root@andrew-G3-3590:/home/andrew# tcpdump -e port 53
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on wlp4s0, link-type EN10MB (Ethernet), capture size 262144 bytes
+22:08:33.408154 40:23:43:e1:18:a9 (oui Unknown) &gt; f4:6d:2f:85:91:74 (oui Unknown), ethertype IPv4 (0x0800), length 72: 192.168.0.101.49171 &gt; 192.168.1.1.domain: 60397+ A? www.bing.com. (30)
+22:08:33.408427 40:23:43:e1:18:a9 (oui Unknown) &gt; f4:6d:2f:85:91:74 (oui Unknown), ethertype IPv4 (0x0800), length 71: 192.168.0.101.37056 &gt; 192.168.1.1.domain: 3124+ A? cn.bing.com. (29)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_常用的抓包选项">常用的抓包选项</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>-i 指定在那张网卡上抓包，-i any可以在所有网卡上抓包</p>
+<div class="literalblock">
+<div class="content">
+<pre>tcpdump -i lo</pre>
+</div>
+</div>
+</li>
+<li>
+<p>-w 将抓包内容保存到本地，而不是打印出来</p>
+<div class="literalblock">
+<div class="content">
+<pre>tcpdump host 8.8.8.8 -w my_pack.pcap</pre>
+</div>
+</div>
+</li>
+<li>
+<p>-c 当将抓包内容保存到本地时，有必要指定一下抓包的个数，数据太多导致本地磁盘写满</p>
+<div class="literalblock">
+<div class="content">
+<pre>tcpdump -c 10000</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_需要注意的内容">需要注意的内容</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>source 和 dest IP地址和端口</p>
+</li>
+<li>
+<p>时间戳</p>
+</li>
+<li>
+<p>TCP flags</p>
+</li>
+<li>
+<p>DNS query</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./image/image-2022-06-16-22-23-29-702.png" alt="udp-tcp">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./image/image-2022-06-16-22-24-57-048.png" alt="rst">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_bpf_filter">BPF Filter</h4>
+<div class="paragraph">
+<p>当你使用 port 53来过滤DNS数据时， port 53就是一个BPF Filter</p>
+</div>
+<div class="paragraph">
+<p>tcpdump port 53 会将目的端口或者源端口为53的数据抓取</p>
+</div>
+<div class="paragraph">
+<p>tcpdump host 192.168.0.12 会将目的地址或者源地址为192.168.0.12的数据包捕获</p>
+</div>
+<div class="paragraph">
+<p>同样BPF Filter语言中可以使用and or not等连接词将不同的语句绑定一起使用</p>
+</div>
+<div class="paragraph">
+<p>host 1.2.3.4 and port 53 就是抓取目的地址为1.2.3.4:53 后者地址为1.2.3.4:53的网络数据</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_小技巧">小技巧</h4>
+<div class="paragraph">
+<p>如果你的设备是嵌入式设备，或者设备上没有安装wireshark，这个时候你要是还想像使用wireshark本地抓包一样来实时用wireshark查看设备上的网络数据，可以借助nc或者ssh实现远程实时抓包</p>
+</div>
+<div class="paragraph">
+<p>在需要抓包的设备上，输入一下命令, 其实就是将tcpdump抓到的数据，传递给nc, nc会将数据通过端口 11111传递给链接上来的客户端</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">tcpdump -i any port 53  -s0 -w - | nc -l -p 11111</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>在有wireshark的机子上使用</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash"># 使用nc从127.0.0.1:11111上既然收数据，兵节哀给你数据通过管道传递给wireshark
+nc 127.0.0.1  11111 | wireshark -k -S -i -</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>如果没有wireshark需要抓包的设备上支持ssh可以直接使用如下命令进行抓包</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">ssh root@some.host &quot;tcpdump -i eth0 -l -w -&quot; | wireshark -k -i -</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_http">HTTP</h2>
+<div class="sectionbody">
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="_分布式">分布式</h2>
+<div class="sectionbody">
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="_utils">utils</h2>
+<div class="sectionbody">
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="_asciidocumentation">AsciiDocumentation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>AsciiDoc是一种文本文档格式(轻量级标记语言)，常用来编写文档、文章、电子书、幻灯片、网页、手册页和博客等</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>AsciiDoc文件可以翻译成HTML、PDF、EPUB、手册等</p>
+</li>
+<li>
+<p>高度可配置，用户可以定制和扩展源文件和后端输出标记</p>
+</li>
+<li>
+<p>软件免费，GNU通用许可协议</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_文档头">文档头</h3>
+<div class="paragraph">
+<p>可以包含：文档头、作者、修订行、自定义属性等</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="asciidoc">= 文档头
+Doc Writer &lt;doc.writer@asciidoctor.org&gt;
+v1.0, 2018-04-11
+:toc:
+:imagesdir: assets/images
+:homepage: https://asciidoctor.org My document provides...</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_标题">标题</h3>
+<div class="paragraph">
+<p>标题以=开头，需要注意以下事项：</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>需要靠左侧顶格</p>
+</li>
+<li>
+<p>0级标题(默认时)只能有一个0级标题，并且它必须处于文档头部</p>
+</li>
+<li>
+<p>=的数目和HTML中输出的标题级别相匹配</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="asciidoc">= 文档标题 (0级) =
+== 段落标题 (1级) ==
+=== 段落标题 (2级) ===
+==== 段落标题 (3级) ====
+===== 段落标题 (4级) =====</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_段落">段落</h3>
+<div class="paragraph">
+<p>段落不需要任何特殊的标记，段落只需要是一段连续的一行或者多行，但是开始一个新的段落需要用一个空行进行分隔。</p>
+</div>
+<div class="paragraph">
+<p>文档的大部分内容是段落文本，因此asciidoc不需要任何特殊的标记或者属性来指定段落内容</p>
+</div>
+<div class="sect3">
+<h4 id="_换行">换行</h4>
+<div class="paragraph">
+<p>在asciidoc中，相邻的连续文本形成段落元素，若要在另一个元素之后开始新的段落，则插入空行，然后继续键入内容即可。</p>
+</div>
+<div class="paragraph">
+<p>因为AsciiDoc转换文档时，相邻的文本行会被合并为单个段落，这意味着可以包装段落文本或将每个句子或短语放在单独的行上，输出时是不会出现换行的。<br>
+如果希望保留段落中的换行符，可以使用加号( +)或者hardbreaks属性，这样会导致每一行之后增加可见的换行符标记</p>
+</div>
+<div class="paragraph">
+<p>添加换行属性</p>
+</div>
+<div class="paragraph">
+<p>第一行<br>
+第二行</p>
+</div>
+<div class="paragraph">
+<p>通过将 hardbreaks 属性添加到文档头部，可以在整个文档中保留换行符。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="asciidoc">:hardbreaks:
+......
+Rubies are red,
+Topazes are blue.</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_文字段落">文字段落</h4>
+<div class="paragraph">
+<p>至少一个空格开头的文字为文字段落，文字段落所有行必须是相邻的，文字段落显示为预格式化文本，文本以固定宽度字体显示，空格和换行符都会被保留下来</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_提示段落">提示段落</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">标签</th>
+<th class="tableblock halign-left valign-top">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOTE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">注释</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TIP</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">提示</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WARNING</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">警告</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IMPORTANT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">重要</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CAUTION</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">注意</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+New data
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+提示
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>当想对一一整块内容使用警告时，可以将标签设置为块上属性</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="title">Feeding the Werewolves</div>
+<div class="paragraph">
+<p>While werewolves are hardy community members, keep in mind the following dietary concerns:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>They are allergic to cinnamon.</p>
+</li>
+<li>
+<p>More than two glasses of orange juice in 24 hours makes them howl in harmony with alarms and sirens. . Celery makes them sad.</p>
+</li>
+</ol>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>可以使用icons指定图标(部分编辑器上有效)</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+What lovely war.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>使用caption参数定义经过标题返回文本信息，</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">特殊提示</div>
+</td>
+<td class="content">
+What lovely war.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>可以使用note-caption替换NOTE字符，同理可以替换其他的提示字符</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">?</div>
+</td>
+<td class="content">
+It&#8217;s possible to use Unicode glyphs as admonition icons.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_引文段落">引文段落</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>将引文样式应用到段落上，将更改字体大小</p>
+</li>
+<li>
+<p>自动化格式文本</p>
+</li>
+<li>
+<p>可以采用(.)的方式设置引文角色和分配到段落上</p>
+</li>
+</ul>
+</div>
+<div class="paragraph lead">
+<p>This text will be styled as a lead paragraph (i.e., larger font).</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_块结构">块结构</h3>
+<div class="paragraph">
+<p>任何块都可以有一个标题，位于块的上方，块标题是以一个点开始的文本行</p>
+</div>
+<div class="paragraph">
+<p>文本块是以空格开头或使用文字块界定符(&#8230;&#8203;.)界定的区块</p>
+</div>
+<div class="literalblock">
+<div class="title">标题</div>
+<div class="content">
+<pre>Lazarus: Where is the *defensive operations manual*?
+
+Computer: Calculating ...
+Can not locate object that you are not authorized to know exists.
+Would you like to ask another question?
+
+Lazarus: Did the werewolves tell you to say that?
+
+Computer: Calculating ...</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>当希望整个文本是文本块，并且不希望有缩进时，可在元素的顶部设置文本属性</p>
+</li>
+</ul>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>error: The requested operation returned error: 1954 Forbidden search for defensive operations manual
+absolutely fatal: operation initiation lost in the dodecahedron of doom would you like to die again? y/n</pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_注释块">注释块</h4>
+<div class="paragraph">
+<p>注释块不会输出到目标文件，行注释以两个//开头，常用于分隔元素，如两个相邻的列表</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>块注释</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_列表块">列表块</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>可用于计算机输出和文件列表，常用于程序代码</p>
+</li>
+<li>
+<p>特殊字符不替换</p>
+</li>
+<li>
+<p>包含分隔的列表块有四个连字符(----)组成的行包围</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>This is an example of a paragraph styled with `listing`.
+Notice that the monospace markup is preserved in the output.</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">app.rb</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="ruby">require <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">'</span><span style="color:#D20">sinatra</span><span style="color:#710">'</span></span>
+
+get <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">'</span><span style="color:#D20">/hi</span><span style="color:#710">'</span></span> <span style="color:#080;font-weight:bold">do</span> <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Hello World!</span><span style="color:#710">&quot;</span></span> <span style="color:#080;font-weight:bold">end</span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>列表块支持自定义语法替换</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span style="color:#070;font-weight:bold">&lt;dependency&gt;</span>
+<span style="color:#070;font-weight:bold">&lt;groupId&gt;</span>org.asciidoctor<span style="color:#070;font-weight:bold">&lt;/groupId&gt;</span>
+<span style="color:#070;font-weight:bold">&lt;artifactId&gt;</span>asciidoctor-java-integration<span style="color:#070;font-weight:bold">&lt;/artifactId&gt;</span>
+<span style="color:#070;font-weight:bold">&lt;version&gt;</span>1.5.6.1<span style="color:#070;font-weight:bold">&lt;/version&gt;</span>
+<span style="color:#070;font-weight:bold">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>可添加nowrap支持滚动，增加之后如果一行上内容显示不全可通过滚动条查看</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="cpp"><span style="color:#579">#ifndef</span> NODE_BOOKS_MEMORY_MANAGEMENT_H <span style="color:#579">#define</span> NODE_BOOKS_MEMORY_MANAGEMENT_H <span style="color:#579">#include</span> <span style="color:#B44;font-weight:bold">&lt;iostream&gt;</span> <span style="color:#579">#include</span> <span style="color:#B44;font-weight:bold">&quot;Interface.h&quot;</span> <span style="color:#088;font-weight:bold">using</span> <span style="color:#080;font-weight:bold">namespace</span> std;<span style="color:#080;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">MemoryManagement</span> { <span style="color:#088;font-weight:bold">public</span>: <span style="color:#088;font-weight:bold">private</span>:    uint32_t m_count{}; };
+<span style="color:#579">#endif</span> <span style="color:#777">//NODE_BOOKS_MEMORY_MANAGEMENT_H</span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>可以结合代码注释给代码块添加标注</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="ruby">require <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">'</span><span style="color:#D20">sinatra</span><span style="color:#710">'</span></span> // <b class="conum">(1)</b>
+
+get <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">'</span><span style="color:#D20">/hi</span><span style="color:#710">'</span></span> <span style="color:#080;font-weight:bold">do</span> // <b class="conum">(2)</b>
+<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Hello World!</span><span style="color:#710">&quot;</span></span> // <b class="conum">(3)</b>
+<span style="color:#080;font-weight:bold">end</span></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Library import</p>
+</li>
+<li>
+<p>URL mapping</p>
+</li>
+<li>
+<p>HTTP response body</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>注释会自动生成序号注释，每个注释占用一行</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>可以直接引入源码文件</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cpp"><span style="color:#777">//</span>
+<span style="color:#777">// Created by andrew on 2022/6/4.</span>
+<span style="color:#777">//</span>
+
+<span style="color:#579">#include</span> <span style="color:#B44;font-weight:bold">&lt;iostream&gt;</span>
+<span style="color:#088;font-weight:bold">using</span> <span style="color:#080;font-weight:bold">namespace</span> std;
+<span style="color:#088;font-weight:bold">void</span> Externally() {
+    std::cout &lt;&lt; <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Externally</span><span style="color:#710">&quot;</span></span> &lt;&lt; std::endl;
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>也可以只引入源码的指定行</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cpp"><span style="color:#088;font-weight:bold">void</span> Externally() {
+    std::cout &lt;&lt; <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Externally</span><span style="color:#710">&quot;</span></span> &lt;&lt; std::endl;
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_侧边栏块">侧边栏块</h4>
+<div class="paragraph">
+<p>侧边栏块以****为行围住，侧边栏有底色有边框显示</p>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">AsciiDoc history</div>
+<div class="paragraph">
+<p>AsciiDoc was first released in Nov 2002 by Stuart Rackham.
+It was designed from the start to be a shorthand syntax
+for producing professional documents like DocBook and LaTeX.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_引用文本块">引用文本块</h4>
+<div class="paragraph">
+<p>引用文本块，左上角会有一个双引号提示符</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>QuoteBlock</p>
+</div>
+</blockquote>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>负责引用块</p>
+</li>
+</ul>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Four score and seven years ago our fathers brought forth
+on this continent a new nation&#8230;&#8203;</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; Abraham Lincoln<br>
+<cite>Address delivered at the dedication of the Cemetery at Gettysburg</cite>
+</div>
+</div>
+<div class="quoteblock">
+<blockquote>
+A person who never made a mistake never tried anything new.
+</blockquote>
+<div class="attribution">
+&#8212; Albert Einstein
+</div>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>A person who never made a mistake never tried anything new.</p>
+</div>
+</blockquote>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>If you don&#8217;t know where you are going, any road will get you there.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; Charles Lutwidge Dodgson<br>
+<cite>Mathematician and author, also known as <a href="http://en.wikipedia.org/wiki/Lewis_Carroll">Lewis Carroll</a></cite>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>缩写引用块</p>
+</li>
+</ul>
+</div>
+<div class="quoteblock">
+<blockquote>
+I hold it that a little rebellion now and then is a good thing,
+and as necessary in the political world as storms in the physical.
+</blockquote>
+<div class="attribution">
+&#8212; Thomas Jefferson<br>
+<cite>Papers of Thomas Jefferson: Volume 11</cite>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>案例文本块</p>
+</li>
+</ul>
+</div>
+<div class="exampleblock">
+<div class="title">Example 1. app</div>
+<div class="content">
+<div class="paragraph">
+<p>ExampleBlock</p>
+</div>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>当然上面的这些可以混合嵌套使用</p>
+</li>
+</ul>
+</div>
+<div class="exampleblock">
+<div class="title">Example 2. Sample document</div>
+<div class="content">
+<div class="paragraph">
+<p>Here&#8217;s a sample AsciiDoc document:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>= Title of Document
+Doc Writer
+:toc:
+
+This guide provides...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The document header is useful, but not required.</p>
+</div>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">NOTE</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>An admonition block may contain complex content.</p>
+</div>
+<div class="ulist">
+<div class="title">A list</div>
+<ul>
+<li>
+<p>one</p>
+</li>
+<li>
+<p>two</p>
+</li>
+<li>
+<p>three</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Another paragraph.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>开放块</p>
+</li>
+</ul>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>An open block can be an anonymous container,
+or it can masquerade as any other block.</p>
+</div>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code>puts &quot;I'm a source block!&quot;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_列表">列表</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>通过在第一个列表之后插入一个空白行和一行注释可以将两个相邻列表分开</p>
+</li>
+<li>
+<p>约定使用(//)作为注释向其他作者提供一个提示，也用来分隔列表</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>所有开头的列表，无论你是按照哪个字幕写的开头，都会自动进行升序排序，并且自动对标识符进行升序，书写的人不用担心标识符信息不符</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">1.   阿拉伯数字标注的列表项目.
+a.   小写字母标注的列表项目.
+F.   大写字母标注的列表项目.
+iii) 小写罗马数字标注的列表项目.
+IX)  大写罗马数字标注的列表项目.</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>大</p>
+</li>
+<li>
+<p>小</p>
+</li>
+</ol>
+</div>
+<div class="sect3">
+<h4 id="_无序列表">无序列表</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>List item.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>List item.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>List item.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>List item. <strong><strong>* List item. </strong></strong>** List item.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_自定义列表">自定义列表</h4>
+<div class="paragraph">
+<p>字母或者数字开始，1-4个冒号或两个分号结束</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Operating Systems</dt>
+<dd>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Linux</dt>
+<dd>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Fedora</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Desktop</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Ubuntu</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Desktop</p>
+</li>
+<li>
+<p>Server</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</dd>
+<dt class="hdlist1">BSD</dt>
+<dd>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>FreeBSD</p>
+</li>
+<li>
+<p>NetBSD</p>
+</li>
+</ol>
+</div>
+</dd>
+</dl>
+</div>
+</dd>
+<dt class="hdlist1">Cloud Providers</dt>
+<dd>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">PaaS</dt>
+<dd>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>OpenShift</p>
+</li>
+<li>
+<p>CloudBees</p>
+</li>
+</ol>
+</div>
+</dd>
+<dt class="hdlist1">IaaS</dt>
+<dd>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Amazon EC2</p>
+</li>
+<li>
+<p>Rackspace</p>
+</li>
+</ol>
+</div>
+</dd>
+</dl>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_问答列表">问答列表</h4>
+<div class="qlist qanda">
+<ol>
+<li>
+<p><em>What is Asciidoctor?</em></p>
+<p>An implementation of the AsciiDoc processor in Ruby.</p>
+</li>
+<li>
+<p><em>What is the answer to the Ultimate Question?</em></p>
+<p>42</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_复选框列表">复选框列表</h4>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p>&#10003; checked</p>
+</li>
+<li>
+<p>&#10003; also checked</p>
+</li>
+<li>
+<p>&#10063; not checked</p>
+</li>
+<li>
+<p>normal list item</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_单行标记">单行标记</h4>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">first term</dt>
+<dd>
+<p>definition of first term</p>
+</dd>
+<dt class="hdlist1">second term</dt>
+<dd>
+<p>definition of second term</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_多行标记">多行标记</h4>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">first term</dt>
+<dd>
+<p>definition of<br>
+first term</p>
+</dd>
+<dt class="hdlist1">second term</dt>
+<dd>
+<p>definition of second term</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_术语列表">术语列表</h4>
+<div class="paragraph">
+<p>用于关键术语的解释</p>
+</div>
+<div class="dlist glossary">
+<dl>
+<dt>术语1</dt>
+<dd>
+<p>解释1.</p>
+</dd>
+<dt>术语2</dt>
+<dd>
+<p>解释2.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_文本格式">文本格式</h3>
+<div class="sect3">
+<h4 id="_粗体">粗体</h4>
+<div class="paragraph">
+<p><strong>bold</strong> &amp; <strong>data</strong></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_斜体">斜体</h4>
+<div class="paragraph">
+<p><em>italic phrase</em> &amp; <em>character</em></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_等宽字体">等宽字体</h4>
+<div class="paragraph">
+<p><code>monospace phrase</code> &amp; <code>char data</code></p>
+</div>
+<div class="paragraph">
+<p>如果在等宽字体中用到({name})这样的格式需要直译，那么可以使用(和)或者使用转义符号(\)或者(`)进行转义</p>
+</div>
+<div class="paragraph">
+<p>You can reference the value of a document attribute using the syntax <code>{name}</code>, where <code>{name}</code>  <code>{name}</code> is the attribute name.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>当然可以将这些字体进行混合使用</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code><strong><em>monospace bold italic phrase</em></strong></code> &amp; <code><strong><em>char</em></strong></code>acter<code><strong><em>s</em></strong></code></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_标记字体颜色黄色高亮">标记字体颜色(黄色高亮)</h4>
+<div class="paragraph">
+<p>Werewolves are allergic to <mark>cassia cinnamon</mark>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_字体缩小">字体缩小</h4>
+<div class="paragraph">
+<p>Did the werewolves read the <span class="small">small print</span>?</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_字体扩大">字体扩大</h4>
+<div class="paragraph">
+<p><span class="big">O</span>nce upon an infinite loop.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_添加删除线">添加删除线</h4>
+<div class="paragraph">
+<p>We need <span class="line-through">ten</span> make that twenty VMs.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_添加下划线">添加下划线</h4>
+<div class="paragraph">
+<p>Where did all the <span class="underline">cores</span> run off to?</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_添加上标">添加上标</h4>
+<div class="paragraph">
+<p><sup>super</sup>script phrase</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_添加下标">添加下标</h4>
+<div class="paragraph">
+<p><sub>sub</sub>script phrase</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_文本替换">文本替换</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">符号</th>
+<th class="tableblock halign-left valign-top">显示</th>
+<th class="tableblock halign-left valign-top">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(C)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#169;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">版权</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(TM)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8482;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">商标</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(R)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#174;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">注册商标</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8594;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">右箭头</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8592;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">左箭头</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">=&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8658;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">右双箭头</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;=</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8656;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">左双箭头</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&amp;#x278a;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#x278a;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">数字</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">--</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8201;&#8212;&#8201;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">破折号</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_添加水平线">添加水平线</h4>
+<div class="paragraph">
+<p>三个以上的单引号，会添加水平线</p>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_添加分隔符">添加分隔符</h4>
+<div class="paragraph">
+<p>分隔符会将段落文本之间使用空行分隔开</p>
+</div>
+<div class="paragraph">
+<p>分开</p>
+</div>
+<div style="page-break-after: always;"></div>
+<div class="paragraph">
+<p>符号</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_添加外部超链接">添加外部超链接</h4>
+<div class="paragraph">
+<p><a href="https://asciidoctor.org" class="bare">https://asciidoctor.org</a> - automatic!</p>
+</div>
+<div class="paragraph">
+<p><a href="https://asciidoctor.org">Asciidoctor</a></p>
+</div>
+<div class="paragraph">
+<p><a href="https://github.com/asciidoctor">Asciidoctor @ <strong>GitHub</strong></a></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>具有空格和特殊字符的可以按照下述方式添加</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><a href="https://example.org/?q=[a b]">URL with special characters</a></p>
+</div>
+<div class="paragraph">
+<p><a href="https://example.org/?q=%5Ba%20b%5D">URL with special characters</a></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_本地路径">本地路径</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>绝对路径</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><a href="/home/works/dataSize/details.pdf">test data</a></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>相对路径</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><a href="index.html">Docs</a></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_电子邮件">电子邮件</h4>
+<div class="paragraph">
+<p><a href="mailto:devel@discuss.arquillian.org">devel@discuss.arquillian.org</a></p>
+</div>
+<div class="paragraph">
+<p><a href="mailto:devel@discuss.arquillian.org">Discuss Arquillian</a></p>
+</div>
+<div class="paragraph">
+<p><a href="mailto:devel-join@discuss.arquillian.org?subject=Subscribe+me&amp;body=I+want+to+join%21">Subscribe</a></p>
+</div>
+<div class="paragraph">
+<p><a href="irc://irc.freenode.org/#fedora" class="bare">irc://irc.freenode.org/#fedora</a></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_锚点">锚点</h4>
+<div class="paragraph">
+<p>添加锚点之后，在连接锚点的地方可以通过点击跳转到指定地方</p>
+</div>
+<div class="paragraph">
+<p>锚点：<a id="A88"></a>
+链接：<a href="#A88">chapter titles</a></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_图片">图片</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">image::sunset.jpg[]
+
+image::sunset.jpg[Sunset]
+
+.A mountain sunset
+[#img-sunset]
+[caption=&quot;Figure 1: &quot;,link=https://www.flickr.com/photos/javh/5448336655]
+image::sunset.jpg[Sunset,300,200]
+image::https://asciidoctor.org/images/octocat.jpg[GitHub mascot]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_视频">视频</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>添加块视频</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">video::video_file.mp4[]
+
+video::video_file.mp4[width=640, start=60, end=140, options=autoplay]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_文本行中添加源码等宽字体">文本行中添加源码(等宽字体)</h4>
+<div class="paragraph">
+<p>Reference code like <code>types</code> or <code>methods</code> inline.</p>
+</div>
+<div class="paragraph">
+<p>Output literal monospace text such as <code>{backtick}</code> by
+enclosing the text in pluses, then again in backticks.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_文档目录">文档目录</h4>
+<div class="paragraph">
+<p>使用 <code>:toc:</code> 添加文档目录</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_添加脚注">添加脚注</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">A statement.footnote:[Clarification about this statement.] A bold statement!footnoteref:[disclaimer,Opinions are my own.] Another bold statement.footnoteref:[disclaimer]</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_表格">表格</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>除非制定了cols属性，否则列的数量等于块分隔符之间第一行(非空)上的单元格分隔符字符的数量</p>
+</li>
+<li>
+<p>当空白符跟随第一个非空行时，第一行的单元格将升迁为表标题</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Table Name</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Header 1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Header 2</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Column 1, row 1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Column 2, row 1</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. Table Name</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Header 1</th>
+<th class="tableblock halign-left valign-top">Header 2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Column 1, row 1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Column 2, row 1</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>cols属性中(*)是重复运算符，意味着在列的其余部分重复列规范</p>
+</li>
+<li>
+<p>当头的单元格没有在一行上定义时，必须使用cols属性设置表中的列数，使用%header选项或者.=header属性将第一行提升为表头</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 3. Cols Test</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Header 1</th>
+<th class="tableblock halign-left valign-top">Header 2</th>
+<th class="tableblock halign-left valign-top">Header 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Column 1, row 1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Column 2, row 1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Column 3, row 1</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 4. Cols Test</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Header 1</th>
+<th class="tableblock halign-left valign-top">Header 2</th>
+<th class="tableblock halign-left valign-top">Header 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Column 1, row 1</p></td>
+<td class="tableblock halign-left valign-top" colspan="2"><div class="content"><div class="paragraph">
+<p>Column 2, row 1</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>包含其他标签的表
+加a之后会将表格中的数据按照asciidoc语法格式化</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 22.2222%;">
+<col style="width: 22.2222%;">
+<col style="width: 55.5556%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Firefox</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Browser</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Mozilla Firefox is an open-source web browser.</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s designed for:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>standards compliance</p>
+</li>
+<li>
+<p>performance</p>
+</li>
+<li>
+<p>portability</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><a href="http://getfirefox.com">Get Firefox</a>!</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>引入csv表格</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">name</th>
+<th class="tableblock halign-left valign-top">row</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Animation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Alice</th>
+<th class="tableblock halign-left valign-top">Bob</th>
+<th class="tableblock halign-left valign-top">Gen</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">id</th>
+<th class="tableblock halign-left valign-top">name</th>
+<th class="tableblock halign-left valign-top">age</th>
+<th class="tableblock halign-left valign-top">sex</th>
+<th class="tableblock halign-left valign-top">demo</th>
+<th class="tableblock halign-left valign-top">test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Roberta</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">39</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">love</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">11111111111</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Oliver</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">25</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">live</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">zhong guo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shayna</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">love</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">wu han</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>引入DSV表格</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Artist</th>
+<th class="tableblock halign-left valign-top">Track</th>
+<th class="tableblock halign-left valign-top">Genre</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Robyn</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Indestructable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dance</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>带格式化、对其和合并单元的表</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 25%;">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>1</em></p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock"><strong>2</strong></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock"><strong>4</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><em>5</em></p></td>
+<td class="tableblock halign-center valign-middle" colspan="2" rowspan="2"><p class="tableblock"><code>6</code></p></td>
+<td class="tableblock halign-left valign-bottom" rowspan="3"><p class="tableblock"><code>7</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><em>8</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>9</em></p></td>
+<td class="tableblock halign-right valign-top" colspan="2"><p class="tableblock"><code>10</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_图表">图表</h3>
+<div class="sect3">
+<h4 id="_气泡图">气泡图</h4>
+<div class="openblock chart">
+<div class="content">
+<div class="paragraph">
+<p>1,  4
+3,  10
+6,  15
+9,  8
+12, 5</p>
+</div>
+</div>
+</div>
+<div class="openblock chart">
+<div class="content">
+<div class="paragraph">
+<p>1,  4
+3,  10
+6,  15
+9,  8
+12, 5</p>
+</div>
+<div class="paragraph">
+<p>1,  20
+3,  15
+6,  13
+9,  12
+12, 14</p>
+</div>
+</div>
+</div>
+<div class="openblock chart">
+<div class="content">
+<div class="paragraph">
+<p>1,  3
+2,  5
+6,  8
+9,  8
+12, 5
+18, 7</p>
+</div>
+<div class="paragraph">
+<p>1,  18
+2,  15
+6,  13
+9,  12
+12, 14
+19, 14</p>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p><a href="https://blog.csdn.net/somken/article/details/108262323" class="bare">https://blog.csdn.net/somken/article/details/108262323</a></p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_属性">属性</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>可以使用双冒号来定义属性</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>计数器属性的使用</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Parts</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Part Id</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PX-1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description of PX-1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PX-2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description of PX-2</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_转义直译">转义直译</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>`\`可以将转义字符进行直译</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>*Stars* is not rendered as bold text.
+The asterisks around the word are preserved.</p>
+</div>
+<div class="paragraph">
+<p>{author} is not resolved to the author name. The curly brackets around the word are preserved. <code>A--Z</code> connects A to Z in monospace using two dashes. The dashes are not replaced by an em dash. [[Word]] is not interpreted as an anchor. The double brackets around the word are preserved. [[[Word]]] is not interpreted as a bibliography anchor. The triple brackets around the word are preserved. In these cases, the backslash character is automatically removed.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>(+)号也能对转义字符进行直译</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>Text inside {plus} characters</code> is not formatted.
+However, special characters like &lt; and &gt; are still escaped.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>pass宏直译</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><u>underline me</u> is also underlined.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>(+)直译</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><u>underline me</u> is underlined.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">NOTE</div>
+</td>
+<td class="content">
+另外asciidoc兼容markdown语法
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><a href="https://blog.csdn.net/weixin_34409741/article/details/94689288">asciidoc使用说明</a></p>
+</div>
+<hr>
+<div class="paragraph">
+<p>A statement .<sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup> A bold statement!<sup class="footnote" id="_footnote_disclaimer">[<a id="_footnoteref_2" class="footnote" href="#_footnotedef_2" title="View footnote.">2</a>]</sup> Another bold statement.<sup class="footnoteref">[<a class="footnote" href="#_footnotedef_2" title="View footnote.">2</a>]</sup></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<hr>
+<div class="footnote" id="_footnotedef_1">
+<a href="#_footnoteref_1">1</a>. Clarification about this statement.
+</div>
+<div class="footnote" id="_footnotedef_2">
+<a href="#_footnoteref_2">2</a>. Opinions are my own.
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-06-04 19:14:01 +0800
+Last updated 2022-06-07 21:32:53 +0800
 </div>
 </div>
 </body>
