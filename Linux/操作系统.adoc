@@ -93,6 +93,18 @@ andrew@andrew-G3-3590:~$ kill -l
 63) SIGRTMAX-1	64) SIGRTMAX
 ----
 信号是进程之间传递消息的一种方法，信号全称为软中断信号，当然有诶有些人称作软中断 +
-进程间可以通过调用系统调用kill发送信号
+进程间可以通过调用系统调用kill发送信号，
+[red]#几种常见的信号#：
 
-
+[source, bash]
+----
+SIGHUP 1 A 终端挂起或者控制进程终止
+SIGINT 2 A 键盘中断（如break键被按下）
+SIGQUIT 3 C 键盘的退出键被按下
+SIGILL 4 C 非法指令
+SIGABRT 6 C 由abort(3)发出的退出指令
+SIGFPE 8 C 浮点异常
+SIGKILL 9 AEF Kill信号
+SIGSEGV 11 C 无效的内存引用
+SIGPIPE 13 A 管道破裂: 写一个没有读端口的管道
+----
