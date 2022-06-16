@@ -31,8 +31,18 @@ Usage: tcpdump [-aAbdDefhHIJKlLnNOpqStuUvxX#] [ -B size ] [ -c count ]
 
 === 认识tcpdump
 刚开始接触tcpdump肯定会被这些参数给吓到，其实实际使用中只需要掌握几个关键的参数就行了。
+
+
+==== 抓包
 53端口是DNS使用的端口，DNS分为查询和应答：
-DSN requires -- DNS response
+DSN requires -- DNS response，来让我们看一下我们的电脑在查询哪些DNS
+
+[TIP]
+====
+-i : 指定网卡 any代表所有网卡
+port : 指定端口
+====
+
 [source, bash]
 ----
 andrew@andrew-G3-3590:~$ sudo tcpdump -i any port 53
@@ -44,13 +54,100 @@ listening on any, link-type LINUX_SLL (Linux cooked v1), capture size 262144 byt
 00:06:03.876639 IP localhost.domain > localhost.45144: 12890 1/0/1 PTR localhost. (75)
 00:06:04.057558 IP localhost.45872 > localhost.domain: 63926+ [1au] A? accounts.google.com. (48)
 00:06:04.057946 IP localhost.domain > localhost.45872: 63926 1/0/1 A 142.251.42.237 (64)
+----
 
+我有个程序，监听所有的网卡上，监听端口是1668，我应该如何抓包
+[source, bash]
+----
+tcpdump -i any port 1668
+----
+如果我已经知道对方会连接我的IP: 192..168.1.102
+[source, bash]
+----
+tcpdump port 1668 and host 192.168.1.102
+----
+
+如果我想将当前网络数据保存，便于后期查看，可以使用-w将数据进行落盘
+[source, bash]
+----
+tcpdump -w packets.pcap
+----
+
+上面的抓包都不会显示具体的数据内容，如果我想看我发送的数据正确与否可以添加-A
+当然如果想从网络数据中过滤自己想要的数据使用ngrep更加合适一点
+[source, bash]
+----
+# 抓 80端口的数据，并将数据内容打印出来
+tcpdump -A port 80
+----
+
+默认情况下，tcpdump会显示host主机名而不是IP地址，如果想显示IP地址而不是主机名可以添加-n选项
+
+如果想看下抓包过程中的网卡信息，可以添加-选项
+[source, bash]
+----
+root@andrew-G3-3590:/home/andrew# tcpdump -e port 53
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on wlp4s0, link-type EN10MB (Ethernet), capture size 262144 bytes
+22:08:33.408154 40:23:43:e1:18:a9 (oui Unknown) > f4:6d:2f:85:91:74 (oui Unknown), ethertype IPv4 (0x0800), length 72: 192.168.0.101.49171 > 192.168.1.1.domain: 60397+ A? www.bing.com. (30)
+22:08:33.408427 40:23:43:e1:18:a9 (oui Unknown) > f4:6d:2f:85:91:74 (oui Unknown), ethertype IPv4 (0x0800), length 71: 192.168.0.101.37056 > 192.168.1.1.domain: 3124+ A? cn.bing.com. (29)
 ----
 
 
+==== 常用的抓包选项
+1. -i 指定在那张网卡上抓包，-i any可以在所有网卡上抓包
 
+    tcpdump -i lo
 
+2. -w 将抓包内容保存到本地，而不是打印出来
 
+    tcpdump host 8.8.8.8 -w my_pack.pcap
 
+3. -c 当将抓包内容保存到本地时，有必要指定一下抓包的个数，数据太多导致本地磁盘写满
 
+    tcpdump -c 10000
 
+==== 需要注意的内容
+
+- source 和 dest IP地址和端口
+- 时间戳
+- TCP flags
+- DNS query
+
+image::../image/image-2022-06-16-22-23-29-702.png[udp-tcp]
+
+image::../image/image-2022-06-16-22-24-57-048.png[rst]
+
+==== BPF Filter
+当你使用 port 53来过滤DNS数据时， port 53就是一个BPF Filter
+
+tcpdump port 53 会将目的端口或者源端口为53的数据抓取
+
+tcpdump host 192.168.0.12 会将目的地址或者源地址为192.168.0.12的数据包捕获
+
+同样BPF Filter语言中可以使用and or not等连接词将不同的语句绑定一起使用
+
+host 1.2.3.4 and port 53 就是抓取目的地址为1.2.3.4:53 后者地址为1.2.3.4:53的网络数据
+
+==== 小技巧
+
+如果你的设备是嵌入式设备，或者设备上没有安装wireshark，这个时候你要是还想像使用wireshark本地抓包一样来实时用wireshark查看设备上的网络数据，可以借助nc或者ssh实现远程实时抓包
+
+在需要抓包的设备上，输入一下命令, 其实就是将tcpdump抓到的数据，传递给nc, nc会将数据通过端口 11111传递给链接上来的客户端
+[source, bash]
+----
+tcpdump -i any port 53  -s0 -w - | nc -l -p 11111
+----
+在有wireshark的机子上使用
+[source, bash]
+----
+# 使用nc从127.0.0.1:11111上既然收数据，兵节哀给你数据通过管道传递给wireshark
+nc 127.0.0.1  11111 | wireshark -k -S -i -
+----
+
+如果没有wireshark需要抓包的设备上支持ssh可以直接使用如下命令进行抓包
+
+[source, bash]
+----
+ssh root@some.host "tcpdump -i eth0 -l -w -" | wireshark -k -i -
+----
