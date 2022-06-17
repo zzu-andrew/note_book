@@ -1,0 +1,85 @@
+
+:toc:
+
+:icons: font
+
+// 保证所有的目录层级都可以正常显示图片
+:path: C++知识点总结/
+:imagesdir: ../image/
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+endif::rootpath[]
+
+
+== Linux二进制分析
+
+.汇编
+****
+如果你能够读得懂汇编源，那么所有的程序对你来说，都是开源的
+****
+
+== Linux环境和相关工具
+
+[NOTE]
+====
+Linux自带了很多好用的二进制分析工具，这些可以在binutils中获取，具体的网址：
+http://www.gnu.org/software/binutils[binutils]，里面包含了一些用于分析和破解的工具
+====
+
+=== Linux工具
+
+==== *GDB*后端程序员必备
+
+我在飞书上有对应的文章讲解
+https://ny5odfilnr.feishu.cn/docs/doccn3oRPLnUMmKnfc1qu4WKZIe[GDB]，同时也在b站上更新了视频讲解
+https://www.bilibili.com/video/BV1Df4y1c7gG?spm_id_from=333.999.0.0&vd_source=d0f1fc53c13a7dcbda92faa2e368b71e[GDB讲解]
+
+
+
+
+
+
+== ELF二进制格式
+
+
+
+
+== Linux进程追踪
+
+
+
+
+
+== ELF病毒技术-(LinuxSll/Unix技术)
+
+
+
+== Linux二进制保护
+
+
+
+
+== Linux下二进制取证分析
+
+
+== 进程内存取证分析
+
+
+
+== ECFS-扩展核心文件快照技术
+
+
+
+
+== Linux二进制/proxy/kcore分析
+
+
+
+
+
+
+
+
+
