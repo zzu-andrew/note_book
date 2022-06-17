@@ -16,3 +16,10 @@ add_executable(exception_sample
 target_include_directories(exception_sample
         PUBLIC exception_sample
         PUBLIC ../inc)
+
+
+add_executable(ftrace
+        ftrace/ftrace.c)
+
+
+

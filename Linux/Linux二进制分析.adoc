@@ -30,11 +30,134 @@ http://www.gnu.org/software/binutils[binutils]，里面包含了一些用于分�
 
 === Linux工具
 
-==== *GDB*后端程序员必备
+==== *GDB* 后端程序员必备
 
 我在飞书上有对应的文章讲解
 https://ny5odfilnr.feishu.cn/docs/doccn3oRPLnUMmKnfc1qu4WKZIe[GDB]，同时也在b站上更新了视频讲解
 https://www.bilibili.com/video/BV1Df4y1c7gG?spm_id_from=333.999.0.0&vd_source=d0f1fc53c13a7dcbda92faa2e368b71e[GDB讲解]
+
+==== objdump
+
+对代码和二进制文件可以进行快速的反汇编，但是要针对有挑战性或者针对恶意软件时，objdump就显现出局限性了。其最主要的缺陷就是需要依赖ELF头，并且不会进行控制流分析
+
+
+- 查看ELF文件中所有节的数据或代码
+
+`objdump -D
+[red]#object#`
+
+- 只查看ELF文件中的程序代码
+
+`objdump -d
+[red]#object#`
+
+- 查看ELF文件所有符号
+
+`objdump -tT
+[red]#object#`
+
+==== objcopy
+
+`objcopy` 很小但也很强大，可以用他来分析和修改任意类型的ELF文件，可以单独修改ELF文件的一小段，比如将A文件的 `.data` 段复制到B文件中
+
+`objcopy –only-section=.data <infile> <outfile>`
+
+
+==== *strace*
+
+系统调用追踪，基于ptrace,strace 通过在一个循环中使用PTRACE_SYSCALL 请求来显示运行中程序的系统调用（也称为 syscalls）活动相关的信息以及程序执行中捕捉到 的信号量。 strace 在调试过程中非常有用，也可以用来收集运行时系统调用相关的信息
+
+- 使用strace来追踪一个基本的程序
+
+`strace ./main -o ls.out`
+
+- 附加到一个运行的进程上
+
+`strace -p <pid> -o deamon.out`
+
+- 如果想看读入到文件描述符3中的所有数据，可以运行下面的命令
+
+`strace –e read=3 /bin/ls`
+
+同样使用 `-e write=3` 可以查看写入到对应文件描述符中国的数据
+
+==== ltrace
+
+库追踪，追踪库中用到的库函数
+
+[source, bash]
+----
+- Print (trace) library calls of a program binary:
+   ltrace ./{{program}}
+
+ - Count library calls. Print a handy summary at the bottom:
+   ltrace -c {{path/to/program}}
+
+ - Trace calls to malloc and free, omit those done by libc:
+   ltrace -e malloc+free-@libc.so* {{path/to/program}}
+
+ - Write to file instead of terminal:
+   ltrace -o {{file}} {{path/to/program}}
+----
+
+==== ftrace
+
+函数追踪
+
+[red]#https://github.com/elfmaster/ftrace[github ftrace]#
+
+==== readelf
+
+readelf命令是一个非常有用的解析工具，在进行正式的反汇编之前需要收集目标文件的相关信息，该工具能够提供收集信息所需要特定的ELF的所有数据。主要有以下几种：
+
+a. 符号
+b. 段
+c. 节
+d. 重定向入口
+e. 数据动态链接
+
+*常用语句*
+
+- 查询节表头
+
+`readelf -S <object>`
+
+- 查询程序表头
+
+`readelf -l <object>`
+
+- 查询ELF文件头数据
+
+`readelf -e <object>`
+
+- 查询符号表
+
+`readelf -s <object>`
+
+- 查询重定位入口
+
+`readelf -r <object>`
+
+- 查询动态段
+
+`readelf -d <object>`
+
+
+
+
+=== 设备和文件
+
+linux中有许多设备和文件，还有/proc入口，对于反汇编和工程师来说都非常有用
+
+
+
+
+
+
+
+
+
+
 
 
 
