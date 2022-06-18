@@ -26,6 +26,8 @@ int main(int argc, char *argv[]) {
     // extern也有作用域
     //Externally();
 
+    std::cout << "test" << std::endl;
+
 
 
 

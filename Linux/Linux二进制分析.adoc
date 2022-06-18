@@ -244,6 +244,7 @@ ELF文件已经成为UNIX和类UNIX系统的标准二进制格式。 ELF文件�
 通过对ELF文件的学习你可以理解程序如何映射到磁盘兵加载到内存中的
 
 [TIP]
+.ELF文件知识点
 ====
 - ELF文件类型
 - 程序头
@@ -256,12 +257,379 @@ ELF文件已经成为UNIX和类UNIX系统的标准二进制格式。 ELF文件�
 
 === ELF文件类型
 
+ELF通常有以下几种文件类型
+
+- `ET_NONE` 未知类型，标明文件类型不确定或者还没有被定义
+- `ET_REL` 从定位文件，ELF类型标记为relocatable意味着该文件被标记为一段可重定位的代码，有时也称之为目标文件，其实说白了就是编译代码之后留下的.o文件，这些文件中包含了创建可执行文件所需的代码和数据。
+- `ET_EXEC` 可执行文件。ELF类型为executable，表明这个文件被标记为可执行文件，也就是可执行程序
+- `ET_DYN` 共享目标文件，ELF类型为dynamic，也称之为动态共享库
+- `ET_CORE` 核心文件，也成为核心转存储文件，是程序崩溃时的镜像信息
+
+可以通过 `man 5 elf` 来查看ELF文件的详细信息
+
+ELF文件头的结构体定义如下
+
+[source, cpp]
+----
+#define EI_NIDENT 16
+typedef struct {
+   unsigned char e_ident[EI_NIDENT];
+   uint16_t      e_type;
+   uint16_t      e_machine;
+   uint32_t      e_version;
+   ElfN_Addr     e_entry;
+   ElfN_Off      e_phoff;
+   ElfN_Off      e_shoff;
+   uint32_t      e_flags;
+   uint16_t      e_ehsize;
+   uint16_t      e_phentsize;
+   uint16_t      e_phnum;
+   uint16_t      e_shentsize;
+   uint16_t      e_shnum;
+   uint16_t      e_shstrndx;
+} ElfN_Ehdr;
+----
+
+=== ELF程序头
+
+ELF程序头是对二进制文件段的描述，是程序装载必必需的一部分。段(segment)是内核装载时被解析的，描述了磁盘上可执行文件的内存布局，以及如何映射到内存中。可以通过引用原始ELF头中名为e_phoff(程序头偏移量)的偏移量来得到程序比头表。
+
+[[PHdr01]]
+[source, cpp]
+----
+typedef struct {
+   uint32_t   p_type;
+   Elf32_Off  p_offset;
+   Elf32_Addr p_vaddr;
+   Elf32_Addr p_paddr;
+   uint32_t   p_filesz;
+   uint32_t   p_memsz;
+   uint32_t   p_flags;
+   uint32_t   p_align;
+} Elf32_Phdr;
+
+typedef struct {
+   uint32_t   p_type;   // 段类型
+   uint32_t   p_flags; // 段标记 I.E (execute|read|write)
+   Elf64_Off  p_offset; // 段偏移
+   Elf64_Addr p_vaddr; // 段虚拟地址
+   Elf64_Addr p_paddr; // 段物理地址
+   uint64_t   p_filesz; // 段在文件中的大小
+   uint64_t   p_memsz;  // 段在内存中的大小
+   uint64_t   p_align; // 段在内存中的对其方式
+} Elf64_Phdr;
+----
+
+==== `PT_LOAD`
+
+一个可执行程序最少有一个`PT_LOAD`类型的段，这类程序头秒数的是可装载的段，也就是说这种类型的段将被装载或者映射到内存中。 +
+一个需要动态链接的ELF可执行文件，通常需要包含以下两个可装载的段(PT_LOAD):
+
+- 存放程序代码的text段
+- 存放全局变量和动态链接信息的dta段
+
+上面两个段，会按照p_align的对其的方式在内存中对其。
+
+[IMPORTANT]
+====
+通常将text段代码权限设置为 PF_X|PF_R(读和可执行) +
+将data段的权限设置为 PF_W|PF_R(读和写)，有些病毒通过修改ELF文件的这些权限来实现病毒感染，如：千面人病毒(polymorphic virus)
+====
+
+==== `PT_DYNAMIC` 动态段的 `Phdr`
+
+动态段是动态链接可执行文件特有的，包含了动态连接器所必须的一些信息，在动态段包含了一些标记和指针。
+
+- 运行时需要链接的共享库列表
+- 全局偏移表(GOT)的地址
+- 从定位条目的相关信息
+
+man手册中有这样一段内容，说明了d_tag的作用
+
+.d_tag
+****
+The .dynamic section contains a series of structures that hold relevant dynamic linking  informa‐
+tion.  The d_tag member controls the interpretation of d_un.
+[source, cpp]
+typedef struct {
+   Elf32_Sword    d_tag;
+   union {
+       Elf32_Word d_val;
+       Elf32_Addr d_ptr;
+   } d_un;
+} Elf32_Dyn;
+extern Elf32_Dyn _DYNAMIC[];
+
+[source, cpp]
+typedef struct {
+   Elf64_Sxword    d_tag;
+   union {
+       Elf64_Xword d_val;
+       Elf64_Addr  d_ptr;
+   } d_un;
+} Elf64_Dyn;
+extern Elf64_Dyn _DYNAMIC[];
+****
+
+动态段包含了一些结构体，如上，这些结构体中存放着动态链接相关的信息，d_tag成员变量控制着d_un的含义。
+
+[cols="1,3"]
+.标记名List
+|===
+|标记名 |描述
+
+|DT_HASH
+|符号散列表地址
+
+|DT_STRTAB
+|字符串表的地址
+
+|DT_SYMTAB
+|符号表地址
+
+|DT_RELA
+|相对地址重定位表的地址
+
+|DT_RELASZ
+|Rela 表的字节大小
+
+|DT_RELAENT
+|Rela 表条目的字节大小
+
+|DT_STRSZ
+|字符串表的字节大小
+
+|DT_SYMENT
+|符号表条目的字节大小
+
+|DT_INIT
+|初始化函数的地址
+
+|DT_FINI
+|终止函数的地址
+
+|DT_SONAME
+|共享目标文件名的字符串表偏移量
+
+|DT_RPATH
+|库搜索路径的字符串表偏移量
+
+|DT_SYMBOLIC
+|修改链接器，在可执行文件之前的共享目标文件中搜索符号
+
+|DT_REL
+|Rel relocs 表的地址
+
+|DT_RELSZ
+|Rel 表的字节大小
+
+|DT_RELENT
+|Rel 表条目的字节大小
+
+|DT_PLTREL
+|PLT 引用的 reloc 类型（ Rela 或 Rel）
+
+|DT_DEBUG
+|还未进行定义，为调试保留
+
+|DT_TEXTREL
+|缺少此项表明重定位只能应用于可写段
+
+|DT_JMPREL
+|仅用于 PLT 的重定位条目地址
+
+|DT_BIND_NOW
+|指示动态链接器在将控制权交给可执行文件之前处理所有的重定位
+
+|DT_RUNPATH
+|库搜索路径的字符串表偏移量
+
+|===
+
+
+==== PT_NONE
+
+该段可以用来保存与特定供应商或者系统相关的附加信息，一些供应商或者系统构建者有时需要在目标文件中标记上特定的信息，以便于对程序的一致性、兼容性进行检查。比较有意思的是，因为可执行文件运行时并不需要这一段，这个段成为了很容易受感染的段。
+
+具体的可参见：
+http://vxheavens.com/lib/vhe06.html[VHE]
+
+==== PT_INTERP
+PT_INTERP段只将位置和大小信息存放在一个以null结尾的字符串中，是对程序解释器位置的描述。例如 /libc/linux-ld.so.2一般是指动态连接器的位置，也即程序解释器的位置
+
+==== PT_PHDR
+PT_PHDR段保存了程序头表本身的位置和大小。phdr表保存了所有Phdr对文件中段的描述信息
+
+可以使用 `readelf –l <filename>` 命令来查看文件的Phdr表：
+
+[[JT01]]
+[source, bash]
+.readelf -f <filename>
+----
+andrew@andrew-G3-3590:/work/note_book/cmake-build-debug/src$ readelf -l ./main
+
+Elf 文件类型为 DYN (共享目标文件)
+Entry point 0x1100
+There are 13 program headers, starting at offset 64
+
+程序头：
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flags  Align
+  PHDR           0x0000000000000040 0x0000000000000040 0x0000000000000040
+                 0x00000000000002d8 0x00000000000002d8  R      0x8
+  INTERP         0x0000000000000318 0x0000000000000318 0x0000000000000318
+                 0x000000000000001c 0x000000000000001c  R      0x1
+      [Requesting program interpreter: /lib64/ld-linux-x86-64.so.2]
+  LOAD           0x0000000000000000 0x0000000000000000 0x0000000000000000
+                 0x0000000000000ab8 0x0000000000000ab8  R      0x1000
+  LOAD           0x0000000000001000 0x0000000000001000 0x0000000000001000
+                 0x00000000000003f5 0x00000000000003f5  R E    0x1000
+  LOAD           0x0000000000002000 0x0000000000002000 0x0000000000002000
+                 0x0000000000000250 0x0000000000000250  R      0x1000
+  LOAD           0x0000000000002d60 0x0000000000003d60 0x0000000000003d60
+                 0x00000000000002b0 0x00000000000003f8  RW     0x1000
+  DYNAMIC        0x0000000000002d80 0x0000000000003d80 0x0000000000003d80
+                 0x0000000000000200 0x0000000000000200  RW     0x8
+  NOTE           0x0000000000000338 0x0000000000000338 0x0000000000000338
+                 0x0000000000000020 0x0000000000000020  R      0x8
+  NOTE           0x0000000000000358 0x0000000000000358 0x0000000000000358
+                 0x0000000000000044 0x0000000000000044  R      0x4
+  GNU_PROPERTY   0x0000000000000338 0x0000000000000338 0x0000000000000338
+                 0x0000000000000020 0x0000000000000020  R      0x8
+  GNU_EH_FRAME   0x0000000000002014 0x0000000000002014 0x0000000000002014
+                 0x0000000000000074 0x0000000000000074  R      0x4
+  GNU_STACK      0x0000000000000000 0x0000000000000000 0x0000000000000000
+                 0x0000000000000000 0x0000000000000000  RW     0x10
+  GNU_RELRO      0x0000000000002d60 0x0000000000003d60 0x0000000000003d60
+                 0x00000000000002a0 0x00000000000002a0  R      0x1
+
+ Section to Segment mapping:
+  段节...
+   00
+   01     .interp
+   02     .interp .note.gnu.property .note.gnu.build-id .note.ABI-tag .gnu.hash .dynsym .dynstr .gnu.version .gnu.version_r .rela.dyn .rela.plt
+   03     .init .plt .plt.got .plt.sec .text .fini
+   04     .rodata .eh_frame_hdr .eh_frame
+   05     .init_array .fini_array .dynamic .got .data .bss
+   06     .dynamic
+   07     .note.gnu.property
+   08     .note.gnu.build-id .note.ABI-tag
+   09     .note.gnu.property
+   10     .eh_frame_hdr
+   11
+   12     .init_array .fini_array .dynamic .got
+----
+
+从上到下一次是，PT_PHDR,PT_INTERP,PT_LOAD段 +
+text段是可读可执行，data段是可读可写，这两个段都是按照0x1000(4096)的对其标识符，放好对应一页
+
+=== ELF节头
+
+[IMPORTANT]
+.segment and section
+====
+在开始之前段(segment)和节不能搞混了，经常有人把段和节搞混了，节不是段。段是程序执行的必要组成部分，在每个段中会有代码或者数据被划分为不同的节。节头表是对这些节的位置和大小的描述，主要用于调试。
+====
+
+节头对于程序来说不是必需的，没有节头表程序仍然可以正常执行，因为节头表没有对程序的内存布局进行描述，对程序内存布局的描述是程序头表的任务。节头只是对程序头的补充。使用命令 `readelf -l` 可以查看一个可执行程序的节头，可以很直观的看到节和段之间的关系
+
+<<JT01,节头>>
+
+如果一个程序没有节头，并不是意味着可执行文件中没有节了，知识节头的信息没有，无法通过节头来引用节而已。对于调试器或者反汇编的程序来说只是可以参考的信息变少了。
+
+.总结
+每一个节都保存了某种类型的代码或者数据，数据可以是程序中的全局变量，也可以是连接器所需的动态链接信息。每个可执行程序都有节但是不一定有节头，尤其是有人故意将节头从表中删除(去除节头增加调试难度)，当然程序默认是有节头的。
+常见的调试工具gdb，objcopy, objdump等都需要使用节头来定位到符号数据的节来获取符号信息。如果没有节头，那么gdb和objdump这些工具几乎无用武之地
+
+上面我们展示了Phdr<<PHdr01,程序头>>，这里我们看一下节头的数据结构：
+
+[source, cpp]
+.section struct
+----
+typedef struct {
+   uint32_t   sh_name;
+   uint32_t   sh_type;
+   uint32_t   sh_flags;
+   Elf32_Addr sh_addr;
+   Elf32_Off  sh_offset;
+   uint32_t   sh_size;
+   uint32_t   sh_link;
+   uint32_t   sh_info;
+   uint32_t   sh_addralign;
+   uint32_t   sh_entsize;
+} Elf32_Shdr;
+
+typedef struct {
+   uint32_t   sh_name;  // offet into shdr string table for shdr name
+   uint32_t   sh_type; // 类型 I.E SHT_PROGBITS
+   uint64_t   sh_flags; // shdr flags I.E SHT_ERITE|SHT_ALLOC
+   Elf64_Addr sh_addr;  // 指向节开始的地址
+   Elf64_Off  sh_offset; // shdr在文件开头的偏移的大小
+   uint64_t   sh_size; // 当前节占用的大小
+   uint32_t   sh_link; // 指向其他节
+   uint32_t   sh_info; // 具体含义 依赖类型的设置
+   uint64_t   sh_addralign; // 当前节对其方式 按照那种方式对其
+   uint64_t   sh_entsize; // size of each certain entries that may be in section
+} Elf64_Shdr;
+----
+
+==== `.text` 节
+
+..text
+****
+[yellow]#.text# 节是保存了程序代码指令的代码节。一段可执行程序，如果存在 Phdr，.text就会存在于text段中。由于.text保存了程序代码，因此此节类型为SHT_PROGBITS
+****
+
+==== `.rodata` 节
+
+..rodata
+****
+只读数据如 `printf("hello world")` 中的字符串就会被存放到只读节.rodata中。因为是只读的，所以只能在text段找到.rodata而data段中不存在.rodata节。因为是只读的所以.rodata节的类型为SHT_PROGBITS
+****
+
+==== `.plt` 节
+
+..plt
+****
+.plt节中包含了动态连接器调用从共享库导入的函数所必须的相关代码，由于其存在于text段，同样也是保存了代码，因此类型为SHT_PROGBITS
+****
+
+==== `.data` 节
+
+..data
+****
+这里千万不要弄混了，.data节和data段是两个东西，.data节存在于data段中，保存了初始化的全局变量等数据。由于其保存了程序的变量数据，因此此类型为SHT_PROGBITS
+****
+
+==== `.bss` 节
 
 
 
+==== `.got.plt` 节
+
+
+==== `.dynsym` 节
+
+
+==== `.synstr` 节
+
+
+==== `.rel.*` 节
+
+
+==== `.hash` 节
+
+
+==== `.symtab` 节
 
 
 
+==== `.strtab` 节
+
+==== `.shstrtab` 节
+
+
+==== `.ctors` 和 `.dtors` 节
 
 
 
