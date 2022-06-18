@@ -115,6 +115,12 @@ NOTE: New data
 
 TIP: 提示
 
+[TIP]
+.title
+====
+提示
+====
+
 - 当想对一一整块内容使用警告时，可以将标签设置为块上属性
 
 [IMPORTANT]

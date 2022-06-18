@@ -149,22 +149,135 @@ e. 数据动态链接
 
 linux中有许多设备和文件，还有/proc入口，对于反汇编和工程师来说都非常有用
 
+==== `/proc/<pid>/maps`
+
+该maps中保存了一个进程镜像的布局，通过展现每个内存映射来实现，展现的内容包含可执行文件、共享库、栈、堆和VDSO等，在解析进程空间布局的时候非常有用
 
 
+==== `/proc/kcore`
+kcore是proc文件系统的一项，linux内核的动态核心文件。其实就是使用ELF核心文件形式来 展现出原生内核内存转储，可以使用gdb对  `/proc/kcore/` 来对内核进行调试和分析
+
+==== `/bootstrap/System.map.*`
+
+里面包含了内核的所有符号表
+
+==== `/proc/kallsyms`
+
+和System.map类似，区别就是kallsyms是内核所属的/proc的一个入口并且可以动态更新，如果安装了新的LKM(Linux Kernel Module)，符号会自动添加到 `/processor/kallsyms` 中，如果能在 `CONFIG_KALLSYMS_ALL` 内核配置中指明，这可以包含内核中的全部符号。
+
+==== `/proc/iomem`
+
+iomem与`/proc/<pid>/maps` 类似，不过是和系统内存相关的，如果想知道内核text段所映射的物理内存地址，可以通过搜索`Kernel` 字符串进行查找，要使用root查找，否则给出的地址都是空的
+
+`grep "Kernel" /proc/iomem`
+
+[source, bash]
+----
+andrew@andrew-G3-3590:/proc$ sudo grep "Kernel" /proc/iomem
+  195c00000-196c02666 : Kernel code
+  196e00000-197840fff : Kernel rodata
+  197a00000-197d6e33f : Kernel data
+  198068000-1985fffff : Kernel bss
+----
+
+==== `ECFS`
+
+extended core file snapshot 扩展核心文件快照，是一项特殊的核心转存储技术，专门为进程镜像的高级取证分析所设计。
+https://github.com/elfmaster/ecfs[ECFS]
+
+=== 连接器相关环境指针
+
+动态加载/连接器以及链接的概念，在程序链接执行的过程中都是避不开的基本组成部分。
+
+==== `LD_PRELOAD` 环境变量
+
+指定到一个库的路径，这里面的库比其他库有更高的优先级，这就允许预加载库中的函数和符号能够覆盖掉后续链接库中的函数和符号。 +
+运用该技术，允许你通过重定向共享库函数来进行运行时修复，通常运用该技术绕过反调试代码。
+
+==== `LD_SHOW_AUXV` 环境变量
+
+该环境变量能够通知程序加载器来展示程序运行时的辅助向量，辅助向量是放在程序栈(通过内核的ELF常规加载方式)上的信息，附带了传递给动态连接器的程序相关的信息。
+例如，要想获取进程镜像 VDSO 页的内存地址（也可以使用 maps 文件获取，之前介绍过），就需要查询 AT_SYSINFO。
+
+[source, bash]
+----
+andrew@andrew-G3-3590:/proc$ LD_SHOW_AUXV=1 whoami
+AT_SYSINFO_EHDR:      0x7ffdd6ae4000
+AT_HWCAP:             bfebfbff
+AT_PAGESZ:            4096
+AT_CLKTCK:            100
+AT_PHDR:              0x55afacc19040
+AT_PHENT:             56
+AT_PHNUM:             13
+AT_BASE:              0x7f99995fc000
+AT_FLAGS:             0x0
+AT_ENTRY:             0x55afacc1b700
+AT_UID:               1000
+AT_EUID:              1000
+AT_GID:               1000
+AT_EGID:              1000
+AT_SECURE:            0
+AT_RANDOM:            0x7ffdd6a2e279
+AT_HWCAP2:            0x2
+AT_EXECFN:            /usr/bin/whoami
+AT_PLATFORM:          x86_64
+andrew
+----
 
 
+==== 连接器脚本
 
+连接器脚本是一个值得重点关注，因为连接器脚本是由连接器解释的，把程序划分为相应的节、内存和符号。默认的连接器脚本可以使用 `ld -verbose` 进行查看
 
-
-
-
-
-
-
-
+ld 链接器程序有其自己解释的一套语言，当有文件（如可重定位的目标
+文件、共享库和头文件）输入时， ld 链接器程序会用自己的语言来决定输出
+文件（如可执行程序）的组织方式。例如，如果输出的是一个 ELF 可执行文
+件，链接器脚本能够决定该输出文件的布局，以及每个段里面包含哪些节。
+另外举一个例子： .bss 节总是放在 data 段的末尾，这就是链接器脚本决定
+的
 
 
 == ELF二进制格式
+
+ELF文件已经成为UNIX和类UNIX系统的标准二进制格式。 ELF文件可以用于可执行文件，共享库，目标文件，coredump文件以及内核引导镜像文件。
+
+通过对ELF文件的学习你可以理解程序如何映射到磁盘兵加载到内存中的
+
+[TIP]
+====
+- ELF文件类型
+- 程序头
+- 节头
+- 符号
+- 重定位
+- 动态链接
+- 编码ELF解析器
+====
+
+=== ELF文件类型
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
