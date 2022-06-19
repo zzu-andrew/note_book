@@ -591,7 +591,7 @@ typedef struct {
 
 ..plt
 ****
-.plt节中包含了动态连接器调用从共享库导入的函数所必须的相关代码，由于其存在于text段，同样也是保存了代码，因此类型为SHT_PROGBITS
+`.plt` 节中包含了动态连接器调用从共享库导入的函数所必须的相关代码，由于其存在于text段，同样也是保存了代码，因此类型为SHT_PROGBITS
 ****
 
 ==== `.data` 节
@@ -603,33 +603,407 @@ typedef struct {
 
 ==== `.bss` 节
 
-
+..bss
+****
+该节保存了未进行初始化的全局数据，属于data段的一部分，占用的空间一般也不会超过4字节，仅仅用来表示这个节本身的空间大小。由于.bss节未保存实际数据，因此节类型为SHT_NOBITS
+****
 
 ==== `.got.plt` 节
 
+..got.plt
+****
+`.got` 节保存了全局偏移表，.got和.plt节一起提供了对导入的共享库函数的访问入口，由于动态连接器在运行时进行修改，如果攻击者获得了堆或者.bss漏洞的一个指针大小的写原语，就可以实现对该节进行任意的修改。因为该节跟程序执行密切相关，因此该节类型为SHT_PROGBITS
+****
 
 ==== `.dynsym` 节
 
+..dynsym
+****
+共享库的动态符号信息，该节保存在text段中，类型为SHT_DYNSYM
+****
 
 ==== `.synstr` 节
 
+..synstr
+****
+动态符号字符串表，这些字符串代表了符号的名称，都以空字符串为终止符
+****
 
 ==== `.rel.*` 节
 
+..rel.*
+****
+重定位节保存了重定位相关的信息， 这些信息描述了如何在链接或者运行
+时，对 ELF 目标文件的某部分内容或者进程镜像进行补充或修改。该节类型为SHT_REL
+****
 
 ==== `.hash` 节
 
+..hash
+****
+`.hash` 节有时也被称为.gnu.hash, 保存了一个用于查询符号表的散列表
+****
 
 ==== `.symtab` 节
 
-
+..symtab
+****
+该节保存了Elfn_sym类型的符号信息，类型为SHT_SYMTAB
+****
 
 ==== `.strtab` 节
 
+..strtab
+****
+保存符号字符串表，表中的内容会被.symtab的Elfn_sym结构中的st_name条目引用，因为保存了字符串表类型为SHT_STRTAB
+****
+
 ==== `.shstrtab` 节
 
+..shstrtab
+****
+保存节头字符串表，该表是一个以空字符终止的字符串的 集合，字符串保存了每个节的节名，如.text、 .data 等。有一个名为 e_shsrndx 的 ELF 文件头条目会指向.shstrtab 节， e_shstrndx 中保存 了.shstrtab 的偏移量。由于其保存了字符串表，因此节类型被标记为
+SHT_STRTAB
+****
 
 ==== `.ctors` 和 `.dtors` 节
+
+..ctors 和 .dtors
+****
+这两个节保存了指向构造函数 和析构函数的函数指针，构造函数是在 main 函数执行之前需要执行的代码， 析构函数是在 main 函数之后需要执行的代码。
+****
+
+=== 段的布局
+
+==== text段的布局如下
+
+- [.text] : 程序代码
+- [.rodata] : 只读数据
+- [.hash] : 符号散列表
+- [.dynsym] : 共享目标文件符号数据
+- [.dynstr] : 共享目标文件符号名称
+- [.plt] : 过程链接表
+- [.rel.got] : G.O.T重定位数据
+
+==== data段的布局
+
+- [.data] : 全局初始化变量
+- [.dynamic] : 动态链接结构和对象
+- [.got.plt] : 全局偏移表
+- [.bss] : 全局未初始化变量
+
+==== 查看目标的段布局
+
+test.o由 gcc -c 编译出来的 ET_REL文件(目标文件)，我们可以使用readelf -S 来查看该文件的节头
+
+.readelf -S
+[source, bash]
+----
+andrew@andrew-G3-3590:/work/note_book/cmake-build-debug/src$ readelf -S  test.o
+There are 12 section headers, starting at offset 0x258:
+
+节头：
+  [号] 名称              类型             地址              偏移量
+       大小              全体大小          旗标   链接   信息   对齐
+  [ 0]                   NULL             0000000000000000  00000000
+       0000000000000000  0000000000000000           0     0     0
+  [ 1] .text             PROGBITS         0000000000000000  00000040
+       0000000000000010  0000000000000000  AX       0     0     1
+  [ 2] .data             PROGBITS         0000000000000000  00000050
+       0000000000000000  0000000000000000  WA       0     0     1
+  [ 3] .bss              NOBITS           0000000000000000  00000050
+       0000000000000000  0000000000000000  WA       0     0     1
+  [ 4] .comment          PROGBITS         0000000000000000  00000050
+       000000000000002c  0000000000000001  MS       0     0     1
+  [ 5] .note.GNU-stack   PROGBITS         0000000000000000  0000007c
+       0000000000000000  0000000000000000           0     0     1
+  [ 6] .note.gnu.propert NOTE             0000000000000000  00000080
+       0000000000000020  0000000000000000   A       0     0     8
+  [ 7] .eh_frame         PROGBITS         0000000000000000  000000a0
+       0000000000000038  0000000000000000   A       0     0     8
+  [ 8] .rela.eh_frame    RELA             0000000000000000  000001d8
+       0000000000000018  0000000000000018   I       9     7     8
+  [ 9] .symtab           SYMTAB           0000000000000000  000000d8
+       00000000000000f0  0000000000000018          10     9     8
+  [10] .strtab           STRTAB           0000000000000000  000001c8
+       0000000000000010  0000000000000000           0     0     1
+  [11] .shstrtab         STRTAB           0000000000000000  000001f0
+       0000000000000067  0000000000000000           0     0     1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  l (large), p (processor specific)
+----
+
+可以发现，可重定位文件(类型为ET_REL的ELF文件)中不存在程序头，因为.o文件会被链接到可执行文件中，但是不会被加载到内存中，所以无法使用readelf -l 来读取程序头的信息。不过有个例外的是linux内核模块LKM，LKM是ET_REL类型的文件，但是它会被直接加载进内核的内存中并自动的进行重定位
+
+
+=== ELF符号
+
+符号是对某些类型的数据或代码的符号引用，如printf会在动态符号表.dynsym中存在一个指向该函数的符号条目。在大多数的共享库和动态链接可执行文件中，存在两个符号表 .dynsym和.symtab
+
+`.dynsym` 保存了引用来自外部文件符号的全局符号，如printf库函数；`.dynsym`保存的符号是.symtab所保存符号的子集，.symtab中还保存了可执行文件的本地符号，如全局变量或者代码中定义的本地函数等，因此 .symtab中包成年了所有符号，而.dynsym只保存动态/全局符号
+
+就存在这样一个问题：既然.symtab 中保存了.dynsym 中所有的符号，那么为什么还需要两个符号表呢？使用 readelf –S 命令查看可执行文件的输出， 可以看到一部分节被标记为了 A（ALLOC）、 WA（WRITE/ALLOC）或者 AX（ALLOC/EXEC）。 .dynsym 是被标记了 ALLOC 的，而.symtab则没有标记。
+
+ALLOC 表示有该标记的节会在运行时分配并装载进入内存，而.symtab不是在运行时必需的，因此不会被装载到内存中。 .dynsym 保存的符号只能在运行时被解析，因此是运行时动态链接器所需要的唯一符号。 .dynsym 符号表对于动态链接可执行文件的执行来说是必需的，而.symtab 符号表只是用来进行调试和链接的，有时候为了节省空间，会将.symtab 符号表从生产二进制文
+件中删掉，使用strip对可执行文件处理，主要的就是删除.symtab等符号信息
+
+=== Elf*_Sym 符号表结构
+[source, cpp]
+.Elf*_Sym
+----
+typedef struct {
+   uint32_t      st_name;
+   Elf32_Addr    st_value;
+   uint32_t      st_size;
+   unsigned char st_info;
+   unsigned char st_other;
+   uint16_t      st_shndx;
+} Elf32_Sym;
+
+typedef struct {
+   uint32_t      st_name;
+   unsigned char st_info;
+   unsigned char st_other;
+   uint16_t      st_shndx;
+   Elf64_Addr    st_value;
+   uint64_t      st_size;
+} Elf64_Sym;
+----
+
+==== `st_name`
+
+保存了指向符号表中字符串表(位于.synstr或者.strtab)的偏移地址，偏移地址存放着符号的名称，如printf
+
+==== `st_value`
+
+用来存放符号的值(可能是地址或者偏移量)
+
+==== `st_size`
+
+存放一个符号的大小，如全局函数指针的大小，具体占用字节和系统位数有关，如32位系统通常是4字节
+
+==== `st_other`
+
+用来定义符号的可见性
+
+==== `st_shndx`
+
+每个符号表条目的定义都于某些节对应，st_shndx变量保存了相关节头表的索引
+
+==== `st_info`
+
+指定符号类型及其绑定属性，符号类型以STT开头，符号绑定以STB开头
+
+1. 符号类型
+ - STT_NOTYPE : 符号类型未定义
+ - STT_FUNC ： 表示符号与函数或者其他可执行代码关联
+ - STT_OBJECT : 表示该符号与数据目标相关联
+
+2. 符号绑定
+ - STB_LOCAL : 本地符号在目标之外是不可见的，目标文件包含了符号的定义，如声明一个static函数
+ - STB——GLOBAL : 全局符号对于所有要合并的目标文件都是可见的，一个全局符号在一个文件中进行定义之后，另外一个文件可以对这个符号进行引用。
+ - STB——WEAK ： 语全局绑定类似，不过比STB_GLOBAL的优先级低，被标记为STB_WEAK的符号有可能会被同名的未标记为STB_WEAK的符号覆盖。
+
+3. 对绑定和类型字段进行打包和解包的宏指令
+ - ELF32_ST_BIND(info)或者ELF64_ST_BIND(info)：从st_info中提取一个绑定
+ - ELF32_ST_TYPE(info)或者 ELF64_ST_TYPE(info)：从 st_info 值中提取类型。
+ - ELF32_ST_TYPE(bind,type)或者 ELF64_ST_INFO(bind,type)： 将一个绑定和类型转换成 st_info 值
+
+定义如下文件
+[source, cpp]
+.test.c
+----
+static inline void foochu(){
+    /* Do nothing */
+}
+
+void func1() {
+    /* Do nothing */
+}
+
+_start()
+{
+    func1();
+    foochu();
+}
+----
+
+并执行gcc -c test.c，之后使用readelf查看函数表条目：
+
+TIP: 注意这里是 -s 小s
+
+`readelf -s test.o  | egrep 'foochu|func1'`
+
+[source, bash]
+----
+andrew@andrew-G3-3590:/work/note_book/cmake-build-debug/src$ readelf -s test.o  | egrep 'foochu|func1'
+     5: 0000000000000000     7 FUNC    LOCAL  DEFAULT    1 foochu
+    10: 0000000000000007    11 FUNC    GLOBAL DEFAULT    1 func1
+----
+
+foochu是一个有本地符号绑定(STB_LOCAL)的函数(STT_FUNC)，因此foocho对于外界是不可见的，只有本文件中才能使用
+
+这些符号给我们带来了许多便利，作为ELF文件的一部分，符号可用来链接、重定位、反汇编、调试等。
+
+===  ftrace的使用
+
+ftrace是一个动态分析工具，当你手上没有源码时可以使用该工具对二进制文件进行分析
+
+将以下源文件编译成二进制可执行文件test
+[source, cpp]
+.test.c
+----
+#include <stdio.h>
+
+void func1(int a, int b, int c) {
+    printf("%d %d %d\n", a, b ,c);
+}
+
+int main(void) {
+    func1(1, 2, 3);
+}
+----
+
+NOTE: ftrace已经放到note_book的文档中，可以编译后直接使用
+
+假设不知道上面的源码，使用ftrace对以上源码生成的二进制文件进行分析。
+
+先看下ftrace的命令使用提示
+
+[source, bash]
+----
+$ ./ftrace -h
+Usage: ./ftrace [-p <pid>] [-Sstve] <prog>
+[-p] Trace by PID
+[-t] Type detection of function args
+[-s] Print string values
+[-v] Verbose output
+[-e] Misc. ELF info. (Symbols,Dependencies)
+[-S] Show function calls with stripped symbols
+[-C] Complete control flow analysis
+----
+
+如果我们只想看函数的反汇编，不想被标准库中的加载的函数干扰可以在编译的时候加上 -nostdlib编译选项， `gcc -nostdlib test.c -o test` , 因为没有stdlib库，我们需要实现  _start接口来启动函数
+
+[source, cpp]
+.test2.c
+----
+void foo(void) {
+
+}
+int _start()
+{
+    foo();
+    __asm__("leave");
+}
+----
+
+对其进行反汇编：
+
+[source, cpp]
+----
+andrew@andrew-G3-3590:/work/note_book/cmake-build-debug/src$ objdump -d test
+
+test：     文件格式 elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000001000 <foo>:
+    1000:	f3 0f 1e fa          	endbr64
+    1004:	55                   	push   %rbp
+    1005:	48 89 e5             	mov    %rsp,%rbp
+    1008:	90                   	nop
+    1009:	5d                   	pop    %rbp
+    100a:	c3                   	retq
+
+000000000000100b <_start>:
+    100b:	f3 0f 1e fa          	endbr64
+    100f:	55                   	push   %rbp
+    1010:	48 89 e5             	mov    %rsp,%rbp
+    1013:	e8 e8 ff ff ff       	callq  1000 <foo>
+    1018:	c9                   	leaveq
+    1019:	90                   	nop
+    101a:	5d                   	pop    %rbp
+    101b:	c3                   	retq
+----
+
+首地址会存放到基地址存放寄存器ebp/rbp中，通过首地址的正向偏移可以依次访问栈中的变量。
+
+=== ELF重定位
+
+重定位就是将符号定义和符号引用进行连接的过程。可重定位文件需要包 含描述如何修改节内容的相关信息，从而使得可执行文件和共享目标文件能够保存进程的程序镜像所需的正确信息。重定位条目就是我们上面说的相关信息。
+
+重定位实际上是一种给二进制文件打补丁的机制，如果使用了动态链接器，可以使用重定位在内存中打热补丁。用于创建可执行文件和共享库的链接程序/bin/ld，需要某种类型的元数据来描述如
+何对特定的指令进行修改。
+
+假设要将两个目标文件链接到一起产生一个可执行文件。 obj1.o 文件中存放了调用函数 foo()的代码， 而函数 foo()是存放在目标文件 obj2.o 中的。链接程序会对 obj1.o 和 obj2.o 中的重定位记录进行分析并将这两个文件链接在一起产生一个可以独立运行的可执行程序。
+
+符号引用会被解析成 符号定义，这是什么意思呢？目标文件是可重定位的代码，也就是说，目标
+文件中的代码会被重定位到可执行文件的段中一个给定的地址。在进行重定位之前，无法确定 obj1.o 或者 obj2.o 中的符号和代码在内存中的位置，因此无法进行引用。只能在链接器确定了可执行文件的段中存放的指令或者符号的位置之后才能够进行修改。
+
+=== ELF动态链接
+
+当一个程序被加载进内存时，动态连接器会把需要的共享库加载并绑定到该进程的地址空间中
+
+共享库在被编译成到可执行文件中时是位置独立的，因此很容易被重定位到进程的地址空间中。
+
+当一个共享库被加载进一个进城的地址空间中时，一定有指向其他共享库的重定位，动态连接器会修改可执行文件中的GOT(Global Offset Table, 全局偏移表，位于.got.plt节的数据段中)，动态连接器会使用解析好的共享库地址来修改GOT
+
+==== 辅助向量
+
+通过系统调用sys_execve() 将程序加载到内存中时，对应的可执行文件会被映射到内存的地址空间，并为该进程的地址空间分配一个栈。这个栈会使用特定的方式向动态链接器传递信息。这种特定的对信息的设置和安排即为辅助向量(auxv)。在栈底存放了如下信息：
+
+image::../image/image-2022-06-19-17-23-06-587.png[auxv]
+
+==== 了解PLT/GOT
+
+我们调用共享库中的函数，需要到运行时才能解析这些函数调用，那么一定存在动态链接共享并解析共享函数地址的机制。
+
+动态库采用默认的延迟链接方式时，不会在函数第一次调用时就对函数地址进行解析，延迟链接意味着动态链接器不会在程序第一次加载时就解析每一个函数，而是在调用时通过.plt和.got.plt节(分别对应各自的过程链接表和全局偏移表)来对函数进行解析。当然可以通过修改LD_BIND_NOW环境变量来将链接方式修改为严格加载，以便在程序加载的同时进行动态链接。之所以采用延迟链接，是因为延迟链接能够提高装载时的性能。不过有时候可能有一些不可预知的链接错误可能在程序运行一段时间后才能被发现。
+
+值得注意的是，有些安全特性，如只读重定位，只能在严格链接的模式下使用，因为.plt.got
+节是只读的。在动态链接器完成对.plt.got 的补充之后才能够进行只读重定位，因此必须使用严格链接
+
+==== 如何读这些汇编语句
+
+都是因为延迟链接的存在 +
+`1632:	e8 29 fb ff ff       	callq  1160 <pthread_create@plt>`
+
+地址由于低位在前，所以地址为： 0xfffffb29e8
+1160是偏移地址
+因为只有在实际调用时连接器才会对动态库函数中的函数进行解析，因此 函数pthread_create@plt 说的是pthread_create函数在.plt(过程链接表)偏移 1160的地方
+
+==== 重温动态段
+
+动态连接器映射到内存中时，首先会处理自身的重定位，因为链接器本身就是一个共享库。接着会查看可执行文件的动态段并查找DT_NEEDED参数，该参数保存了指向所需要的共享库的字符串或路径名。当一个共享库被映射到内存中后，连接器会获取共享库的动态段，并将共享库的符号表添加到符号表链中，符号表链存储了所有映射到内存中的共享库符号表。
+
+链接器为每个共享库生成一个link_map结构的条目，并将其存放到一个链表中：
+
+[source, cpp]
+----
+struct link_map
+{
+    ElfW(Addr) l_addr; /* Base address shared object is loaded at. */
+    char *l_name; /* Absolute file name object was found in. */
+    ElfW(Dyn) *l_ld; /* Dynamic section of the shared object. */
+    struct link_map *l_next, *l_prev; /* Chain of loaded objects. */
+}
+----
+
+链接器构建完依赖列表后，会挨个处理每个库的重定位（与本章之前讨论 的重定位过程类似），同时会补充每个共享库的 GOT。 延迟链接对共享库的PLT/GOT 仍然适用，因此，只有当一个函数真正被调用时，才会进行 GOT重定位（R_386_JMP_SLOT 类型）
+
+
+
+
+
+
+
+
+
 
 
 

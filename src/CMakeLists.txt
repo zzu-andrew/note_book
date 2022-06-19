@@ -21,5 +21,5 @@ target_include_directories(exception_sample
 add_executable(ftrace
         ftrace/ftrace.c)
 
-
-
+add_executable(elf_parser
+        elf_parser/elf_parser.c)
