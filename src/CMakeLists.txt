@@ -23,3 +23,6 @@ add_executable(ftrace
 
 add_executable(elf_parser
         elf_parser/elf_parser.c)
+
+add_executable(elf_parser32
+        elf_parser/elf_parser32.c)
