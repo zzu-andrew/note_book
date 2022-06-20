@@ -3,6 +3,11 @@
 //
 
 #include <iostream>
+#include <unordered_set>
+#include <strings.h>
+#include <map>
+#include <algorithm>
+#include <vector>
 
 
 using namespace std;
@@ -22,14 +27,13 @@ uint32_t RoundUp(uint32_t x, uint32_t align) {
 int main(int argc, char *argv[]) {
 
     sleep(30);
-    std::cout << RoundUp(13, 8) << endl;
-    // extern也有作用域
-    //Externally();
+    std::string name = "ahdjgk;";
 
     std::cout << "test" << std::endl;
 
 
 
+    std::cout << name.substr(0, name.size() - 1);
 
     return 0;
 }

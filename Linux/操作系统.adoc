@@ -15,6 +15,47 @@ endif::rootpath[]
 == 操作系统
 
 
+=== 系统知识
+
+==== 什么是大小端
+
+小端(Little-endian)：就是低字节排放在内存的的低地址端，高位字节排放到内存的高地址端 +
+大端(Big-endian)：就是高位字节排放在内存的低地址端，低字节排放到内存的高地址端
+
+[TIP]
+1)大端模式：
+低地址 -----------------> 高地址
+0x12  |  0x34  |  0x56  |  0x78
+2)小端模式：
+低地址 ------------------> 高地址
+0x78  |  0x56  |  0x34  |  0x12
+
+判断系统大小端
+
+.BgiEndian.cpp
+[source, cpp]
+----
+bool BigEndian()
+{
+    union
+    {
+        uint16_t a;
+        char b;
+    }num;
+    num.a = 0x1234;
+    if(num.b == 0x12)
+    {
+        return true;
+    }
+    return false;
+}
+----
+
+
+
+
+
+
 === 文件IO
 
 
@@ -108,3 +149,9 @@ SIGKILL 9 AEF Kill信号
 SIGSEGV 11 C 无效的内存引用
 SIGPIPE 13 A 管道破裂: 写一个没有读端口的管道
 ----
+
+
+=== 在线编译工具
+
+https://www.godbolt.org[在线编译工具]
+

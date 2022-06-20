@@ -276,6 +276,14 @@ It was designed from the start to be a shorthand syntax
 for producing professional documents like DocBook and LaTeX.
 ****
 
+==== 匿名小框框
+
+****
+
+匿名框框
+
+****
+
 ==== 引用文本块
 
 引用文本块，左上角会有一个双引号提示符
