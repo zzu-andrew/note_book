@@ -262,7 +262,7 @@ ELF通常有以下几种文件类型
 - `ET_NONE` 未知类型，标明文件类型不确定或者还没有被定义
 - `ET_REL` 从定位文件，ELF类型标记为relocatable意味着该文件被标记为一段可重定位的代码，有时也称之为目标文件，其实说白了就是编译代码之后留下的.o文件，这些文件中包含了创建可执行文件所需的代码和数据。
 - `ET_EXEC` 可执行文件。ELF类型为executable，表明这个文件被标记为可执行文件，也就是可执行程序
-- `ET_DYN` 共享目标文件，ELF类型为dynamic，也称之为动态共享库
+- `ET_DYN` 共享目标文件，ELF类型为dynamic，也称之为动态共享库(实际上x86_64的可执行文件也都是这个类型)
 - `ET_CORE` 核心文件，也成为核心转存储文件，是程序崩溃时的镜像信息
 
 可以通过 `man 5 elf` 来查看ELF文件的详细信息
@@ -1030,6 +1030,77 @@ ELF程序是完全映射到进程的地址空间的，因此可以附加到进�
 === ptrace的重要性
 
 Linux中，ptrace(2)系统调用时获取进程地址空间的用户态方法。用户可以通过ptrace对进程进行修改、分析、反编译和调试。常见的分析工具，gdb、strace和ltrace都使用ptrace进行辅助。
+
+程序员可以利用ptrace附加到一个进程上并修改内存，如代码注入，修改一些比较重要的数据结构，如共享库重定向所需要的GOT等
+
+=== ptrace 的请求
+
+与其他系统调用一样ptrace系统调用也有一个libc的封装，因此在使用时需要引入ptrace.h 头文件，通过传入一个请求参数和一个进程ID来实现调用，
+
+[source, cpp]
+----
+#include <synstr/ptrace.h>
+long ptrace(enum _ptrace_request request, pid_t pid, void* addr, void* data);
+----
+
+.ptrace的请求类型
+
+[cols="1,3", options="header"]
+|===
+|请求参数 |描述信息
+
+|PTRACE_ATTACH
+|附加到pid对应的进程上，使得pid对应的进程成为调用进城的tracee。
+
+|PTRACE_TRACEME
+|表明该进程会被父进程追踪。如果父进程不希望追踪该进程，就不要用这个请求参数
+
+|PTRACE_PEEKTEXT +
+PTRACE_PEEKDATA +
+PTRACE_PEEKUSER
+|这些参数允许追踪进程读取被追踪进程镜像的虚拟内存地址。
+
+|PTRACE_POKTEXT +
+PTRACE_POKDATA +
+PTRACE_POKUSER
+|允许追踪进程修改被追踪进程镜像的任意地址
+
+|PTRACE_GETREGS
+|允许追踪进程获取被追踪进程的寄存器的一份副本，每个线程都有自己的寄存器集合
+
+|PTRACE_SETREGS
+|允许追踪进程为被追踪进程设置新的寄存器值，如将指令的指针值进行修改，指向shell代码
+
+|PTRACE_CONT
+|重启已经终止的被追踪进程，对应GDB调试的(C命令)
+
+|PTRACE_DETACH
+|重启被追踪进程，并解除追踪，对应GDB调试的(quit命令)
+
+|PTRACE_SYSCALL
+|重启被追踪进程，在下条系统调用开始/退出时终止该进程，可以通过这项参数来检查甚至修改系统调用参数，strace对这项参数应用非常多
+
+|PTRACE_SINGLESTEP
+|重启被追踪进程，并在下一条指令执行结束后将进程状态切换为终止状态，调试器通过该参数实现单步调试执行每条指令，用户可以通过该参数检查每条指令执行后寄存器的值和进程的状态，对应GDB调试的(s指令)
+
+|PTRACE_GETSIGINFO
+|检索引起进程停止的信号信息，可以检索到siginfo_t结构的一份副本，进行分析或者修改并传回给被追踪进程
+
+|PTRACE_SETSIGINFO
+|设置信号信息，从追踪进程的地址数据中复制一份siginfo_t结构到被追踪进程中。这只针对从追踪进程传到被追踪进程的常规信号。
+
+|PTRACE_SETOPTIONS
+|从数据设置ptrace的选项，数据可以理解为选项的位掩码。
+
+|===
+
+
+
+
+
+
+
+
 
 
 
