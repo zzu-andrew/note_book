@@ -1158,11 +1158,107 @@ include::{srcdir}extern.cpp[]
 ----
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 == ELF病毒技术-(LinuxSll/Unix技术)
+
+
+每个可执行文件都有一个控制流，也就是执行路径。ELF病毒首要任务就是劫持控制流，暂时改变程序的执行路径来执行寄生代码。寄生代码同通常设置钩子来劫持函数，还会将自身的代码复制到没有被感染的程序中。
+
+
+image::image-2022-06-22-22-53-46-043.png[]
+
+
+
+防止trace常用技术
+
+- PTRACE_TRACEME
+利用特性一个进程同一时间内只能被一个进程追踪
+
+[source, cpp]
+----
+void anti_debug_check(void)
+{
+    if (ptrace(PTRACE_TRACEME, 0, 0, 0) < 0) {
+        printf("A debugger is attached, but not for long!\n");
+        kill(getpid());
+        exit(0);
+    }
+}
+----
+
+- SIGTRAP
+
+当进程被设置断点并执行到断点时，会出发该信号量
+
+[source, cpp]
+----
+static int caught = 0;
+int sighandle(int sig)
+{
+    caught++;
+}
+int detect_debugger(void)
+{
+    __asm__ volatile("int3");
+    if (!caught) {
+        printf("There is a debugger attached!\n");
+    return 1;
+    }
+}
+----
+
+- /proc/self/status 技术
+
+[source, cpp]
+----
+andrew@andrew-G3-3590:~$ head /proc/self/status
+Name:	head
+Umask:	0002
+State:	R (running)
+Tgid:	20223
+Ngid:	0
+Pid:	20223
+PPid:	2498
+TracerPid:	0     // 0表示没有人追踪
+Uid:	1000	1000	1000	1000
+Gid:	1000	1000	1000	1000
+----
+每个程序都有自己的 /proc/self/status，可以打开查看TracerPid的值如果为0说明没有人追踪
+
+
+
+
+
+
+
+
 
 
 
 == Linux二进制保护
+
+
+
+image::image-2022-06-22-23-21-08-603.png[]
+
+
 
 
 
