@@ -26,14 +26,16 @@ uint32_t RoundUp(uint32_t x, uint32_t align) {
 
 int main(int argc, char *argv[]) {
 
-    sleep(30);
     std::string name = "ahdjgk;";
 
     std::cout << "test" << std::endl;
 
-
+    RoundUp(12, 8);
 
     std::cout << name.substr(0, name.size() - 1);
+
+
+    sleep(100);
 
     return 0;
 }

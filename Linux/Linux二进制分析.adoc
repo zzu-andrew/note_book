@@ -4,13 +4,22 @@
 :icons: font
 
 // 保证所有的目录层级都可以正常显示图片
-:path: C++知识点总结/
+:path: Linux/
 :imagesdir: ../image/
+:srcdir: ../src
+
 
 // 只有book调用的时候才会走到这里
 ifdef::rootpath[]
 :imagesdir: {rootpath}{path}{imagesdir}
+:srcdir: {rootpath}../src/
 endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+:srcdir: {rootpath}{path}../src/
+endif::rootpath[]
+
 
 
 == Linux二进制分析
@@ -1094,14 +1103,59 @@ PTRACE_POKUSER
 
 |===
 
+=== 进程寄存器状态和标记
 
+x86_64的user_regs_struct结构体保存了一些通用的寄存器、段寄存器、栈指针、指令指针、CPU标记和TLS寄存器
 
+[source, cpp]
+----
+<sys/user.h>
+struct user_regs_struct
+{
+    __extension__ unsigned long long int r15;
+    __extension__ unsigned long long int r14;
+    __extension__ unsigned long long int r13;
+    __extension__ unsigned long long int r12;
+    __extension__ unsigned long long int rbp;
+    __extension__ unsigned long long int rbx;
+    __extension__ unsigned long long int r11;
+    __extension__ unsigned long long int r10;
+    __extension__ unsigned long long int r9;
+    __extension__ unsigned long long int r8;
+    __extension__ unsigned long long int rax;
+    __extension__ unsigned long long int rcx;
+    __extension__ unsigned long long int rdx;
+    __extension__ unsigned long long int rsi;
+    __extension__ unsigned long long int rdi;
+    __extension__ unsigned long long int orig_rax;
+    __extension__ unsigned long long int rip;
+    __extension__ unsigned long long int cs;
+    __
+    extension__ unsigned long long int eflags;
+    __extension__ unsigned long long int rsp;
+    __extension__ unsigned long long int ss;
+    __extension__ unsigned long long int fs_base;
+    __extension__ unsigned long long int gs_base;
+    __extension__ unsigned long long int ds;
+    __extension__ unsigned long long int es;
+    __extension__ unsigned long long int fs;
+    __extension__ unsigned long long int gs;
+};
+----
 
+.32位和64位的区别
+****
+32位linux中使用%gs作为线程本地存储(thread-local-storage, TLS)指针，从x86_64开始已经使用%fs寄存器替换%gs了。通过利用user_regs_struct中的寄存器，以及ptrace来读取进程的内存，可以获得对进程的完全控制权。
+****
 
+=== 基于ptrace的调试器
 
+基于以上的信息，我们知道可以通过利用user_regs_struct中的寄存器和ptrace来实现对程序的控制，我们使用这些方法来实现一个调试器，实现将程序在断点停止，并打印出寄存器的值和函数的参数。
 
-
-
+[source, cpp]
+----
+include::{srcdir}extern.cpp[]
+----
 
 
 == ELF病毒技术-(LinuxSll/Unix技术)

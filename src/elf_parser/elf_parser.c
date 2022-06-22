@@ -525,7 +525,7 @@ void fileheader(const char *pbuff)
     pbuff += EI_NIDENT;
     //Type
     printf("  %-33s:", "Type");
-    switch(*(uint16_t*)pbuff)
+    switch(*(Elf64_Half*)pbuff)
     {
         case 0:
             printf(" No file type\r\n");

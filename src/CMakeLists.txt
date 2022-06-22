@@ -26,3 +26,17 @@ add_executable(elf_parser
 
 add_executable(elf_parser32
         elf_parser/elf_parser32.c)
+
+
+add_executable(tracer
+        tracer/tracer.c)
+
+add_executable(tracer2
+        tracer/tracer2.c)
+
+add_executable(tracer_test
+        tracer/tracer_test.c)
+
+
+
+
