@@ -1159,22 +1159,65 @@ include::{srcdir}extern.cpp[]
 
 
 
+https://github.com/lotabout/write-a-C-interpreter[手把手教你写C解释器]
+
+
+https://www.136.la/tech/show-90463.html
 
 
 
+https://blog.csdn.net/Rong_Toa/article/details/109825818
+
+https://blog.csdn.net/Rong_Toa/article/details/109825818#t1
+
+ELF可执行文件在内存中的结构除了数据段的变量、全局偏移表、函数指针和未初始化变量.bss节的变化外，剩余部分几乎跟磁盘上一样。这就意味着用于ELF文件感染的技术同样能用于进程运行时的内存感染。
 
 
+=== 内存感染类型
 
+****
+.常见感染技术
+[cols = "3,3,4", options = "header"]
+|===
+|感染技术
+|目标结果
+|寄存类型
 
+|GOT感染
+|劫持共享库函数
+|进程内存或可执行文件
 
+|过程链接表(plt)感染
+|劫持共享库函数
+|进程内存或可执行文件
 
+|.ctors/.dtors函数指针修改
+|将控制流转向恶意代码
+|进程内存或可执行文件
 
+|Function trampolines(函数蹦床)
+|劫持任意函数
+|进程内存或可执行文件
 
+|共享库注入
+|插入恶意代码
+|进程内存或可执行文件
 
+|重定位代码注入
+|插入恶意代码
+|进程内存或可执行文件
 
+|直接修改text段
+|插入恶意代码
+|进程内存或可执行文件
 
+|进程占用(将整段程序注入地址空间)
+|运行隐藏在现存进程中完全不同的可执行程序
+|进程内存
 
+|===
 
+****
 
 == ELF病毒技术-(LinuxSll/Unix技术)
 

@@ -23,6 +23,7 @@ uint32_t RoundUp(uint32_t x, uint32_t align) {
 
 
 
+    std::cout << std::stoi("") << std::endl;
 
 int main(int argc, char *argv[]) {
 
@@ -34,6 +35,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << name.substr(0, name.size() - 1);
 
+    string num = "d";
 
     sleep(100);
 
