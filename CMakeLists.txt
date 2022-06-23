@@ -8,6 +8,8 @@ project (node_books)
 
 add_definitions("-pg -o0 -g")
 
+include_directories(inc/include)
+
 
 add_subdirectory(src)
 
