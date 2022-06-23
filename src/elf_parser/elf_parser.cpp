@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/types.h>
-#include "ELF_reader.h"
+#include "elf_parser.h"
 
 #ifndef ERROR_EXIT
 #define ERROR_EXIT(msg) do { \
@@ -489,11 +489,9 @@ namespace ELF
                                      file_header->e_shstrndx;
         section_string_table = reinterpret_cast<char *>(&mmap_program_[section_table[section_string_table_index].sh_offset]);
 
-        section_number = reinterpret_cast<Elf64_Shdr *>(&mmap_program_[file_header->e_shoff])->sh_size
+        section_number = reinterpret_cast<Elf64_Shdr *>(&mmap_program_[file_header->e_shoff])->sh_size;
 
 
-
-                ("================================= section_number %d\n", section_number);
         if (section_number == 0)
         {
             section_number = file_header->e_shnum;
@@ -702,8 +700,8 @@ namespace ELF
                 flags.push_back('G');
             if (section_table[i].sh_flags & SHF_TLS)
                 flags.push_back('T');
-            // if (section_table[i].sh_flags & SHF_COMPRESSED)
-            //     flags.push_back('l');
+             if (section_table[i].sh_flags & SHF_COMPRESSED)
+                 flags.push_back('l');
             if (section_table[i].sh_flags & SHF_MASKOS)
                 flags.push_back('o');
             if (section_table[i].sh_flags & SHF_MASKPROC)
@@ -899,13 +897,12 @@ namespace ELF
 } // namespace elf_parser
 
 
-#include "ELF_reader.h"
 
 int main(int argc, char* argv[])
 {
     using ELF::ELF_reader;
 
-    ELF_reader s("./readelf");
+    ELF_reader s(argv[1]);
 
     s.show_file_header();
     s.show_section_headers();

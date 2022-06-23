@@ -37,6 +37,12 @@ add_executable(tracer2
 add_executable(tracer_test
         tracer/tracer_test.c)
 
+add_executable(elf_parsercpp
+        elf_parser/elf_parser.cpp)
+
+add_executable(elf_main
+        elf_parser/main.c)
+
 
 
 
