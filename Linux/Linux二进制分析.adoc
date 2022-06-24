@@ -1317,7 +1317,6 @@ image::image-2022-06-22-23-21-08-603.png[]
 
 我们通过因为.o文件也是ELF文件的一种，所以我么可以使用readelf -h 来查看.o文件的elf头数据
 
-
 [source, bash]
 ----
 andrew@andrew-G3-3590:/work/note_book/src/elf_parser$ readelf -h main.o
@@ -1342,9 +1341,135 @@ ELF 头：
   Number of section headers:         14
   Section header string table index: 13
 ----
+通过与文件头结构体对比
+[source, cpp]
+.Elf64_Ehdr
+----
+typedef struct
+{
+  unsigned char	e_ident[EI_NIDENT];	/* Magic number and other info */
+  Elf64_Half	e_type;			/* Object file type */
+  Elf64_Half	e_machine;		/* Architecture */
+  Elf64_Word	e_version;		/* Object file version */
+  Elf64_Addr	e_entry;		/* Entry point virtual address */
+  Elf64_Off	e_phoff;		/* Program header table file offset */
+  Elf64_Off	e_shoff;		/* Section header table file offset */
+  Elf64_Word	e_flags;		/* Processor-specific flags */
+  Elf64_Half	e_ehsize;		/* ELF header size in bytes */
+  Elf64_Half	e_phentsize;		/* Program header table entry size */
+  Elf64_Half	e_phnum;		/* Program header table entry count */
+  Elf64_Half	e_shentsize;		/* Section header table entry size */
+  Elf64_Half	e_shnum;		/* Section header table entry count */
+  Elf64_Half	e_shstrndx;		/* Section header string table index */
+} Elf64_Ehdr;
+----
+
+首先看到的是Magic魔法数字，这些数字的大小由宏定义  `#define EI_NIDENT (16)` 来进行限定，Magic放在ELF文件的头部的16字节，其中各个字节的含义如下：
+
+[cols="1,3", options = "header"]
+|===
+|Magic
+|含义
+
+|0x7f
+|ELF文件
+
+|45
+|'E'
+
+|4c
+|'L'
+
+|46
+|'F'
+
+|02
+|文件类型，1:32位文件，2:64位文件
+
+|01
+|大小端：1是小端，2是大端
+
+|01
+|版本
+
+|00
+|系统类型
+
+|00
+|ABI 版本
+
+|00
+|Byte index of padding bytes
+
+|Other
+| 保留
+
+|===
+
+[cols="1,3",options="header"]
+|===
+|类型
+|作用
+
+|e_type
+|文件类型，常见的有可重定位文件，可执行文件，共享文件等
+
+
+/* Object file type */
+e_machine;		/* Architecture */
+e_version;		/* Object file version */
+e_entry;		/* Entry point virtual address */
+e_phoff;		/* Program header table file offset */
+e_shoff;		/* Section header table file offset */
+e_flags;		/* Processor-specific flags */
+e_ehsize;		/* ELF header size in bytes */
+e_phentsize;		/* Program header table entry size */
+e_phnum;		/* Program header table entry count */
+e_shentsize;		/* Section header table entry size */
+e_shnum;		/* Section header table entry count */
+e_shstrndx;		/* Section header string table index */
+
+
+|===
+
+
+
+
+
+
+
+
+
+
+
+放到
+IDE_TASKFILE_STD_IN_FLAGSddd
+IDE_TASKFILE_STD_IN_FLAGSdddd
+d
+d
+
+detailsd
+d +
+d +
+d +
+
+d +
+d +
+d +
+d +
+d +
+d
+d
+
+d
+d
+
 
 
 image::../image/image-2022-06-23-15-12-52-519.png[可重定位目标]
+
+
+- 可执行文件
 
 
 

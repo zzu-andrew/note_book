@@ -707,6 +707,39 @@ A statement.footnote:[Clarification about this statement.] A bold statement!foot
 
 |===
 
+[cols="3,5,3,3,3,4", options="header"]
+|===
+|函数名称
+|GetData
+|版本
+|V1.0.0.0
+|修改日期
+|2022-06-24
+
+|函数说明 5+|获取数据
+6+^|入参说明
+6+a|
+6+^|出参说明
+6+a|
+[source, cpp]
+----
+#include <iostream>
+int GetData(int idx) {
+    return GetData(idx
+)}
+
+----
+
+
+
+
+|===
+
+
+
+
+
+
 - 包含其他标签的表
 加a之后会将表格中的数据按照asciidoc语法格式化
 
@@ -845,6 +878,9 @@ https://blog.csdn.net/somken/article/details/108262323
 |PX-{counter:index}|Description of PX-{index}
 
 |===
+
+
+
 
 - 使用platuml绘图
 
