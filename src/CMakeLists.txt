@@ -21,13 +21,6 @@ target_include_directories(exception_sample
 add_executable(ftrace
         ftrace/ftrace.c)
 
-add_executable(elf_parser
-        elf_parser/elf_parser.c)
-
-add_executable(elf_parser32
-        elf_parser/elf_parser32.c)
-
-
 add_executable(tracer
         tracer/tracer.c)
 
@@ -37,7 +30,7 @@ add_executable(tracer2
 add_executable(tracer_test
         tracer/tracer_test.c)
 
-add_executable(elf_parsercpp
+add_executable(elf_parser
         elf_parser/elf_parser.cpp)
 
 add_executable(elf_main
