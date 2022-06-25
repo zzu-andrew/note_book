@@ -155,3 +155,24 @@ SIGPIPE 13 A 管道破裂: 写一个没有读端口的管道
 
 https://www.godbolt.org[在线编译工具]
 
+
+
+
+
+=== qemu 内核调试
+
+www.kernel.org内核地址
+
+
+https://www.bilibili.com/read/cv11271232 教程
+
+
+
+
+
+
+
+
+
+
+

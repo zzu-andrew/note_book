@@ -1152,23 +1152,6 @@ struct user_regs_struct
 
 基于以上的信息，我们知道可以通过利用user_regs_struct中的寄存器和ptrace来实现对程序的控制，我们使用这些方法来实现一个调试器，实现将程序在断点停止，并打印出寄存器的值和函数的参数。
 
-[source, cpp]
-----
-include::{srcdir}extern.cpp[]
-----
-
-
-
-https://github.com/lotabout/write-a-C-interpreter[手把手教你写C解释器]
-
-
-https://www.136.la/tech/show-90463.html
-
-
-
-https://blog.csdn.net/Rong_Toa/article/details/109825818
-
-https://blog.csdn.net/Rong_Toa/article/details/109825818#t1
 
 ELF可执行文件在内存中的结构除了数据段的变量、全局偏移表、函数指针和未初始化变量.bss节的变化外，剩余部分几乎跟磁盘上一样。这就意味着用于ELF文件感染的技术同样能用于进程运行时的内存感染。
 
@@ -1299,7 +1282,7 @@ image::image-2022-06-22-23-21-08-603.png[]
 
 一个源文件在生成可执行程序的过程中地址需要经过以下几个主要步骤。
 
-[plantuml, target=diagram-classes, format=png]
+[plantuml, target=elf-process, format=png]
 ....
 @startuml
 :main.c;

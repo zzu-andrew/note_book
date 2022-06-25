@@ -1,0 +1,52 @@
+
+:toc:
+
+:icons: font
+
+// 保证所有的目录层级都可以正常显示图片
+:path: Linux/
+:imagesdir: ../image/
+:srcdir: ../src
+
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+:srcdir: {rootpath}../src/
+endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+:srcdir: {rootpath}{path}../src/
+endif::rootpath[]
+
+== 序列化
+
+
+=== XML
+
+
+
+
+
+=== JSON
+
+web端 Json序列化比较好定义
+一般HTTP json序列化比较简单
+
+
+
+
+=== protobuf
+
+
+protobuf 速度快 占用宽带少
+
+
+
+
+
+
+
+
+

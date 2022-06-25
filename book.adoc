@@ -1,6 +1,9 @@
 
+:footnote:
 :toc:
+
 :rootpath: ./
+
 // 整个文档保留换行符
 // :hardbreaks:
 
