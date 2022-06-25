@@ -4,7 +4,7 @@
 :icons: font
 
 // 保证所有的目录层级都可以正常显示图片
-:path: 网络/
+:path: Linux/
 :imagesdir: ../image/
 :srcdir: ../src
 
