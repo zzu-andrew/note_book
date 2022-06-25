@@ -1316,7 +1316,7 @@ image::image-2022-06-22-23-21-08-603.png[]
 
 `.o` 称为可重定位目标，包含二进制代码和数据，其形式可以和其他目标进行合并，创建一个可执行目标文件
 
-我们通过因为.o文件也是ELF文件的一种，所以我么可以使用readelf -h 来查看.o文件的elf头数据
+因为.o文件也是ELF文件的一种，所以我么可以使用readelf -h 来查看.o文件的elf头数据
 
 [source, bash]
 ----
@@ -1534,69 +1534,77 @@ image::../image/image-2022-06-23-15-16-10-005.png[可执行文件]
 [source, cpp]
 .https://github.com/zzu-andrew/note_book/src/elf_parser/elf_parser.h
 ----
+// 1. 将可执行文件加载到内存中
+mmap_res = ::mmap(nullptr, program_length_, PROT_READ, MAP_PRIVATE, fd_, 0);
+if (mmap_res == MAP_FAILED)
+{
+    ERROR_EXIT("mmap");
+}
 
+mmap_program_ = static_cast<std::uint8_t *>(mmap_res);
+// 2. 取出文件头
+file_header = reinterpret_cast<Elf64_Ehdr *>(mmap_program_);
+// 3. 取出段头和表头
+const Elf64_Ehdr *file_header;
+const Elf64_Shdr *section_table;
+const char *section_string_table;
+size_t section_string_table_index;
+Elf64_Xword section_number;
+
+file_header = reinterpret_cast<Elf64_Ehdr *>(mmap_program_);
+section_table = reinterpret_cast<Elf64_Shdr *>(mmap_program_ + file_header->e_shoff);
+
+// e_shstrndx = 35
+section_string_table_index = file_header->e_shstrndx == SHN_XINDEX ?
+                             reinterpret_cast<Elf64_Shdr *>(&mmap_program_[file_header->e_shoff])->sh_link :
+                             file_header->e_shstrndx;
+section_string_table = reinterpret_cast<char *>(&mmap_program_[section_table[section_string_table_index].sh_offset]);
+
+section_number = reinterpret_cast<Elf64_Shdr *>(&mmap_program_[file_header->e_shoff])->sh_size;
 ----
 
+经过以上步骤之后将文件头的信息打印如下:
 
-
-
-
-
+[source, bash]
+.readelf -h
+----
 $3 = {e_ident = "\177ELF\002\001\001\000\000\000\000\000\000\000\000", e_type = 3, e_machine = 62, e_version = 1, e_entry = 4512, e_phoff = 64, e_shoff = 36184, e_flags = 0, e_ehsize = 64, e_phentsize = 56,
 e_phnum = 13, e_shentsize = 64, e_shnum = 36, e_shstrndx = 35}
+----
 
-文件总大小 ： 38488
-节地址偏移： 36184
+通过读取打开文件的大小，得出整个可执行文件的大小为： fileSize = 38488
+通过文件头我们可以知道： +
+ELF头大小为： e_ehsize = 64 +
+段头表偏移为： e_phoff = 64 大小为 e_phentsize = 56， 个数为 e_phnum = 13 +
+节头表偏移地址为 ：e_shoff = 36184, 大小为 e_shentsize = 64, 个数为 e_shnum = 36 +
+节地址偏移： 36184 +
 
+ELF头在头部， 我们直接将指向头部的指针强转成 `Elf64_Ehdr` 之后，取出的数据完全和对应的文件相符，因此可以看出ELF头放在文件的头部确实和readelf输出的一样。
+
+然后按照偏移量来计算，段头部应该紧跟ELF头部之后，因此，段的位置应该在头部指针向后偏移64位的地方通过查看e_phoff的值确实是64
+
+那么我们在来验证一下尾部是否是节头表存放的地方，通过ELF头我们知道，节头的大小为64, 节头的偏移位置为36184, 节头个数为36，按照上图来说，节头在最后的部分，那么肯定会存在fileSize - e_shoff = e_shentsize * e_shnum这种等式，否则就说明节头没有把ELF可执行程序的尾部填满。
+[source, cpp]
+----
 38488 - 36184 = 2304 = 36 * 64(节头长度)
-
-
-(gdb) p *section_table
-$11 = {sh_name = 0, sh_type = 0, sh_flags = 0, sh_addr = 0, sh_offset = 0, sh_size = 0, sh_link = 0, sh_info = 0, sh_addralign = 0, sh_entsize = 0}
-(gdb) n
-492
-(gdb) p *section_table
-$12 = {sh_name = 0, sh_type = 0, sh_flags = 0, sh_addr = 0, sh_offset = 0, sh_size = 0, sh_link = 0, sh_info = 0, sh_addralign = 0, sh_entsize = 0}
-(gdb) p section_string_table_index
-$13 = 35
-(gdb) p 38488 - 36184
-$14 = 2304
-(gdb) p 36 * 64
-$15 = 2304
+----
+经过计算，整个ELF文件的尾部确实都是节头填充的。
+其他节占用的验证大家可以在原有程序的基础上进行验证，这里就不一一进行验证了
 
 
 
 
+=== -pie && -no-pie
 
+细心的读者有可能会发现，我上面使用readelf -h读出可执行文件的类型都显示为共享类型，这个是因为我的系统是ubuntu导致的，现在很多Ubuntu系统的默认编译器都会在编译程序是默认添加 `-pie` 选项而这个选项会导致生成的可执行程序被标记为共享类型
 
+pie(Position-Independent-Executable)能用来创建介于共享库和通常可执行程序之间的程序，是一种能像共享库一样可重分配地址的程序。
 
+PIE最早由RedHat的⼈实现，他在连接器上增加了-pie选项，这样使⽤-fPIE编译的对象就能通过链接器得到位置⽆关可执⾏程序。
 
+标准的可执⾏程序需要固定的地址，并且只有被装载到这个地址时，程序才能正确执⾏。PIE能使程序像共享库⼀样在主存任何位置装载，这需要将程序编译成位置⽆关，并链接为ELF共享对象。
 
-=== -no-pie
-编译选项
-
-
-
-
-
-Position-Independent-Executable是Binutils,glibc和gcc的⼀个功能，能⽤来创建介于共享库和通常可执⾏代码之间的代码–能像共享库
-⼀样可重分配地址的程序，这种程序必须连接到Scrt1.o。标准的可执⾏程序需要固定的地址，并且只有被装载到这个地址时，程序才能正
-确执⾏。PIE能使程序像共享库⼀样在主存任何位置装载，这需要将程序编译成位置⽆关，并链接为ELF共享对象。
-引⼊PIE的原因是让程序能装载在随机的地址，通常情况下，内核都在固定的地址运⾏，如果能改⽤位置⽆关，那攻击者就很难借助系统中
-的可执⾏码实施攻击了。类似缓冲区溢出之类的攻击将⽆法实施。⽽且这种安全提升的代价很⼩
-谈到PIE就不得不说说Pax和Grsec内核。这两个东西都是为了构建坚不可摧到安全系统⽽准备的。PaX是Linux内核安全增强补丁，它能在
-两⽅⾯保证安全性，⼀是ASLR(Address Space Layout Randomization,地址空间分布随机化)，这是⼀种将所有数据装载到内存时都随
-机化地址的⽅式，当使⽤PIE选项编译应⽤时，PaX能将应⽤的地址做随机加法；⼆是能提供不可执⾏的内存空间，这样就能使得攻击者放
-⼊内存中的恶意代码不可执⾏。不过PaX官⽹上能⽀持的最新内核是2.6.27，已经是⼀年前的更新了。Grsec也时类似的内核补丁，更新较
-为频繁能⽀持最新的2.6.32内核。这两种⽅式都能将内核完全位置⽆关，除了Grub和Glibc中⽆法位置⽆关的汇编码。
-PIE最早由RedHat的⼈实现，他在连接起上增加了-pie选项，这样使⽤-fPIE编译的对象就能通过连接器得到位置⽆关可执⾏程序。
---------------------------------------------------------
-作者：12四象新玲资料集
-链接：https://wenku.baidu.com/view/bf54bb2d7fd184254b35eefdc8d376eeaeaa1736.html
-来源：百度文库
-著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
-
-
+引⼊PIE的原因是让程序能装载在随机的地址，通常情况下，内核都在固定的地址运⾏，如果能改⽤位置⽆关，那攻击者就很难借助系统中的可执⾏码实施攻击了。类似缓冲区溢出之类的攻击将⽆法实施。⽽且这种安全提升的代价很⼩。
 
 
 
