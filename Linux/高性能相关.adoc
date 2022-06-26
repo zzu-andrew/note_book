@@ -1,0 +1,127 @@
+
+
+:toc:
+
+// 保证所有的目录层级都可以正常显示图片
+:path: C++知识点总结/
+:imagesdir: ../image/
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+endif::rootpath[]
+
+
+== 高性能
+
+
+=== placement new
+
+placement new允许我们将对象创建于已经申请的内存中，因为placement new实际上并没有申请内存，所以也不存在所谓的placement delete
+
+[source,cpp]
+----
+// PlacementNew
+void PlacementNew() {
+    char *buffer = new char[sizeof(MemoryManagement) * 3];
+
+    auto *lp1 = new(buffer) MemoryManagement;
+    auto *lp2 = new(buffer + sizeof(MemoryManagement)) MemoryManagement;
+    auto *lp3 = new(buffer + sizeof(MemoryManagement) * 2) MemoryManagement;
+
+    // 如果需要析枸，需要自己调用析枸函数
+    lp1->~MemoryManagement();
+    lp2->~MemoryManagement();
+    lp3->~MemoryManagement();
+
+    delete[] buffer;
+}
+----
+
+
+
+
+=== SMP IRQ affinity
+
+当一个硬件(如磁盘控制器或者以太网卡), 需要打断CPU的工作时, 它就触发一个中断. 该中断通知CPU发生了某些事情并且CPU应该放下当前的工作去处理这个事情. 为了防止多个设置发送相同的中断, Linux设计了一套中断请求系统, 使得计算机系统中的每个设备被分配了各自的中断号, 以确保它的中断请求的唯一性. 从2.4 内核开始, Linux改进了分配特定中断到指定的处理器(或处理器组)的功能. 这被称为SMP IRQ affinity, 它可以控制系统如何响应各种硬件事件. 允许你限制或者重新分配服务器的工作负载, 从而让服务器更有效的工作. 以网卡中断为例，在没有设置SMP IRQ affinity时， 所有网卡中断都关联到CPU0, 这导致了CPU0负载过高，而无法有效快速的处理网络数据包，导致了瓶颈。 通过SMP IRQ affinity， 把网卡多个中断分配到多个CPU上，可以分散CPU压力，提高数据处理速度。
+
+==== 相关设置文件
+- `/proc/irq/<irqnumber>/smp_affinity`
+
+/proc/irq/IRQ#/smp_affinity 和 /proc/irq/IRQ#/smp_affinity_list 指定了哪些CPU能够关联到一个给定的IRQ源. 这两个文件包含了这些指定cpu的cpu位掩码(smp_affinity)和cpu列表(smp_affinity_list). 不允许关闭所有CPU， 同时如果IRQ控制器不支持中断请求亲和(IRQ affinity)，则这些设置的值将保持不变(既关联到所有CPU).
+
+设置方法，按照bitmask进行设置，十六进制表示，转化为二进制之后，每一位代表一个CPU
+
+[source, cpp]
+----
+           二进制  十六进制
+   CPU 0   0001    1
+   CPU 1   0010    2
+   CPU 2   0100    4
+   CPU 3   1000    8
+----
+
+假如有一个4个CPU的系统， 我们能给一个IRQ分配15种不同的CPU组合(实际上有16种，但我们不能给任何中断分配中断亲和为”0”的值， 即使你这么做，系统也会忽略你的做法)
+
+[source, bash]
+----
+echo $bitmask > /proc/irq/IRQ#/smp_affinity
+
+# 把44号中断绑定到前4个CPU上
+echo f > /proc/irq/44/smp_affinity
+----
+
+- `/proc/irq/IRQ#/smp_affinity_list`
+
+设置该文件取得的效果与/proc/irq/IRQ#/smp_affinity是一致的，它们两者是联动关系(既设置其中之一，另一个文件也随着改变), 有些系统可能没有该文件, 设置方法如下
+
+[source, bash]
+----
+echo $cpuindex1-$cpuindex2 >/proc/irq/IRQ#/smp_affinity_list
+# 将44号中断绑定到前4个CPU上(CPU0-3)上
+echo 0-3 > /proc/irq/44/smp_affinity_list
+----
+
+- `/proc/irq/default_smp_affinity`
+
+/proc/irq/default_smp_affinity 指定了默认情况下未激活的IRQ的中断亲和掩码(affinity mask).一旦IRQ被激活，它将被设置为默认的设置(即default_smp_affinity中记录的设置). 该文件能被修改. 默认设置是0xffffffff.
+
+对于UDP测试在IRQ affinity上性能的下降， 查阅了内核源码(drivers/net/bnx2.c)及资料, bnx2 网卡的RSS hash不支持对UDP的端口进行计算，从而导致单独启用IRQ affinity的时候(这时候由硬件进行hash计算), UDP的数据只被hash了IP地址而导致数据包的转发出现集中在某个CPU的现象. 这是此次测试的局限所在，由于测试只是一台服务器端及一台客户端，所有UDP的IP地址都相同，无法体现UDP性能在单独启用IRQ affinity的性能提升
+
+
+
+
+=== 如何更快的接收数据
+
+[plantuml, diagram=nic-queickdata, format=png]
+----
+@startuml
+
+
+@enduml
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+https://blog.51cto.com/u_15352893/3741281
+
+https://baijiahao.baidu.com/s?id=1712167031976582525&wfr=spider&for=pc
+
+https://baijiahao.baidu.com/s?id=1712167199181924621&wfr=spider&for=pc
+
+
+
