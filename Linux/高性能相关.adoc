@@ -208,6 +208,87 @@ docker0:       0       0    0    0    0     0          0         0        0     
 
 image::../image/image-2022-06-26-18-23-16-598.png[内核网络子系统]
 
+硬件和内核之间交互必须通过中断，这种机制处理其它事情好可以，但是作为网络数据来说如果一个数据就上报一个中断的话会带来如下问题：
+
+1. 中断处理期间，会对之前的中断信信号进行屏蔽，当一个中断处理的时间很长，在处理期间收到的中断信号都会丢掉
+2. 一个数据包触发一次中断，当有大量数据包到来后，就会产生大量的中断。网络数据量大时会导致CPU忙于处理中断而没办法干其他事情。
+
+针对以上问题的解决办法就是让终端处理尽量的短。具体来说就是不能在中断中处理的数据，将需要处理的数据丢出来交给软中断进行处理
+
+[source, cpp]
+.ksoftirqd
+----
+// 软中断
+static struct smp_hotplug_thread softirq_threads = {
+	.store			= &ksoftirqd,
+	.thread_should_run	= ksoftirqd_should_run,
+	.thread_fn		= run_ksoftirqd,
+	.thread_comm		= "ksoftirqd/%u",
+};
+// 为每一个CPU都注册一个软中断线程，服务器上每一个CPU都会分配一个这样的线程
+// 软中断和网络相关的就是 NET-Tx NET-Rx
+static __init int spawn_ksoftirqd(void)
+{
+	register_cpu_notifier(&cpu_nfb);
+
+	BUG_ON(smpboot_register_percpu_thread(&softirq_threads));
+
+	return 0;
+}
+----
+
+内核初始化流程
+
+- 针对每个CPU，创建一个数据结构
+- 注册一个软中断处理函数(NET-RX, NET-Tx)
+
+image::../image/image-2022-06-26-23-15-41-372.png[netirq-tx-rx]
+
+1. 网卡收到数据包
+2. 把数据通过DMA拷贝到内存里面
+3. 产生一个中断，告诉CPU并开始处理中断(将中断信号屏蔽->环形NAPI机制)
+
+[source,cpp]
+----
+static irqreturn_t igb_msix_ring(int irq, void *data)
+{
+	struct igb_q_vector *q_vector = data;
+
+	/* Write the ITR value calculated from the previous interrupt. */
+	igb_write_itr(q_vector);
+
+	napi_schedule(&q_vector->napi);
+
+	return IRQ_HANDLED;
+}
+----
+
+上面的代码是 igb 网卡驱动中断处理函数做的事情。如果省略掉开始的变量声明和后面的返回，这个中断处理函数只有两行代码，非常短。需要关注的是第二个，在硬件中断处理函数中，只用激活外部 NIPA 软中断处理机制，无需做其他任何事情。因此这个中断处理函数会返回的非常快。
+
+[source, cpp]
+----
+/* Called with irq disabled */
+static inline void ____napi_schedule(struct softnet_data *sd,
+				     struct napi_struct *napi)
+{
+	list_add_tail(&napi->poll_list, &sd->poll_list);
+	__raise_softirq_irqoff(NET_RX_SOFTIRQ);
+}
+----
+NIPI 的激活也很简单，主要为两步。内核网络系统在初始化的时每个 CPU 都会有一个结构体，它会把队列对应的信息插入到结构体的链表里。换句话说，每个网卡队列在收到数据的时候，需要把自己的队列信息告诉对应的 CPU，将这两个信息绑定起来，保证某个 CPU 处理某个队列。
+
+除此之外，还要与触发硬中断一样，需要触发软中断。下图将很多步骤放到了一块，前面讲过的就不再赘述了。图中要关注的是软中断是怎么触发的。与硬中断差不多，软中断也有中断的向量表。每个中断号，都会对应一个处理函数，当需要处理某个中断，只需要在对应的中断向量表里找就好了，跟硬中断的处理是一模一样的。
+
+image::../image/image-2022-06-26-23-24-36-402.png[sirq-processing]
+
+
+
+
+
+
+
+
+
 
 
 
@@ -218,7 +299,7 @@ https://netdevconf.org[Linux子网系统历年大会]
 
 
 
-
+https://baijiahao.baidu.com/s?id=1712167199181924621&wfr=spider&for=pc
 
 
 https://blog.51cto.com/u_15352893/3741281
