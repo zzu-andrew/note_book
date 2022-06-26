@@ -46,6 +46,7 @@ void PlacementNew() {
 当一个硬件(如磁盘控制器或者以太网卡), 需要打断CPU的工作时, 它就触发一个中断. 该中断通知CPU发生了某些事情并且CPU应该放下当前的工作去处理这个事情. 为了防止多个设置发送相同的中断, Linux设计了一套中断请求系统, 使得计算机系统中的每个设备被分配了各自的中断号, 以确保它的中断请求的唯一性. 从2.4 内核开始, Linux改进了分配特定中断到指定的处理器(或处理器组)的功能. 这被称为SMP IRQ affinity, 它可以控制系统如何响应各种硬件事件. 允许你限制或者重新分配服务器的工作负载, 从而让服务器更有效的工作. 以网卡中断为例，在没有设置SMP IRQ affinity时， 所有网卡中断都关联到CPU0, 这导致了CPU0负载过高，而无法有效快速的处理网络数据包，导致了瓶颈。 通过SMP IRQ affinity， 把网卡多个中断分配到多个CPU上，可以分散CPU压力，提高数据处理速度。
 
 ==== 相关设置文件
+
 - `/proc/irq/<irqnumber>/smp_affinity`
 
 /proc/irq/IRQ#/smp_affinity 和 /proc/irq/IRQ#/smp_affinity_list 指定了哪些CPU能够关联到一个给定的IRQ源. 这两个文件包含了这些指定cpu的cpu位掩码(smp_affinity)和cpu列表(smp_affinity_list). 不允许关闭所有CPU， 同时如果IRQ控制器不支持中断请求亲和(IRQ affinity)，则这些设置的值将保持不变(既关联到所有CPU).
@@ -132,7 +133,93 @@ image::nicpic.jpeg[nicpic]
 
 image::../image/image-2022-06-26-17-45-04-444.png[CPUksoftirq]
 
- NAPI是现代网络数据包处理框架中非常重要的一个扩展。之所以现在能支持 10G、20G、25G 等非常高速的网卡，NAPI 机制起到了非常大的作用。当然 NAPI 并不复杂，其核心就两点：中断、轮循。一般来说，网卡在接收数据时肯定是收一个包，产生一个中断，然后在中断处理函数的时候将包处理掉。处在收包、处理中断，下一个收包，再处理中断，这样的循环中。而 NAPI 机制优势在于只需要一次中断，收到之后就可以通过轮循的方式，把队列内存中所有的数据都拿走，达到非常高效的状态。
+NAPI是现代网络数据包处理框架中非常重要的一个扩展。之所以现在能支持 10G、20G、25G 等非常高速的网卡，NAPI 机制起到了非常大的作用。当然 NAPI 并不复杂，其核心就两点：中断、轮循。一般来说，网卡在接收数据时肯定是收一个包，产生一个中断，然后在中断处理函数的时候将包处理掉。处在收包、处理中断，下一个收包，再处理中断，这样的循环中。而 NAPI 机制优势在于只需要一次中断，收到之后就可以通过轮循的方式，把队列内存中所有的数据都拿走，达到非常高效的状态。
+
+==== 驱动监控
+
+[source,bash]
+.ethtool -S
+----
+andrew@andrew-G3-3590:~$ ethtool -S wlp4s0
+NIC statistics:
+     rx_packets: 2778911
+     rx_bytes: 2758807450
+     rx_duplicates: 5
+     rx_fragments: 2468225
+     rx_dropped: 1185
+     tx_packets: 927109
+     tx_bytes: 101761735
+     tx_filtered: 0
+     tx_retry_failed: 0
+     tx_retries: 0
+     ...
+----
+
+使用ethtool工具可以拿到网卡中常规的统计信息，而这里最值得关注的当然是那些异常的信息.
+
+同样可以通过查看系统的net信息获取这些信息，`/sys/class/net/<interface>/statistics/` 目录中会记录对应网卡的一些信息统计。
+
+[source,back]
+----
+andrew@andrew-G3-3590:~$ cat /sys/class/net/wlp4s0/statistics/rx_
+rx_bytes          rx_dropped        rx_frame_errors   rx_nohandler
+rx_compressed     rx_errors         rx_length_errors  rx_over_errors
+rx_crc_errors     rx_fifo_errors    rx_missed_errors  rx_packets
+andrew@andrew-G3-3590:~$ cat /sys/class/net/wlp4s0/statistics/rx_dropped
+0
+----
+
+相同的信息也会在 `/proc/net/dev` 中进行体现，这些信息差不多，只是获取的方法不一致而已
+
+[source,bash]
+----
+:~$ cat /proc/net/dev
+Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+    lo: 67220678  409483    0    0    0     0          0         0 67220678  409483    0    0    0     0       0          0
+enp3s0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+enx00e04c68053d:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+wlp4s0: 2628562869 2161689    0    0    0     0          0         0 102174407  929847    0    0    0     0       0          0
+docker0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+
+----
+
+
+[TIP]
+====
+1. 如果overruns错误，说明Rx Tx的队列太小了，需要扩大
+2. 如果frame错误，一般是网络数据的RAR校验不通过，需要考虑，互联网上的需要考虑数据是否被篡改，网线直连的需要考虑是否网线或者网卡出现了问题
+====
+
+==== 调优
+
+调优能够更改的地方比较少，主要针对多队列的调整，比较直观，调整队列数目、大小、各个队列之间的权重、哈希字段等
+
+使用 `ethtool -l <interface>` 可以查看网卡的预设信息
+
+举个例子，比如有个 web server 绑定到了 CPU2，而机器有多个 CPU，这个机器的网卡也是多队列的，其中某个队列会被 CPU2 处理。这个时候就会有一个问题，因为网卡有多个队列，所以 80 端口的流量只会被分配到其中一个队列上去。假如这个队列不是由 CPU2 处理的，就会涉及到一些数据的腾挪。底层把数据接收上来后再交给应用层的时候，需要把这个数据移动一下。如果本来在 CPU1 处理的，需要挪到 CPU2 去，这时会涉及到 CPU cache 的失效，这对高速运转的 CPU 来说是代价很高的操作
+
+我们可以通过前面提到的工具，特意把 80 端口 tcp 数据流量导向到对应 CPU2 处理的网卡队列。这么做的效果是数据包从到达网卡开始，到内核处理完再到送达应用层，都是同一个 CPU。这样最大的好处就是缓存，CPU 的 cache 始终是热的，如此整体下来，它的延迟、效果也会非常好。
+
+
+==== 内核网络子系统
+
+内核网络子系统，需要关注的主要有软中断于网络子系统
+
+image::../image/image-2022-06-26-18-23-16-598.png[内核网络子系统]
+
+
+
+
+
+
+https://netdevconf.org[Linux子网系统历年大会]
+
+
+
+
+
+
 
 https://blog.51cto.com/u_15352893/3741281
 
