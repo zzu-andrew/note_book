@@ -63,7 +63,32 @@ uint32_t RoundUp(uint32_t x, uint32_t align) {
 
 
 
+=== 编译器优化
 
+==== `memory`
+
+Memory描述符告知GCC：
+
+1. 不要将该段内嵌汇编指令与前面的指令重新排序；也就是在执行内嵌汇编代码之前，它前面的指令都执行完毕 +
+2. 不要将变量缓存到寄存器，因为这段代码可能会用到内存变量，而这些内存变量会以不可预知的方式发生改变，因此GCC插入必要的代码先将缓存到寄存器的变量值写回内存，如果后面又访问这些变量，需要重新访问内存。
+
+如果汇编指令修改了内存，但是GCC 本身却察觉不到，因为在输出部分没有描述，此时就需要在修改描述部分增加"memory"，告诉GCC 内存已经被修改，GCC 得知这个信息后，就会在这段指令之前，插入必要的指令将前面因为优化Cache到寄存器中的变量值先写回内存，如果以后又要使用这些变量再重新读取。 其实就相当于在这里增加了一层内存屏障。
+
+使用"volatile"也可以达到这个目的，但是我们需要在每个变量前增加该关键字，不如使用"memory"方便
+
+经常按照如下方式使用该内联汇编，使用do-while能有效限制 `memory` 的作用范围
+[source, cpp]
+----
+/* Optimization barrier */
+/* The "volatile" is due to gcc bugs */
+#define barrier() __asm__ __volatile__("": : :"memory")
+
+#define __rcu_assign_pointer(p, v, space) \
+	do { \
+		barrier(); \
+		(p) = (typeof(*v) __force space *)(v); \
+	} while (0)
+----
 
 
 

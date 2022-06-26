@@ -12,7 +12,10 @@ ifdef::rootpath[]
 endif::rootpath[]
 
 
-== placement new
+== 高性能
+
+
+=== placement new
 
 placement new允许我们将对象创建于已经申请的内存中，因为placement new实际上并没有申请内存，所以也不存在所谓的placement delete
 
@@ -38,6 +41,7 @@ void PlacementNew() {
 
 
 
+===
 
 
 
@@ -45,9 +49,11 @@ void PlacementNew() {
 
 
 
+https://blog.51cto.com/u_15352893/3741281
 
+https://baijiahao.baidu.com/s?id=1712167031976582525&wfr=spider&for=pc
 
-
+https://baijiahao.baidu.com/s?id=1712167199181924621&wfr=spider&for=pc
 
 
 

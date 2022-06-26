@@ -40,4 +40,9 @@ endif::rootpath[]
 
 
 
+https://ny5odfilnr.feishu.cn/docs/doccn7Toa48ThrsK4Cu4v52AUZb#[Linux常用命令手册]
+
+
+
+
 
