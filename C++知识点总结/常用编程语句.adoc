@@ -17,6 +17,49 @@ uint32_t RoundUp(uint32_t x, uint32_t align) {
 
 
 
+=== 类型检查
+
+
+==== `typecheck`
+
+常用来在编译期间检查对应变量的类型，经常用于宏定义内部，用来弥补宏定义不能对参数类型进行检查的补充。
+
+宏定义本身没有做任何更改操作，知识将type类型的变量赋值给一个临时定义出来从x取出类型的变量，如果两个类型不同则编译器会直接报错，因为不同类型之间不能进行比较。
+
+[source, cpp]
+.typecheck
+----
+/*
+ * Check at compile time that something is of a particular type.
+ * Always evaluates to 1 so you may use it easily in comparisons.
+ */
+#define typecheck(type,x) \
+({	type __dummy; \
+	typeof(x) __dummy2; \
+	(void)(&__dummy == &__dummy2); \
+	1; \
+})
+----
+
+==== `typecheck_fn`
+
+和typecheck类似，利用编译器对不同类型之间不能进行比较的特性对函数类型进行检查，这样实现了宏中来检查类型是否一致的作用。
+
+.typecheck_fn
+[source, cpp]
+----
+/*
+ * Check at compile time that 'function' is a certain type, or is a pointer
+ * to that type (needs to use typedef for the function type.)
+ */
+#define typecheck_fn(type,function) \
+({	typeof(type) __tmp = function; \
+	(void)__tmp; \
+})
+----
+
+
+
 
 
 
