@@ -19,7 +19,7 @@ v0.1, 2022-6-7
 
 == C++
 include::C++知识点总结/C++常见知识点.adoc[C++常见知识点总结]
-include::C++知识点总结/高性能相关.adoc[高性能相关]
+
 include::C++知识点总结/常用编程语句.adoc[常用编程语句]
 
 
@@ -34,6 +34,7 @@ include::网络/HTTP.adoc[HTTP]
 == Linux
 
 include::Linux/Linux二进制分析.adoc[linux]
+include::Linux/高性能相关.adoc[高性能相关]
 
 
 == utils
