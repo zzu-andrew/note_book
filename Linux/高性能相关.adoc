@@ -415,6 +415,186 @@ static int softnet_seq_show(struct seq_file *seq, void *v)
 }
 ----
 
+来自：《性能优化：更快地接收数据》
+
+=== CPU性能优化实战
+
+.*平均负载*
+****
+单位时间内可运行状态和不可运行状态的平均进程数，也就是平均活跃进程数，它和CPU的使用率没有之间关系 +
+可运行状态的进程： 正在使用 CPU 或者正在等待 CPU 的进程，也就是我们常用 ps 命令看到的处于 R 状态（Running 或 Runnable） 的进程。 不可中断状态的进程： 正处于内核态关键流程中的进程，并且这些流程是不可打断的，比如最常见的是等待硬件设备的 I/O 响应， 也就是我们在  命令中看到的 D 状态（Uninterruptible Sleep， 也称为 Disk Sleep） 的进程。
+****
+
+使用top或者uptime查看平均负载时会给出三个值，分别代表 `5, 10, 15` 分钟的三个平均负载值，也代表一种趋势，如果相差不大说明系统负载平稳
+
+[source, bash]
+----
+[root@localhost lib]# uptime
+ 16:08:49 up 180 days, 30 min, 12 users,  load average: 3.04, 2.77, 2.98
+----
+
+需要说明的是，这几个值并不是百分比，通常平均负载个数与CPU个数相当，如果该值远大于CPU个数，说明系统正在发生过载。
+
+==== 平均负载使用率
+
+平均负载不仅包括正在使用CPU的进程，还包括等待CPU和等待I/O的进程。CPU使用率是指单位时间内CPU繁忙的情况统计，跟平均负载不一定完全对应。
+
+CPU 密集型进程，使用大量 CPU 会导致平均负载升高，此时这两者是一致的； +
+I/O 密集型进程，等待 I/O 也会导致平均负载升高，但 CPU 使用率不一定很高
+大量等待 CPU 的进程调度也会导致平均负载升高，此时的 CPU 使用率也会比较高。
+
+使用mpstat查看CPU使用率情况：
+
+[source, bash]
+----
+[root@localhost ~]# mpstat -P ALL 5
+Linux 3.10.0-862.11.6.el7.x86_64 (localhost.localdomain) 	06/27/2022 	_x86_64_	(4 CPU)
+
+04:46:27 PM  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle
+04:46:32 PM  all   29.67    0.00    4.66    0.05    0.00    0.21    0.00    0.00    0.00   65.41
+04:46:32 PM    0   26.56    0.00    4.98    0.00    0.00    0.21    0.00    0.00    0.00   68.26
+04:46:32 PM    1   26.50    0.00    4.76    0.00    0.00    0.21    0.00    0.00    0.00   68.53
+04:46:32 PM    2   28.36    0.00    4.76    0.00    0.00    0.21    0.00    0.00    0.00   66.67
+04:46:32 PM    3   37.34    0.00    4.15    0.00    0.00    0.21    0.00    0.00    0.00   58.30
+----
+
+pidsta查看进程使用CPU情况：
+
+统计5秒，然后输出一组数据，数据为各个进程在此期间占用CPU的情况：
+[source, bash]
+----
+$pidstat -u 5 1
+----
+
+使用vmstat查看上下文切换情况，还可以使用该工具分析系统内存使用情况，以及中断次数
+
+- cs (context switch)：每秒上下文切换的次数。
+- in (interrupt)：每秒中断的次数。
+- r (Running or Runnable) ：就绪队列的长度，也就是正在运行和等待 CPU 的进程数。
+- b (Blocked)：处在不可中断睡眠状态的进程数。
+
+[source, bash]
+----
+#连续统计5s然后输出一次结果
+[root@localhost ~]# vmstat  5
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 6  0 4194292 298028  27028 1080368    0    1    38    33    0    0 51  6 43  0  0
+28  0 4194292 298032  27068 1080384    0    0     0    42 36562 61443 30  6 64  0  0
+ 1  0 4194292 297828  27344 1080408    0    0    50    22 34492 58371 34  9 57  0  0
+ 1  0 4194292 297656  27352 1080420    0    0     0    22 35676 60984 30  5 65  0  0
+----
+
+同样可以使用pidstat查看单个进程的上下文切换情况，添加-t之后可以具体显示到线程：
+
+[source, bash]
+----
+[root@localhost ~]# pidstat -w
+Linux 3.10.0-862.11.6.el7.x86_64 (localhost.localdomain) 	06/27/2022 	_x86_64_	(4 CPU)
+
+05:29:04 PM   UID       PID   cswch/s nvcswch/s  Command
+05:29:04 PM     0         1      0.64      0.00  systemd
+05:29:04 PM     0         2      0.04      0.00  kthreadd
+05:29:04 PM     0         3      7.62      0.00  ksoftirqd/0
+05:29:04 PM     0         5      0.00      0.00  kworker/0:0H
+05:29:04 PM     0         7      0.50      0.00  migration/0
+----
+
+- cswch：每秒自愿上下文切换(voluntary context switches) 的次数。
+- nvcswch：每秒非自愿上下文切换(non voluntary context switches) 的次数。 概念：
+- 自愿上下文切换：进程无法获取所需资源，导致的上下文切换。比如， I/O、内存等系统资源不足时。
+- 非自愿上下文切换：进程由于时间片已到等原因，被系统强制调度，进而发生的上下文切换。比如，大量进程都在争抢 CPU 时。
+
+资源切换上下文变多，说明进程在等待资源，有可能发生I/O等其他问题，非自愿上下文切换变多，说明进程在被强制调度，也就是都在争抢CPU，说明CPU资源紧张，也就是CPU是瓶颈
+
+使用perf top来查看具体那个函数占用CPU比较高
+
+- Overhead：是该符号的性能事件在所有采样中的比例，用百分比来表示。
+- Shared：该函数或指令所在的动态共享对象(Dynamic Shared Object)，如内核、进程名、动态链接库名、内核模块名等。
+- Object:动态共享对象的类型。比如[.] 表示用户空间的可执行程序、或者动态链接库，而[k]则表示内核空间。
+- Symbol：函数名。当函数名未知时，用十六进制的地址来表示。
+
+[source, bash]
+----
+$perf top
+Samples: 240K of event 'cpu-clock', Event count (approx.): 21971692699
+Overhead  Shared Object                 Symbol
+  66.89%  libldp_bizproc.so             [.] CBizProcPluginImpl::SingleBizSystemProc
+   4.81%  [kernel]                      [k] finish_task_switch
+   2.57%  [kernel]                      [k] __do_softirq
+   2.20%  [kernel]                      [k] _raw_spin_unlock_irqrestore
+   1.84%  [kernel]                      [k] tick_nohz_idle_exit
+   1.64%  [kernel]                      [k] run_timer_softirq
+   0.90%  libpthread-2.17.so            [.] pthread_cond_timedwait@@GLIBC_2.3.2
+   0.78%  [kernel]                      [k] system_call_after_swapgs
+----
+
+同样可以使用，如下方式离线查看，如果添加-g选项，会增加调用关系的采样数据
+****
+perf record 离线保存系统的性能信息，按Ctrl+C终止采样 +
+perf report 解析perf record保存的采样信息
+****
+
+- 用户 CPU 和 Nice CPU 高，说明用户态进程占用了较多的CPU，所以应该着重排查进程的性能问题。
+- 系统 CPU 高，说明内核态占用了较多的 CPU，所以应该着重排查内核线程或者系统调用的性能问题。
+- I/O 等待 CPU 高，说明等待 I/O 的时间比较长，所以应该着重排查系统存储是不是出现了I/O问题。
+- 软中断和硬中断高，说明软中断或硬中断的处理程序占用了较多的CPU，所以应该着重排查内核中的中断服务程序。
+- 碰到常规问题无法解释的 CPU 使用率情况时，首先要想到有肯呢个是短时应用导致的问题，比如
+- 第一，应用里直接调用了其他二进制程序，这些程序通常运行时间比较短，通过 top 等工具也不容易发现。
+- 第二，应用本身在不停地崩溃重启，而启动过程的资源初始化，很可能会占用相当多的 CPU。
+
+==== 进程状态
+
+- R ：Running或Runnable的缩写，表示进程在 CPU 的就绪队列中，正在运行或者正在等待运行。
+- D：Disk Sleep 的缩写，也就是不可中断状态睡眠（Uninterruptible Sleep），一般表示进程正在跟硬件交互，并且交互过程不允许被其他进程中断打断。
+- Z：Zombie的缩写，表示僵尸进程，也就是进程实际上已经结束了，但是父进程还没有回收它的资源（比如进程的描述符、PID等）。
+- S:Interruptible Sleep的缩写，也就是可中断状态睡眠，表示进程因为等待某个事件而被系统挂起。
+- I：Idle的缩写，也就是空闲状态，用在不可中断睡眠的内核线程上。
+- T/t：Stopped 或 Traced的缩写，表示进程处于暂停或者跟踪状态。
+- X：Dead的缩写，表示进程已经消亡，所以你不会在 top 或者 ps 命令中看到它。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -423,12 +603,6 @@ https://netdevconf.org[Linux子网系统历年大会]
 
 
 
-https://baijiahao.baidu.com/s?id=1712167199181924621&wfr=spider&for=pc
-
-
-https://blog.51cto.com/u_15352893/3741281
-
-https://baijiahao.baidu.com/s?id=1712167031976582525&wfr=spider&for=pc
 
 https://baijiahao.baidu.com/s?id=1712167199181924621&wfr=spider&for=pc
 

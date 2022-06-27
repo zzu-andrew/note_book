@@ -531,6 +531,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_placement_new">placement new</a></li>
 <li><a href="#_smp_irq_affinity">SMP IRQ affinity</a></li>
 <li><a href="#_如何更快的接收数据">如何更快的接收数据</a></li>
+<li><a href="#_cpu性能优化实战">CPU性能优化实战</a></li>
 </ul>
 </li>
 <li><a href="#_utils">utils</a></li>
@@ -4424,6 +4425,25 @@ docker0:       0       0    0    0    0     0          0         0        0     
 </div>
 </div>
 <div class="paragraph">
+<p>查看软中断信息</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash"># cat /proc/softirqs
+                    CPU0       CPU1       CPU2       CPU3
+          HI:          0          0          0          0
+       TIMER: 2623983768 2668790241 2685144852 2721179533
+      NET_TX:       5811       5942       5124    3113782
+      NET_RX: 2016198897 1627027198 1593502916 2264407343
+       BLOCK:   15697043    9637765   18050603   38241598
+BLOCK_IOPOLL:          0          0          0          0
+     TASKLET:   15807487   19225321    8343774   16115362
+       SCHED: 1192747035 1125818886 1070286566 1060203270
+     HRTIMER:          0          0          0          0
+         RCU:   86329660   73790543   76646829   91746559</code></pre>
+</div>
+</div>
+<div class="paragraph">
 <p>内核初始化流程</p>
 </div>
 <div class="ulist">
@@ -4438,7 +4458,7 @@ docker0:       0       0    0    0    0     0          0         0        0     
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./image/image-2022-06-26-23-15-41-372.png" alt="netirq-tx-rx">
+<img src="./image/diag-3cea2ce0b5786ba82d88bc1878b407f9.png" alt="Diagram" width="316" height="334">
 </div>
 </div>
 <div class="olist arabic">
@@ -4495,16 +4515,169 @@ docker0:       0       0    0    0    0     0          0         0        0     
 </div>
 </div>
 <div class="paragraph">
+<p><strong>数据接收监控</strong></p>
+</div>
+<div class="paragraph">
+<p>每个设备都有独立的中断号，在当前机器上56-59就是王康ens160的收发中断号，正常保证每个CPU都处理一个中断时效率是最高的，如果不是就需要做些调整将这些中断进行分散。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">[root@localhost lib]# cat /proc/interrupts
+           CPU0       CPU1       CPU2       CPU3
+  0:         52          0          0          0   IO-APIC-edge      timer
+ 56:  386021285  329753204  490753058  368168795   PCI-MSI-edge      ens160-rxtx-0
+ 57:  215302811  207102966  225180046  902275735   PCI-MSI-edge      ens160-rxtx-1
+ 58:  942480710  258907890  289008190  258273639   PCI-MSI-edge      ens160-rxtx-2
+ 59:   90400625  461816820  228991190  378142346   PCI-MSI-edge      ens160-rxtx-3
+ 60:          0          0          0          0   PCI-MSI-edge      ens160-event-4</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_数据接收调优">数据接收调优</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>中断可以做的调优有两个，一是中断合并，二是中断亲和性</p>
+</li>
+</ul>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">自适应中断合并</div>
+<div class="paragraph">
+<p>rx-usecs:数据帧到达后延迟多长时间产生中断信号，单位微秒
+rx-frames:触发中断前积累数据帧的最大个数
+rx-usecs-irq:如果中断处理正在执行，当前中断延迟多久送达CPU
+rx-frames-irq:如果中断正在执行，最多积累多少数据帧</p>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>上面都是硬件网卡支持的功能，NAPI本质上也是中断合并机制，如果有很多包进来，NAPI就可以做到只产生一个中断，因此不需要使用硬件帮助做中断合并，实际效果和NAPI是相同的，都是用来减少中断的数量。</p>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">中断亲和性</div>
+<div class="paragraph">
+<p><code>echo 1 &gt; /proc/irq/8/smp_affinity</code><br>
+通过设置亲和性，将对应的中断交给指定的CPU处理</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_内核_数据处理">内核-数据处理</h4>
+<div class="paragraph">
+<p>最后是数据处理部分了。当数据到达网卡，进入队列内存后，就需要内核从队列内存中将数据拉出来。如果机器的 PPS 达到了十万甚至百万，而 CPU 只处理网络数据的话，那其他基本的业务逻辑也就不用干了，因此不能让数据包的处理独占整个 CPU，而核心点是怎么去做限制。</p>
+</div>
+<div class="paragraph">
+<p>整体限制就是一个CPU对应一个队列，如果CPU的数量比队列数量少，那么一个CPU可能需要处理多个队列</p>
+</div>
+<div class="paragraph">
+<p>单次限制则是一个队列在一轮处理包的数量，达到限制之后就停下来，等待下一轮处理(分而治之的思想)</p>
+</div>
+<div class="paragraph">
+<p>而停下来是很关键的节点，幸运的是有对应的指标记录，有Time-squeeze这样的中断计数，拿到这个信息就可以判断出机器网络处理是否有瓶颈，被迫中断频次的高低</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">[root@localhost lib]# cat /proc/net/softnet_stat
+5dd1bfb3 00000000 0000002f 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+3f009d76 00000000 00000047 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+3ccda8dd 00000000 00000030 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+3fd62407 00000000 00000035 00000000 00000000 00000000 00000000 00000000 00000000 00000000</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>这些是CPU的指标数据，格式很简单，每一行对应一个CP(顺序从上到下)，输出格式是按照16进制输出，但是没有对应的文档说列对应的信息，需要自己查看对应的内核源码实现</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cpp"><span style="color:#777">/*
+ * Incoming packets are placed on per-cpu queues
+ */</span>
+<span style="color:#080;font-weight:bold">struct</span> softnet_data {
+        <span style="color:#080;font-weight:bold">struct</span> Qdisc                *output_queue;
+        <span style="color:#080;font-weight:bold">struct</span> Qdisc                **output_queue_tailp;
+        <span style="color:#080;font-weight:bold">struct</span> list_head        poll_list;
+        <span style="color:#080;font-weight:bold">struct</span> sk_buff                *completion_queue;
+        <span style="color:#080;font-weight:bold">struct</span> sk_buff_head        process_queue;
+
+        <span style="color:#777">/* stats */</span>
+        <span style="color:#0a8;font-weight:bold">unsigned</span> <span style="color:#0a8;font-weight:bold">int</span>                processed; <span style="color:#777">// 处理的包数量（多网卡 bond 模式可能多于实际的收包数量）</span>
+        <span style="color:#0a8;font-weight:bold">unsigned</span> <span style="color:#0a8;font-weight:bold">int</span>                time_squeeze; <span style="color:#777">// 软中断处理 net_rx_action 被迫打断的次数 说明数据量大CPU忙才会被打断</span>
+        <span style="color:#0a8;font-weight:bold">unsigned</span> <span style="color:#0a8;font-weight:bold">int</span>                cpu_collision; <span style="color:#777">// 发送数据时获取设备锁冲突，比如多个 CPU 同时发送数据</span>
+        <span style="color:#0a8;font-weight:bold">unsigned</span> <span style="color:#0a8;font-weight:bold">int</span>                received_rps; <span style="color:#777">//  当前 CPU 被唤醒的次数（通过处理器间中断）</span>
+
+<span style="color:#579">#ifdef</span> CONFIG_RPS
+        <span style="color:#080;font-weight:bold">struct</span> softnet_data        *rps_ipi_list;
+
+        <span style="color:#777">/* Elements below can be accessed between CPUs for RPS */</span>
+        <span style="color:#080;font-weight:bold">struct</span> call_single_data        csd ____cacheline_aligned_in_smp;
+        <span style="color:#080;font-weight:bold">struct</span> softnet_data        *rps_ipi_next;
+        <span style="color:#0a8;font-weight:bold">unsigned</span> <span style="color:#0a8;font-weight:bold">int</span>                cpu;
+        <span style="color:#0a8;font-weight:bold">unsigned</span> <span style="color:#0a8;font-weight:bold">int</span>                input_queue_head;
+        <span style="color:#0a8;font-weight:bold">unsigned</span> <span style="color:#0a8;font-weight:bold">int</span>                input_queue_tail;
+<span style="color:#579">#endif</span>
+        <span style="color:#0a8;font-weight:bold">unsigned</span> <span style="color:#0a8;font-weight:bold">int</span>                dropped;  <span style="color:#777">// 丢包数量，因为队列满了</span>
+        <span style="color:#080;font-weight:bold">struct</span> sk_buff_head        input_pkt_queue;
+        <span style="color:#080;font-weight:bold">struct</span> napi_struct        backlog;
+};
+
+<span style="color:#777">// time_squeeze 重点关注time_squeeze</span>
+<span style="color:#088;font-weight:bold">static</span> <span style="color:#0a8;font-weight:bold">int</span> softnet_seq_show(<span style="color:#080;font-weight:bold">struct</span> seq_file *seq, <span style="color:#088;font-weight:bold">void</span> *v)
+{
+        <span style="color:#080;font-weight:bold">struct</span> softnet_data *sd = v;
+
+        seq_printf(seq, <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">%08x %08x %08x %08x %08x %08x %08x %08x %08x %08x</span><span style="color:#b0b">\n</span><span style="color:#710">&quot;</span></span>,
+                   sd-&gt;processed, sd-&gt;dropped, sd-&gt;time_squeeze, <span style="color:#00D">0</span>,
+                   <span style="color:#00D">0</span>, <span style="color:#00D">0</span>, <span style="color:#00D">0</span>, <span style="color:#00D">0</span>, <span style="color:#777">/* was fastroute */</span>
+                   sd-&gt;cpu_collision, sd-&gt;received_rps);
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#00D">0</span>;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>来自：《性能优化：更快地接收数据》</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cpu性能优化实战">CPU性能优化实战</h3>
+<div class="sidebarblock">
+<div class="content">
+<div class="title"><strong>平均负载</strong></div>
+<div class="paragraph">
+<p>单位时间内可运行状态和不可运行状态的平均进程数，也就是平均活跃进程数，它和CPU的使用率没有之间关系<br>
+可运行状态的进程： 正在使用 CPU 或者正在等待 CPU 的进程，也就是我们常用 ps 命令看到的处于 R 状态（Running 或 Runnable） 的进程。 不可中断状态的进程： 正处于内核态关键流程中的进程，并且这些流程是不可打断的，比如最常见的是等待硬件设备的 I/O 响应， 也就是我们在  命令中看到的 D 状态（Uninterruptible Sleep， 也称为 Disk Sleep） 的进程。</p>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>使用top或者uptime查看平均负载时会给出三个值，分别代表 <code>5, 10, 15</code> 分钟的三个平均负载值，也代表一种趋势，如果相差不大说明系统负载平稳</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">[root@localhost lib]# uptime
+ 16:08:49 up 180 days, 30 min, 12 users,  load average: 3.04, 2.77, 2.98</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>需要说明的是，这几个值并不是百分比，通常平均负载个数与CPU个数相当，如果该值远大于CPU个数，说明系统正在发生过载。</p>
+</div>
+<div class="sect3">
+<h4 id="_平均负载使用率">平均负载使用率</h4>
+<div class="paragraph">
+<p>平均负载不仅包括正在使用CPU的进程，还包括等待CPU和等待I/O的进程。CPU使用率是指单位时间内CPU繁忙的情况统计，跟平均负载不一定完全对应。</p>
+</div>
+<div class="paragraph">
+<p>CPU 密集型进程，使用大量 CPU 会导致平均负载升高，此时这两者是一致的；<br>
+I/O 密集型进程，等待 I/O 也会导致平均负载升高，但 CPU 使用率不一定很高
+大量等待 CPU 的进程调度也会导致平均负载升高，此时的 CPU 使用率也会比较高。</p>
+</div>
+<div class="paragraph">
 <p><a href="https://netdevconf.org">Linux子网系统历年大会</a></p>
-</div>
-<div class="paragraph">
-<p><a href="https://baijiahao.baidu.com/s?id=1712167199181924621&amp;wfr=spider&amp;for=pc" class="bare">https://baijiahao.baidu.com/s?id=1712167199181924621&amp;wfr=spider&amp;for=pc</a></p>
-</div>
-<div class="paragraph">
-<p><a href="https://blog.51cto.com/u_15352893/3741281" class="bare">https://blog.51cto.com/u_15352893/3741281</a></p>
-</div>
-<div class="paragraph">
-<p><a href="https://baijiahao.baidu.com/s?id=1712167031976582525&amp;wfr=spider&amp;for=pc" class="bare">https://baijiahao.baidu.com/s?id=1712167031976582525&amp;wfr=spider&amp;for=pc</a></p>
 </div>
 <div class="paragraph">
 <p><a href="https://baijiahao.baidu.com/s?id=1712167199181924621&amp;wfr=spider&amp;for=pc" class="bare">https://baijiahao.baidu.com/s?id=1712167199181924621&amp;wfr=spider&amp;for=pc</a></p>

@@ -624,7 +624,6 @@ image::sunset.jpg[Sunset,300,200]
 image::https://asciidoctor.org/images/octocat.jpg[GitHub mascot]
 ----
 
-
 ==== 视频
 
 - 添加块视频
@@ -729,9 +728,6 @@ int GetData(int idx) {
 )}
 
 ----
-
-
-
 
 |===
 
