@@ -553,7 +553,25 @@ perf report 解析perf record保存的采样信息
 - T/t：Stopped 或 Traced的缩写，表示进程处于暂停或者跟踪状态。
 - X：Dead的缩写，表示进程已经消亡，所以你不会在 top 或者 ps 命令中看到它。
 
+==== CPU、IO、memory平均负载
 
+facebook新增proc节点-Pressure Stall Information(需要kernel >= 4.2)，查看10s, 1m, 5m的硬件资源短缺百分比
+
+[source, bash]
+----
+andrew@andrew-G3-3590:~$ head /proc/pressure/*
+==> /proc/pressure/cpu <==
+some avg10=1.73 avg60=1.63 avg300=1.09 total=198408959
+full avg10=1.00 avg60=1.00 avg300=0.78 total=127483856
+
+==> /proc/pressure/io <==
+some avg10=0.00 avg60=0.00 avg300=0.00 total=25506252
+full avg10=0.00 avg60=0.00 avg300=0.00 total=23251424
+
+==> /proc/pressure/memory <==
+some avg10=0.00 avg60=0.00 avg300=0.00 total=937507
+full avg10=0.00 avg60=0.00 avg300=0.00 total=812908
+----
 
 
 
