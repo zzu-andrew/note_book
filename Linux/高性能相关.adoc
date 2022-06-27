@@ -237,12 +237,43 @@ static __init int spawn_ksoftirqd(void)
 }
 ----
 
+查看软中断信息
+
+[source, bash]
+----
+# cat /proc/softirqs
+                    CPU0       CPU1       CPU2       CPU3
+          HI:          0          0          0          0
+       TIMER: 2623983768 2668790241 2685144852 2721179533
+      NET_TX:       5811       5942       5124    3113782
+      NET_RX: 2016198897 1627027198 1593502916 2264407343
+       BLOCK:   15697043    9637765   18050603   38241598
+BLOCK_IOPOLL:          0          0          0          0
+     TASKLET:   15807487   19225321    8343774   16115362
+       SCHED: 1192747035 1125818886 1070286566 1060203270
+     HRTIMER:          0          0          0          0
+         RCU:   86329660   73790543   76646829   91746559
+
+----
+
 内核初始化流程
 
 - 针对每个CPU，创建一个数据结构
 - 注册一个软中断处理函数(NET-RX, NET-Tx)
 
-image::../image/image-2022-06-26-23-15-41-372.png[netirq-tx-rx]
+[plantuml, diagram=softwareirq-index, format=png]
+----
+@startuml
+[*] -> NIC : packets
+NIC -> RAM : DMA
+RAM : RingBuffer
+NIC --> CPU : IRQ is raised
+NIC --->Driver : IRQ Cleared
+CPU --> Driver : RUns IRQ Handler
+Driver ->  [*] : NAPI is started
+@enduml
+----
+
 
 1. 网卡收到数据包
 2. 把数据通过DMA拷贝到内存里面
@@ -281,15 +312,108 @@ NIPI 的激活也很简单，主要为两步。内核网络系统在初始化的
 
 image::../image/image-2022-06-26-23-24-36-402.png[sirq-processing]
 
+*数据接收监控*
 
+每个设备都有独立的中断号，在当前机器上56-59就是王康ens160的收发中断号，正常保证每个CPU都处理一个中断时效率是最高的，如果不是就需要做些调整将这些中断进行分散。
 
+[source, bash]
+----
+[root@localhost lib]# cat /proc/interrupts
+           CPU0       CPU1       CPU2       CPU3
+  0:         52          0          0          0   IO-APIC-edge      timer
+ 56:  386021285  329753204  490753058  368168795   PCI-MSI-edge      ens160-rxtx-0
+ 57:  215302811  207102966  225180046  902275735   PCI-MSI-edge      ens160-rxtx-1
+ 58:  942480710  258907890  289008190  258273639   PCI-MSI-edge      ens160-rxtx-2
+ 59:   90400625  461816820  228991190  378142346   PCI-MSI-edge      ens160-rxtx-3
+ 60:          0          0          0          0   PCI-MSI-edge      ens160-event-4
+----
 
+==== 数据接收调优
 
+- 中断可以做的调优有两个，一是中断合并，二是中断亲和性
 
+.自适应中断合并
+****
+rx-usecs:数据帧到达后延迟多长时间产生中断信号，单位微秒
+rx-frames:触发中断前积累数据帧的最大个数
+rx-usecs-irq:如果中断处理正在执行，当前中断延迟多久送达CPU
+rx-frames-irq:如果中断正在执行，最多积累多少数据帧
+****
 
+上面都是硬件网卡支持的功能，NAPI本质上也是中断合并机制，如果有很多包进来，NAPI就可以做到只产生一个中断，因此不需要使用硬件帮助做中断合并，实际效果和NAPI是相同的，都是用来减少中断的数量。
 
+.中断亲和性
+****
+`echo 1 > /proc/irq/8/smp_affinity` +
+通过设置亲和性，将对应的中断交给指定的CPU处理
+****
 
+==== 内核-数据处理
 
+最后是数据处理部分了。当数据到达网卡，进入队列内存后，就需要内核从队列内存中将数据拉出来。如果机器的 PPS 达到了十万甚至百万，而 CPU 只处理网络数据的话，那其他基本的业务逻辑也就不用干了，因此不能让数据包的处理独占整个 CPU，而核心点是怎么去做限制。
+
+整体限制就是一个CPU对应一个队列，如果CPU的数量比队列数量少，那么一个CPU可能需要处理多个队列
+
+单次限制则是一个队列在一轮处理包的数量，达到限制之后就停下来，等待下一轮处理(分而治之的思想)
+
+而停下来是很关键的节点，幸运的是有对应的指标记录，有Time-squeeze这样的中断计数，拿到这个信息就可以判断出机器网络处理是否有瓶颈，被迫中断频次的高低
+
+[source,bash]
+----
+[root@localhost lib]# cat /proc/net/softnet_stat
+5dd1bfb3 00000000 0000002f 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+3f009d76 00000000 00000047 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+3ccda8dd 00000000 00000030 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+3fd62407 00000000 00000035 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+----
+
+这些是CPU的指标数据，格式很简单，每一行对应一个CP(顺序从上到下)，输出格式是按照16进制输出，但是没有对应的文档说列对应的信息，需要自己查看对应的内核源码实现
+
+[source, cpp]
+----
+/*
+ * Incoming packets are placed on per-cpu queues
+ */
+struct softnet_data {
+	struct Qdisc		*output_queue;
+	struct Qdisc		**output_queue_tailp;
+	struct list_head	poll_list;
+	struct sk_buff		*completion_queue;
+	struct sk_buff_head	process_queue;
+
+	/* stats */
+	unsigned int		processed; // 处理的包数量（多网卡 bond 模式可能多于实际的收包数量）
+	unsigned int		time_squeeze; // 软中断处理 net_rx_action 被迫打断的次数 说明数据量大CPU忙才会被打断
+	unsigned int		cpu_collision; // 发送数据时获取设备锁冲突，比如多个 CPU 同时发送数据
+	unsigned int		received_rps; //  当前 CPU 被唤醒的次数（通过处理器间中断）
+
+#ifdef CONFIG_RPS
+	struct softnet_data	*rps_ipi_list;
+
+	/* Elements below can be accessed between CPUs for RPS */
+	struct call_single_data	csd ____cacheline_aligned_in_smp;
+	struct softnet_data	*rps_ipi_next;
+	unsigned int		cpu;
+	unsigned int		input_queue_head;
+	unsigned int		input_queue_tail;
+#endif
+	unsigned int		dropped;  // 丢包数量，因为队列满了
+	struct sk_buff_head	input_pkt_queue;
+	struct napi_struct	backlog;
+};
+
+// time_squeeze 重点关注time_squeeze
+static int softnet_seq_show(struct seq_file *seq, void *v)
+{
+	struct softnet_data *sd = v;
+
+	seq_printf(seq, "%08x %08x %08x %08x %08x %08x %08x %08x %08x %08x\n",
+		   sd->processed, sd->dropped, sd->time_squeeze, 0,
+		   0, 0, 0, 0, /* was fastroute */
+		   sd->cpu_collision, sd->received_rps);
+	return 0;
+}
+----
 
 
 
