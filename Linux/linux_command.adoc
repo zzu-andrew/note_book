@@ -40,6 +40,52 @@ endif::rootpath[]
 
 
 
+
+
+
+=== 网卡
+
+==== `ethtool`
+
+- 查看队列等相关信息
+
+[source, bash]
+----
+ethtool -l  <interfaces>
+# 查看队列
+ls /sys/class/net/<interfaces>/queues
+----
+
+- 查看硬件中断号
+
+`cat /proc/interrupts`
+
+通过对应中断号对应的smp_affinity可以查看对应中断亲和的CPU是哪个
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 https://ny5odfilnr.feishu.cn/docs/doccn7Toa48ThrsK4Cu4v52AUZb#[Linux常用命令手册]
 
 
