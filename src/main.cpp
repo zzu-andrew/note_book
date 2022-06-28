@@ -50,28 +50,6 @@ int main(int argc, char *argv[]) {
     assert(typecheck(std::string, name));
 
 
-    char x = 0;
-    {
-        int _dummy;
-
-        typeof(x) _dummy2;
-
-        (void)(&_dummy == &_dummy2);
-	1;
-}
-
-    printf("========================%d\n", typecheck(std::string, name));
-
-    std::cout << "test" << std::endl;
-
-    RoundUp(12, 8);
-
-    typeof(RoundUp) *lpFunction;
-    lpFunction = RoundUp;
-
-    std::cout << name.substr(0, name.size() - 1);
-
-    string num = "d";
 
 
     return 0;

@@ -5,8 +5,9 @@ cmake_policy(SET CMP0054 NEW)
 
 # Set up the project
 project (node_books)
-
-add_definitions("-pg -o0 -g")
+#
+#add_definitions("-pg -o0 -g")
+add_definitions("-o0 -g")
 
 include_directories(inc/include)
 
