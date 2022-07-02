@@ -12,10 +12,44 @@ ifdef::rootpath[]
 :imagesdir: {rootpath}{path}{imagesdir}
 endif::rootpath[]
 
-== 操作系统
+== 系统知识
+
+=== PC系统架构
+
+image::../image/image-2022-07-02-10-29-44-536.png[PC系统架构]
+
+=== 一个程序的执行过程
+
+[plantuml, diagram=helloworld-exec,format=png]
+....
+编译器 : ccl
+汇编器 : as
+链接器 : ld
+
+[*] -> 预处理起 : hello.c
+预处理起 -> 编译器 : hello.i
+编译器 -> 汇编器 : hello.s
+汇编器 -> 链接器 :  hello.o
+链接器 -> [*] : hello
+....
+
+处理器的核心就是PC寄存器，用来存储计算机下一步需要执行的指令
 
 
-=== 系统知识
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ==== 什么是大小端
 
