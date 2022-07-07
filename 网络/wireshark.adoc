@@ -1,0 +1,112 @@
+
+:toc:
+
+:icons: font
+
+// 保证所有的目录层级都可以正常显示图片
+:path: 网络/
+:imagesdir: ../image/
+:srcdir: ../src
+
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+:srcdir: {rootpath}../src/
+endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+:srcdir: {rootpath}{path}../src/
+endif::rootpath[]
+
+
+== wireshark
+
+
+
+
+
+=== UDPReassemble
+
+消息中要包含
+- 消息编号
+- 分片序号
+[source, cpp]
+----
+msg_pkt ::= SEQUENCE {
+    .....
+    flags ::= SEQUENCE {
+        fragment    BOOLEAN,
+        last_fragment   BOOLEAN,
+    .....
+    }
+    msg_id  INTEGER(0..65535),
+    frag_id INTEGER(0..65535),
+    .....
+}
+----
+
+
+
+实际设计中，需要从回调函数中获取
+
+1. 是否是分片包
+2. 如果是分片包，分多少片，这个包是第几片数据
+3. 双方IP地址
+4. 双方端口
+
+[source, cpp]
+----
+ new_tvb = process_reassembled_data(tvb, offset, pinfo,
+        "Reassembled Message", frag_msg, &msg_frag_items,
+        NULL, msg_tree);
+
+    if (frag_msg) { /* Reassembled */
+        col_append_str(pinfo->cinfo, COL_INFO,
+                " (Message Reassembled)");
+    } else { /* Not last packet of reassembled Short Message */
+        col_append_fstr(pinfo->cinfo, COL_INFO,
+                " (Message fragment %u)", msg_num);
+    }
+
+    if (new_tvb) { /* take it all */
+        next_tvb = new_tvb;
+    } else { /* make a new subset */
+        next_tvb = tvb_new_subset_remaining(tvb, offset);
+    }
+}
+else { /* Not fragmented */
+    next_tvb = tvb_new_subset_remaining(tvb, offset);
+}
+----
+
+Having passed the fragment data to the reassembly handler, we can now check if we have the whole message. If there is enough information, this routine will return the newly reassembled data buffer.
+
+增加IP和端口确认
+addresses_ports_reassembly_table_functions in order to identify fragments by the given sequence number (msg_seqid), the source and destination addresses and ports from the packet.
+
+
+https://www.wireshark.org/docs/wsdg_html_chunked/ChDissectReassemble.html#ChDissectReassembleUdp[UDP数据重组]
+
+
+
+
+
+重新组装IP报文
+
+next_tvb = process_reassembled_data(tvb, offset, pinfo, "Reassembled IPv4",
+ipfd_head, &ip_frag_items,
+&update_col_info, ip_tree);
+
+
+
+
+
+websocket协议解析处理
+proto_register_websocket
+
+
+
+
+
