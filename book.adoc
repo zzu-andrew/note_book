@@ -35,13 +35,15 @@ include::网络/HTTP.adoc[HTTP]
 
 include::Linux/Linux二进制分析.adoc[linux]
 include::Linux/高性能相关.adoc[高性能相关]
-
+include::Linux/linux_command.adoc[command]
+include::Linux/Linux系统编程.adoc[linux系统编程]
+include::Linux/操作系统.adoc[操作系统]
+include::Linux/深入理解Linux内核.adoc[深入理解Linux内核]
 
 == utils
 
 include::utils/asciidoc_manual.adoc[AsciiDoc教程]
 
-include::Linux/操作系统.adoc[操作系统]
 
 
 
