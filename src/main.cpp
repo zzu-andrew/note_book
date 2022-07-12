@@ -14,41 +14,49 @@
 using namespace std;
 #include <unistd.h>
 
+class A {
+public:
+    virtual int GetData() = 0;
 
-uint32_t RoundUp(uint32_t x, uint32_t align) {
-    // extern有作用域在一个函数中声明extern只能在该函数中使用
-    extern void Externally();
-    Externally();
-    return (x + align - 1) & ~ (align - 1);
-}
+};
 
-/*
- * Check at compile time that something is of a particular type.
- * Always evaluates to 1 so you may use it easily in comparisons.
- */
-#define typecheck(type,x) \
-({	type __dummy; \
-	typeof(x) __dummy2; \
-	(void)(&__dummy == &__dummy2); \
-	1; \
-})
 
-/*
- * Check at compile time that 'function' is a certain type, or is a pointer
- * to that type (needs to use typedef for the function type.)
- */
-#define typecheck_fn(type,function) \
-({	typeof(type) __tmp = function; \
-	(void)__tmp; \
-})
+class B {
+public:
+    virtual int ShowData() = 0;
+};
+
+class C : virtual public B, virtual public A {
+public:
+
+
+};
+
+
+class D : virtual public C {
+public:
+    int ShowData()  {
+        std::cout << "Show " << std::endl;
+        return 0;
+    }
+
+    int GetData()  {
+
+        std::cout << "Data" << std::endl;
+        return 0;
+    }
+};
 
 
 int main(int argc, char *argv[]) {
 
-    std::string name = "ahdjgk;";
+    void* lp = new D;
 
-    assert(typecheck(std::string, name));
+    ((C*)lp)->GetData();
+    ((C*)lp)->ShowData();
 
+    ((A*)lp)->GetData();
+    ((B*)lp)->ShowData();
 
 
 

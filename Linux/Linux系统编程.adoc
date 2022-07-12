@@ -17,3 +17,21 @@ endif::rootpath[]
 
 
 
+
+
+=== 内联汇编
+
+内联汇编中，可以将C代码中的参数直接使用[]括住之后调用， `LDRB ch,[src], #1` 的意思是，将src指向的内存取出一个字节，然后+1走一步，
+[source, c]
+----
+void Strcpy(char *src, char *dest) {
+    __asm {
+    loop:
+        LDRB ch,[src], #1
+        STRB ch,[dest], #1
+        CMP ch, #0
+        BNE loop
+    }
+}
+----
+
