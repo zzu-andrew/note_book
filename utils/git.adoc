@@ -48,15 +48,174 @@ $ git commit -m 'initial project version'
 ----
 
 
+=== 提交
+
+提交到暂存区域
+
+[source, bash]
+----
+$ git commit -m "commit some changes"
+$ git push
+----
+
+如果嫌每次提交都要提交暂存区比较麻烦，可以添加-a，这样就会跳过使用暂存区的方式，直接将现有已经跟踪的文件暂存起来一并提交
+
+[source, bash]
+----
+$ git commit -a "commit some changes"
+----
+
+==== 删除文件
+
+如果要删除的文件已经存放到了暂存区的话，需要使用强制删除，就是添加删除选项 -f，这时一种安全的做饭，用于防止误删除还没有添加到快照的数据，这样的数据不能被git恢复
+
+[source, bash]
+----
+$ git rm xxx.md
+----
+
+如果你想让git删除文件，但是本地磁盘的文件还保留，比如你还没有添加gitignore的时候添加文件，导致很多不需要添加的文件添加到git暂存区。可以通过添加--cached选项来达到这一目的
+
+[source, bash]
+----
+$ git rm --cached README.md
+----
+
+
+=== 移动文件
+
+[source, bash]
+----
+$ git mv file_from file_to
+----
+
+=== 查看日志
+
+可以添加-2查看最近两次提交的日志
+
+[source, bash]
+----
+$ git log
+----
+
+可以添加-p参数来查看提交的具体差异
+
+[source, bash]
+----
+$ git log -p
+----
+
+可以添加-stat选项来只查看一些简略的信息
+
+[source, bash]
+----
+$ git log -stat
+----
+
+可以使用--pretty选项来美化日志输出，同时pretty还可以指定一些内健选项
+
+[source, bash]
+----
+$ git log --pretty=oneline
+$ git log --pretty=format:"%h - %an, %ar : %s"
+----
+
+[source, bash]
+----
+# 限制输出长度
+$ git log --since=2.weeks
+# 筛选包含某些字符串的提交
+$ git log -Sfunction_name
+----
+
+
+.Table 1. git log --pretty=format 常用的选项
+选项	说明
+|===
+| 选项 | 说明
+|%H
+|提交对象（commit）的完整哈希字串
+|%h
+|提交对象的简短哈希字串
+|%T
+|树对象（tree）的完整哈希字串
+|%t
+|树对象的简短哈希字串
+|%P
+|父对象（parent）的完整哈希字串
+|%p
+|父对象的简短哈希字串
+|%an
+|作者（author）的名字
+|%ae
+|作者的电子邮件地址
+|%ad
+|作者修订日期（可以用 --date= 选项定制格式）
+|%ar
+|作者修订日期，按多久以前的方式显示
+|%cn
+|提交者（committer）的名字
+|%ce
+|提交者的电子邮件地址
+|%cd
+|提交日期
+|%cr
+|提交日期，按多久以前的方式显示
+|%s
+|提交说明
+|===
+
+
+.Table 2. git log 的常用选项
+|===
+|选项	|说明
+|-p
+|按补丁格式显示每个更新之间的差异。
+|--stat
+|显示每次更新的文件修改统计信息。
+|--shortstat
+|只显示 --stat 中最后的行数修改添加移除统计。
+|--name-only
+|仅在提交信息后显示已修改的文件清单。
+|--name-status
+|显示新增、修改、删除的文件清单。
+|--abbrev-commit
+|仅显示 SHA-1 的前几个字符，而非所有的 40 个字。
+|--relative-date
+|使用较短的相对时间显示（比如，“2 weeks ago”）。
+|--graph
+|显示 ASCII 图形表示的分支合并历史。
+|--pretty
+|使用其他格式显示历史提交信息。可用的选项包括 oneline，short，full，fuller 和 format（后跟指定格式）。
+|===
+
+.Table 3. 限制 git log 输出的选项
+|===
+|选项 |说明
+|-(n)
+|仅显示最近的 n 条提交
+|--since, --after
+|仅显示指定时间之后的提交。
+|--until, --before
+|仅显示指定时间之前的提交
+|--author
+|仅显示指定作者相关的提交。
+|--committer
+|仅显示指定提交者相关的提交。
+|--grep
+|仅显示含指定关键字的提交
+|-S
+|仅显示添加或移除了某个关键字的提交
+|===
+
+
+=== 撤销操作
 
 
 
 
 
 
-
-
-
-
+https://www.progit.cn/#_scott_chacon_%E5%BA%8F[git pro]
 
 
