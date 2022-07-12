@@ -1,0 +1,53 @@
+
+:toc:
+
+:icons: font
+
+// 保证所有的目录层级都可以正常显示图片
+:path: Linux/
+:imagesdir: ../image/
+:srcdir: ../src
+
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+:srcdir: {rootpath}../src/
+endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+:srcdir: {rootpath}{path}../src/
+endif::rootpath[]
+
+
+== git
+
+=== 初始化一个仓库
+
+[source, bash]
+.init git storage
+----
+$ git init
+----
+
+[source, bash]
+.init git storage
+----
+$ git clone https://github.com/somelibrary
+----
+
+
+=== 添加跟踪文件
+
+[source, bash]
+----
+$ git add *.c
+$ git add LICENSE
+$ git commit -m 'initial project version'
+----
+
+
+
+
+
