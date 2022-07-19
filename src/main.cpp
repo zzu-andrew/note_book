@@ -48,15 +48,29 @@ public:
 };
 
 
+class DataProcess {
+public:
+    DataProcess() {
+        lpName = new char[64];
+    }
+
+    ~DataProcess() {
+        delete []lpName;
+    }
+
+
+
+private:
+    char *lpName;
+};
+
+
+
 int main(int argc, char *argv[]) {
 
-    void* lp = new D;
+    DataProcess data;
 
-    ((C*)lp)->GetData();
-    ((C*)lp)->ShowData();
 
-    ((A*)lp)->GetData();
-    ((B*)lp)->ShowData();
 
 
 
