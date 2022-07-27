@@ -5,6 +5,10 @@ cmake_policy(SET CMP0054 NEW)
 
 # Set up the project
 project (node_books)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+
 #
 #add_definitions("-pg -o0 -g")
 add_definitions("-o0 -g")
