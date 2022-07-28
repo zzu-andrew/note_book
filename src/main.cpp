@@ -11,6 +11,8 @@
 #include <cassert>
 
 
+
+
 using namespace std;
 #include <unistd.h>
 
@@ -64,14 +66,23 @@ private:
     char *lpName;
 };
 
+bool ErrorHasOccured() {
+    return true;
+}
 
+void HandleError() {
+    printf("===========================\n");
+}
 
 int main(int argc, char *argv[]) {
 
     DataProcess data;
 
-
-
+    int x = 10;
+    while (x --> 0) // x goes to 0
+    {
+        printf("%d ", x);
+    }
 
 
     return 0;

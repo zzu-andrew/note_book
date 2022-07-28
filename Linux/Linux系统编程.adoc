@@ -35,3 +35,27 @@ void Strcpy(char *src, char *dest) {
 }
 ----
 
+=== 信号
+
+signal和sigaction之间的区别是什么？
+
+https://stackoverflow.com/questions/231912/what-is-the-difference-between-sigaction-and-signal[What is the difference between sigaction and signal?]
+
+
+
+https://stackoverflow.com/questions/9547486/what-is-the-use-of-sa-onstack-in-sigaction
+
+https://pkg.go.dev/os/signal#hdr-Go_programs_that_use_cgo_or_SWIG
+
+
+== 进程
+
+https://stackoverflow.com/questions/131303/how-can-i-measure-the-actual-memory-usage-of-an-application-or-process[How can I measure the actual memory usage of an application or process?]
+
+
+
+
+
+
+
+
