@@ -537,6 +537,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_网卡">网卡</a></li>
 </ul>
 </li>
+<li><a href="#_linux系统编程">Linux系统编程</a>
+<ul class="sectlevel2">
+<li><a href="#_内联汇编">内联汇编</a></li>
+</ul>
+</li>
 <li><a href="#_系统知识">系统知识</a>
 <ul class="sectlevel2">
 <li><a href="#_pc系统架构">PC系统架构</a></li>
@@ -607,6 +612,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="paragraph">
 <p>v0.1, 2022-6-7</p>
+</div>
+<div class="paragraph">
+<p>门门</p>
 </div>
 </div>
 </div>
@@ -4976,6 +4984,30 @@ ls /sys/class/net/&lt;interfaces&gt;/queues</code></pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_linux系统编程">Linux系统编程</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_内联汇编">内联汇编</h3>
+<div class="paragraph">
+<p>内联汇编中，可以将C代码中的参数直接使用[]括住之后调用， <code>LDRB ch,[src], #1</code> 的意思是，将src指向的内存取出一个字节，然后+1走一步，</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="c"><span style="color:#088;font-weight:bold">void</span> Strcpy(<span style="color:#0a8;font-weight:bold">char</span> *src, <span style="color:#0a8;font-weight:bold">char</span> *dest) {
+    __asm {
+    <span style="color:#970;font-weight:bold">loop:</span>
+        LDRB ch,[src], <span style="color:#579">#1</span>
+        STRB ch,[dest], <span style="color:#579">#1</span>
+        CMP ch, <span style="color:#579">#0</span>
+        BNE loop
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_系统知识">系统知识</h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -7014,7 +7046,7 @@ However, special characters like &lt; and &gt; are still escaped.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-07-02 11:38:39 +0800
+Last updated 2022-07-27 17:21:26 +0800
 </div>
 </div>
 </body>
