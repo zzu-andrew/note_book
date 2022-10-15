@@ -145,9 +145,14 @@ func main() {
 ----
 
 
+[plantuml, target=produce-etcd, format=png]
+----
+producer -> etcd : 注册一个topic
+consumer -> etcd : 订阅一个topic
 
-
-
+producer -> etcd : 发布信息到topic
+etcd -> consumer : 订阅topic的consumer接收到信息
+----
 
 
 

@@ -34,14 +34,12 @@ private:
     char *lpName{};
 };
 
-
+#define swiggo_size_assert_eq(x, y, name) typedef char name[(x-y)*(x-y)*-2+1];
+#define swiggo_size_assert(t, n) swiggo_size_assert_eq(sizeof(t), n, swiggo_sizeof_##t##_is_not_##n)
 
 int main(int argc, char *argv[]) {
 
-    auto *lp = new DataProcess[4];
 
-
-    delete[] lp;
 
     return 0;
 }
