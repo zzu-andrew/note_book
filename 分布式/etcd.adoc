@@ -156,28 +156,11 @@ etcd -> consumer : 订阅topic的consumer接收到信息
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//[plantuml, target=etcd_watcher format=png]
+//....
+//
+//
+//....
 
 
 

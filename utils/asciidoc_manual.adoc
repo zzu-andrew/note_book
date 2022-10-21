@@ -292,7 +292,15 @@ ____
 QuoteBlock
 ____
 
+[quote, Abraham Lincoln, Address delivered at the dedication of the Cemetery at Gettysburg]
+____
+____
+
+
 - 负责引用块
+
+
+
 
 [quote, Abraham Lincoln, Address delivered at the dedication of the Cemetery at Gettysburg]
 ____

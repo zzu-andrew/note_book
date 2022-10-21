@@ -33,67 +33,38 @@ endif::rootpath[]
  - HTTP/HTTPS完成用户登录，用户注销等
  - 设计心跳保活命令
 
+=== 服务端挂了，客户端的tcp连接还在吗？
 
+- 如果服务端进程崩溃，那么内核会发送FIN报文，与客户端进行四次挥手
+tcp的连接是内核维护的，所以当服务端的进程崩溃之后，内核需要回收进程的所有TCP连接资源，因此内核会在回收资源时断开对应的tcp连接，整个过程并不需要对应进程的参与，所以即使服务端进程退出了还是能与客户端完成tcp的四次挥手
 
+- 如果服务端宕机，服务端不会进行四次挥手，后续发生的事情会根据客户端是否重新发送数据变现的不同
+1. 如果客户端会发送数据，由于服务端已经不存在了，客户端的数据会一直超时重传，当重传次数超过一定阈值后会断开TCP连接
+2. 如果客户端一直不发送数据，需要根据客户端是否开启TCP keepalive机制，如果开启超时检测服务端已经不存在就会断开连接，如果没有开启客户端的tcp会一直存在，并不会断开
 
+服务端发生宕机之后无法和客户端进行四次挥手，所以在服务端发生宕机的时刻起，客户端是无法感知到服务端的宕机的，只能在后续的数据交互来判断服务端是否存在
 
+如果服务端宕机之后客户端会发送数据，在超时之后客户端会启用超时重传机制，用来重传那些发送了但是没有得到回复的数据。当重传次数到达一定阈值之后内核就会判定该TCP连接出现了问题，然后通过socket接口通知该应用该tcp连接出现了问题，客户端在接收到这个问题反馈之后，会断开TCP的连接
 
+Linux中可以通过 tcp_retries2的配置项来设置重传超时时间。
+[source, bash]
+.tcp_retries2
+----
+$cat /proc/sys/net/ipv4/tcp_retries2
+15
+----
+tcp_retries2不是代表重传的次数，该数值只是用来计算重传超时的，设置为15大概超时时间为timeout= 924600ms，如果重传间隔超过这个timeout就会认为停止重传，然后就会断开tcp连接
 
+在发生超时重传的过程中，每一轮的超时时间(RTO)都是倍数增长的，如果第一轮的超时时间为200ms那么第二轮的RTO就会调整为400ms......, RTO是根据RTT计算出来的，如果发生超时重传，那么重复几次之后就会达到timeout的值了。
 
+RTO在Linux中使用宏定义进行预定义，以Linux2.6+为例，HZ为1000ms那么TCP_RTO_MIN为200ms， TCP_RTO_MAX为120s
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-[cols=2,3]
-|===
-2+|Header 1
-
-|Column 1, row 1
-|Column 2, row 1
-
-|Column 1, row 2
-|Column 2, row 2
-
-|Column 1, row 3
-|Column 2, row 3
-
-|Column 1, row 4
-|Column 2, row 4
-
-|Column 1, row 5
-|Column 2, row 5
-
-|Column 1, row 6
-|Column 2, row 6
-|===
-
-
-|===
-| id | name    | age | sex | demo | test        |
-
-| 1  | Roberta | 39  | M   | love | 11111111111 | 试试中文
-| 2  | Oliver  | 25  | M   | live | zhong guo   |
-| 3  | Shayna  | 18  | F   | love | wu han      | 中文，测试一下试试看
-| 4  | Fechin  | 18  | M   |      |             |
-|===
-
+[source, c]
+.RTO 定义
+----
+#define TCP_RTO_MAX ((unsigned)(120*HZ))
+#define TCP_RTO_MIN ((unsigned)(HZ/5))
+----
 
 
 
