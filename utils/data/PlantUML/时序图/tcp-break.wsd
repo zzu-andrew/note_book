@@ -1,4 +1,4 @@
-@startuml tcp-break 
+@startuml tcp-break
 
 客户端 --> 服务器:FIN/ACK
 activate 服务器
