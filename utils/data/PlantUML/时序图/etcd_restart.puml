@@ -1,0 +1,17 @@
+@startuml
+
+autonumber
+
+group 启动时存在临时节点
+服务端 --> 服务端: 恢复LeaseId和对应的临时节点
+客户端 -> 服务端: "key: /ldp/ldp/serviceinfo/app#0" ?
+服务端 -> 客户端: 节点存在
+...
+服务端 --> 服务端: 清理超时没有续租的leaseId
+客户端 -> 服务端: "key: /ldp/ldp/serviceinfo/app#0" ?
+服务端 -> 客户端: 节点不存在
+
+
+
+end
+@enduml

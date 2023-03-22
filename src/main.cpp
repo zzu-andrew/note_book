@@ -34,67 +34,59 @@ using namespace std;
 #include <numeric> // std::accumulate
 #include <mutex>
 
-struct  OO {
-
-};
-
-
-class Omic {
-public:
-    void Int() {}
-  int count;
-  OO o1;
-
-};
 
 #include <sstream>
 #include <iomanip>
 #include <cstdlib>
 #include <cstdio>
 #include <cstdarg>
+#include <unordered_map>
+
+using namespace std;
 
 
+#include <atomic>
+#include <thread>
+#include <cassert>
+#include <string_view>
 
-using std::stringstream;
-// 准备数据
 
-std::string format(const char *fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    const auto len = vsnprintf(nullptr, 0, fmt, args);
-    va_end(args);
-    std::string r;
-    r.resize(static_cast<size_t>(len) + 1);
-    va_start(args, fmt);
-    vsnprintf(&r.front(), len + 1, fmt, args);
-    va_end(args);
-    r.resize(static_cast<size_t>(len));
-
-    return r;
+// C convention
+void TasksCharStar(const char* s) {
 }
+
+// old standard c++ convention
+void TaskString(const std::string& s) {
+}
+
+// string_view C++ convention
+void TaskStringView(std::string_view s) { // c++ 17
+
+    std::string name = "date";
+    s = name;
+
+}
+
+class LambdaDefer {
+public:
+    explicit LambdaDefer(std::function<int32_t ()> && func) : m_func(func){}
+
+    ~LambdaDefer() {
+        if (m_func) {
+            m_func();
+        }
+    }
+
+private:
+    std::function<int32_t ()> m_func;
+};
 
 
 
 int main(int argc, char **argv) {
 
 
-
-    std::atomic_bool boolAt;
-
-    bool bFalse = false;
-
-    boolAt.compare_exchange_weak(bFalse, true, std::memory_order_acquire, std::memory_order_release);
-
-
-
-
-
-
-
-
-
+    TaskStringView("neNamem");
 
     return 0;
-
 }
