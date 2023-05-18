@@ -1,3 +1,4 @@
+@startuml
 
 
 
@@ -11,10 +12,13 @@
 
 
 
-[plantuml, diagram=helloworld-exec,format=png]
-....
+
 hide footbox
-title 代理
+
+box "代理" #LightBlue
+participant client
+participant gRPCClient
+end box
 
 client --> gRPCClient : put key:xx,value:xxx
 activate gRPCClient
@@ -36,7 +40,6 @@ deactivate gRPCClient
 
 
 
-....
 
 
 
@@ -45,4 +48,4 @@ deactivate gRPCClient
 
 
 
-
+@enduml

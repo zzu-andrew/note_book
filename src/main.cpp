@@ -35,6 +35,7 @@ using namespace std;
 #include <mutex>
 
 
+
 #include <sstream>
 #include <iomanip>
 #include <cstdlib>
@@ -45,48 +46,32 @@ using namespace std;
 using namespace std;
 
 
-#include <atomic>
-#include <thread>
-#include <cassert>
-#include <string_view>
-
-
-// C convention
-void TasksCharStar(const char* s) {
-}
-
-// old standard c++ convention
-void TaskString(const std::string& s) {
-}
-
-// string_view C++ convention
-void TaskStringView(std::string_view s) { // c++ 17
-
-    std::string name = "date";
-    s = name;
-
-}
-
-class LambdaDefer {
-public:
-    explicit LambdaDefer(std::function<int32_t ()> && func) : m_func(func){}
-
-    ~LambdaDefer() {
-        if (m_func) {
-            m_func();
-        }
-    }
-
-private:
-    std::function<int32_t ()> m_func;
-};
+#include <cstring>
 
 
 
-int main(int argc, char **argv) {
+#include <sys/stat.h>
+
+#include <fcntl.h>
 
 
-    TaskStringView("neNamem");
+#ifndef BUF_SIZE
+#define BUF_SIZE 1024
+#endif
+
+
+
+int main(int argc, char **argv)
+{
+
+
+    int inputFd, outputFd, openFlag;
+
+
+
+
+
+
 
     return 0;
 }

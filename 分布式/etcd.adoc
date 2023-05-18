@@ -155,15 +155,11 @@ etcd -> consumer : 订阅topic的consumer接收到信息
 ----
 
 
+=== Etcd中watch源码解析
 
-//[plantuml, target=etcd_watcher format=png]
-//....
-//
-//
-//....
+etd是一个cs网络架构，源码分析时应该从client到server，watch主打一个监听功能，client主要来请求对key值的监听，并且接收key值的变更通知。server主要完成对client请求key值的监听，并在kv变动时及时通知client。
 
-
-
+image::image-2023-05-18-14-10-46-501.png[]
 
 
 

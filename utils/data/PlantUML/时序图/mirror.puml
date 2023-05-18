@@ -1,0 +1,29 @@
+@startuml
+
+
+
+hide footbox
+
+box "镜像" #LightBlue
+participant LeaderB
+participant gRpcClientLocal
+participant gRpcClient
+
+end box
+
+gRpcClientLocal --> LeaderB : gRpcClientLocal 连接到数据中心B
+gRpcClient --> LeaderA : gRpcClient 连接到数据中心A
+gRpcClient --> LeaderA : 获取 快照
+LeaderA --> gRpcClient : 快照
+gRpcClient --> gRpcClientLocal : 快照
+gRpcClientLocal --> LeaderB : 快照
+gRpcClient --> LeaderA : 监听所有 put/delete 事件
+LeaderA --> gRpcClient : 监听所有 put/delete 事件成功
+LeaderA --> gRpcClient : put/delete 事件触发
+gRpcClient --> gRpcClientLocal : put/delete key,value ...
+gRpcClientLocal --> LeaderB : put/delete key,value ...
+
+
+
+
+@enduml
