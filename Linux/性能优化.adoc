@@ -1,0 +1,37 @@
+
+:toc:
+
+:icons: font
+
+// 保证所有的目录层级都可以正常显示图片
+:path: 网络/
+:imagesdir: ../image/
+:srcdir: ../src
+
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+:srcdir: {rootpath}../src/
+endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+:srcdir: {rootpath}{path}../src/
+endif::rootpath[]
+
+== 性能优化
+
+- 性能是主观的
+
+一个磁盘平均I/O响应时间是1ms，1ms的I/O是否是好的是用户的需要来决定的，一个用户认为是好的，另外一个用户可能认为是差的。
+
+- 识别真正的问题
+
+成熟的高性能软件也会有很多bug，真正的问题并不是知道有多少问题，真正的问题是如何辨别哪些问题是最主要的，解决这些主要的问题能满足你的需求时最重要的。因此必须对问题进行量化，一个最重要地量化指标就是时延。
+
+
+
+
+
+
