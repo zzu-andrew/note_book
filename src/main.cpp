@@ -65,10 +65,18 @@ int main(int argc, char **argv)
 {
 
 
-    int inputFd, outputFd, openFlag;
 
 
+    string name = "1234567891973892117937211743837893274873747837187489321278423";
 
+    char buff[6];
+    strncpy(buff, name.c_str(), sizeof(buff)  - 1);
+
+    for (auto c : buff) {
+        std::cout << c << std::endl;
+    }
+
+    std::cout << "0000000000000000000000000000000" << std::endl;
 
 
 
