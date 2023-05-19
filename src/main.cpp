@@ -50,16 +50,25 @@ using namespace std;
 
 
 
-#include <sys/stat.h>
-
-#include <fcntl.h>
 
 
-#ifndef BUF_SIZE
-#define BUF_SIZE 1024
-#endif
 
 
+class Data {
+public:
+    void Show() const ;
+
+
+private:
+    int name;
+
+};
+
+
+
+void Data::Show() const {
+    std::cout << "name : " << name << std::endl;
+}
 
 int main(int argc, char **argv)
 {
@@ -67,16 +76,6 @@ int main(int argc, char **argv)
 
 
 
-    string name = "1234567891973892117937211743837893274873747837187489321278423";
-
-    char buff[6];
-    strncpy(buff, name.c_str(), sizeof(buff)  - 1);
-
-    for (auto c : buff) {
-        std::cout << c << std::endl;
-    }
-
-    std::cout << "0000000000000000000000000000000" << std::endl;
 
 
 
