@@ -36,7 +36,8 @@ add_executable(elf_parser
 add_executable(elf_main
         elf_parser/main.c)
 
-
+add_executable(db
+        db/db.c)
 
 
 

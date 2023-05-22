@@ -1,0 +1,64 @@
+
+:toc:
+
+:icons: font
+
+// 保证所有的目录层级都可以正常显示图片
+:path: C++知识点总结/
+:imagesdir: ../image/
+:srcdir: ../src
+
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+:srcdir: {rootpath}../src/
+endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+:srcdir: {rootpath}{path}../src/
+endif::rootpath[]
+
+== 模板编程
+
+
+
+
+
+
+=== typename
+
+*typename的含义*
+
+typename本身是模板的含义，既然是模板，那么就有很多种类，有很多种类就牵涉到种类的推断，那么当需要编译器进行类型推断的时候就需要使用typename，比如下面类型推断过程 `typename U::type == typename X::type == float`，通过指定typename U::type就是告诉编译器向U类型里面推断一下U::type，那么只要指定的U类型里面有type类型，那么编译器就会把type替换成对应的类型float
+
+[source, cpp]
+----
+struct X {
+    typedef float type;
+};
+
+struct Y {
+    typedef float type2;
+};
+
+template <typename T, typename U>
+void foo(T t, typename U::type u) {
+    // ...
+}
+
+void callFoo() {
+    foo<int, X>(5, 5.0); // T == int, typename U::type == X::type == float
+    foo<int, Y>(5, 5.0); // ???
+}
+----
+
+
+
+
+
+
+
+
+
