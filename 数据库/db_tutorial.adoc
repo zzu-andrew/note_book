@@ -227,7 +227,33 @@ db > .exit
 
 为了实现这些我们可以对main进行如下改造
 
-some main code
+[source, cpp]
+----
+// 这里先把 .开头的meta指令单独拎出来执行
+if (input_buffer->buffer[0] == '.') {
+    switch (do_meta_command(input_buffer)) {
+        case (META_COMMAND_SUCCESS):
+            continue;
+        case (META_COMMAND_UNRECOGNIZED_COMMAND):
+            printf("Unrecognized command '%s'\n", input_buffer->buffer);
+            continue;
+    }
+}
+
+// sqlite声明语句
+Statement statement;
+switch (prepare_statement(input_buffer, &statement)) {
+    case (PREPARE_SUCCESS):
+        break;
+    case (PREPARE_UNRECOGNIZED_STATEMENT):
+        printf("Unrecognized keyword at start of '%s'.\n",
+                 input_buffer->buffer);
+    continue;
+}
+
+execute_statement(&statement);
+printf("Executed.\n");
+----
 
 
 像.exit这样的Non-SQL声明我们称之为 `meta-command`，这些指令的特点就是所有指令都是使用.开头，因此我们可以根据是否.开头来将这些指令和正常的SQL指令进行区分处理。
@@ -316,4 +342,48 @@ db > .exit
 ----
 
 现在数据库代码正在组件成型，如果能存储一些数据是不是就更加好了？在下一章节中我们将会实现insert和select，创造出一个最为糟糕的数据库存储实现，下面是代码diff的提交实现记录
+
+https://github.com/zzu-andrew/note_book[仓库地址]
+commitId : 21327325bbc2d63a12e4c1bdd3ed0a3f5bdd687d
+
+=== 在内存中，仅支持追加的单表数据库
+
+为了简化数据库的实现，需要对数据库添加一些限制
+
+- 支持两个操作：插入行和打印多行数据
+- 只是使用内存
+- 仅支持单个硬编码表
+
+硬编码表设计如下：
+
+.hard code table
+// 指定表为3列，并指定相对宽度
+[cols="1,1", options="header"]
+|===
+|column
+|type
+
+|id
+|integer
+
+|username
+|varchar(32)
+
+|email
+|varchar(255)
+
+|===
+
+这种模式看着简单但是已经能够支持多种数据类型和多种大小的数据文本了。
+
+insert语句能像如下方式使用
+
+[source, cpp]
+----
+insert 1 cstack foo@bar.com
+----
+
+需要升级prepare_statement接口才能支持这些功能
+
+
 
