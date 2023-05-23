@@ -227,4 +227,93 @@ db > .exit
 
 为了实现这些我们可以对main进行如下改造
 
+some main code
+
+
+像.exit这样的Non-SQL声明我们称之为 `meta-command`，这些指令的特点就是所有指令都是使用.开头，因此我们可以根据是否.开头来将这些指令和正常的SQL指令进行区分处理。
+
+> meta-元，是抽象的抽象，就像模板一样被称为元编程，编程本身就是对具体事务的抽象，模板是对抽象代码的进一步抽象，因此称模板编程为元编程。
+
+接下来我们添加一个步骤将输入行转换为语句的内部表示形式，这是一个粗糙的sqlite前端
+
+最后我们将上述前端处理之后的声明放入execute_statement，这个函数将会最终用来实现虚拟机的功能
+
+do_meta_command接口只是对现有函数的一些简单封装，并且预留足够的空间方便添加更多的指令
+
+[source, cpp]
+.do_meta_command example
+----
+MetaCommandResult do_meta_command(InputBuffer* input_buffer) {
+  if (strcmp(input_buffer->buffer, ".exit") == 0) {
+    exit(EXIT_SUCCESS);
+  } else {
+    return META_COMMAND_UNRECOGNIZED_COMMAND;
+  }
+}
+----
+
+目前预声明语句只包含了两种可能的值，后期会进行扩展
+[source, cpp]
+----
+typedef enum { STATEMENT_INSERT, STATEMENT_SELECT } StatementType;
+
+typedef struct {
+  StatementType type;
+} Statement;
+----
+
+添加prepare_statement(SQL compiler)，但是目前只能处理两个指令
+
+[source, cpp]
+----
+PrepareResult prepare_statement(InputBuffer* input_buffer,
+                                Statement* statement) {
+  if (strncmp(input_buffer->buffer, "insert", 6) == 0) {
+    statement->type = STATEMENT_INSERT;
+    return PREPARE_SUCCESS;
+  }
+  if (strcmp(input_buffer->buffer, "select") == 0) {
+    statement->type = STATEMENT_SELECT;
+    return PREPARE_SUCCESS;
+  }
+
+  return PREPARE_UNRECOGNIZED_STATEMENT;
+}
+----
+
+最后让我们来实现执行的步骤
+
+[source, cpp]
+----
+void execute_statement(Statement* statement) {
+  switch (statement->type) {
+    case (STATEMENT_INSERT):
+      printf("This is where we would do an insert.\n");
+      break;
+    case (STATEMENT_SELECT):
+      printf("This is where we would do a select.\n");
+      break;
+  }
+}
+----
+
+这里实现知识搭建一些框架而已，真正的功能还没有实现，因此没有任何的错误处理等功能，具体的执行效果如下：
+
+[source, SQL]
+----
+$./a.out
+db > insert foo bar
+This is where we would do an insert.
+Executed.
+db > delete foo
+Unrecognized keyword at start of 'delete foo'.
+db > select
+This is where we would do a select.
+Executed.
+db > .tables
+Unrecognized command '.tables'
+db > .exit
+----
+
+现在数据库代码正在组件成型，如果能存储一些数据是不是就更加好了？在下一章节中我们将会实现insert和select，创造出一个最为糟糕的数据库存储实现，下面是代码diff的提交实现记录
 

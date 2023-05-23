@@ -47,5 +47,7 @@ ENDIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
 add_executable(db
         db/db.c)
 
+add_executable(db_example
+        db/db_example.cpp)
 
 
