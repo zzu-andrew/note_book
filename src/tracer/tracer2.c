@@ -9,12 +9,16 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <signal.h>
-#include <elf.h>
 #include <sys/types.h>
-#include <sys/user.h>
 #include <sys/stat.h>
+
+
+#ifndef _WIN32
 #include <sys/ptrace.h>
 #include <sys/mman.h>
+#include <sys/user.h>
+#include <elf.h>
+
 typedef struct handle {
     Elf64_Ehdr *ehdr;
     Elf64_Phdr *phdr;
@@ -32,8 +36,16 @@ char * get_exe_name(int);
 void sighandler(int);
 #define EXE_MODE 0
 #define PID_MODE 1
+#else
+
+#endif
+
+
+
 int main(int argc, char **argv, char **envp)
 {
+
+#ifndef _WIN32
     int fd, c, mode = 0;
     handle_t h;
     struct stat st;
@@ -208,8 +220,15 @@ int main(int argc, char **argv, char **envp)
         printf("Completed tracing pid: %d\n", pid);
         exit(0);
     }
+    return 0;
+#else
+    return 0;
+#endif
 }
-    /* This function will lookup a symbol by name, specifically from
+
+#ifndef _WIN32
+
+/* This function will lookup a symbol by name, specifically from
     * The .symtab section, and return the symbol value.
     */
     Elf64_Addr lookup_symbol(handle_t *h, const char *symname)
@@ -265,3 +284,6 @@ void sighandler(int sig)
     }
     exit(0);
 }
+#else
+
+#endif

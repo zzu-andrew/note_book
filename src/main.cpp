@@ -48,33 +48,24 @@ using namespace std;
 
 #include <cstring>
 
+typedef struct {
+    uint32_t id;
+} Row;
 
-struct X {
-    typedef float type;
-};
 
-struct Y {
-    typedef float type2;
-};
+#define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
 
-template <typename T, typename U>
-void foo(T t, typename U::type u) {
-    // ...
-}
-
-void callFoo() {
-    foo<int, X>(5, 5.0); // T == int, typename U::type == X::type == float
-    foo<int, Y>(5, 5.0); // ???
-}
 
 int main(int argc, char **argv)
 {
 
 
+    int data_size = 0;
+    int *lp;
+    lp = &data_size;
+    int **llp;
 
-
-
-
+    std::cout << size_of_attribute(Row, id) << std::endl;
 
 
 

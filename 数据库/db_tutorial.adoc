@@ -1,0 +1,230 @@
+
+:toc:
+
+:icons: font
+
+// 保证所有的目录层级都可以正常显示图片
+:path: 数据库/
+:imagesdir: ../image/
+:srcdir: ../src
+
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+:srcdir: {rootpath}../src/
+endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+:srcdir: {rootpath}{path}../src/
+endif::rootpath[]
+
+
+== 数据库教程
+
+- 存储数据的格式是怎样的(在内存和磁盘上)
+- 什么时候存储的数据会从内存转移到磁盘上
+- 为什么数据库中一个table中只能有一个主键
+- 事务操作中回滚是如何实现的？
+- 索引的格式是什么
+- 全表扫描什么时候以及如何完成的
+- 预声明语句是按照什么格式存储的？
+
+总之一句话，数据库是如何工作的？
+
+=== 简单的REPL(read-execute-print loop)
+==== Sqlite
+
+这个教程就是对sqlite的模仿，所以有必要先了解一下sqlite的组成，sqlite分为前端部分和后端部分。
+
+前端部分主要完成一些列组件检索或修改数据，主要如下：
+
+- tokenizer
+- parser
+- code generator
+
+前端接收的是sql语句，输出的是sqlite虚拟机字节码，后端组成如下：
+
+- virtual machine
+- B-tree
+- pager
+- os interface
+
+==== 一个简单的REPL
+当你使用命令行启动sqlite时，sqlite会开始一个read-execute-print loop
+[source, SQL]
+----
+[xxx@localhost]$sqlite3
+sqlite> create table users (id int, username varchar(255), email varchar(255));
+sqlite> .tables
+users
+sqlite> .exit
+----
+为了实现和sqlite同样的效果，我们需要实现一个循环，在循环里面打印提示，并且持续接收输入然后处理输入
+
+[source, c]
+.dm_main process input
+----
+int main(int argc, char* argv[]) {
+    InputBuffer* input_buffer = new_input_buffer();
+    while (true) {
+        print_prompt();
+        read_input(input_buffer);
+
+        if (strcmp(input_buffer->buffer, ".exit") == 0) {
+            close_input_buffer(input_buffer);
+            exit(EXIT_SUCCESS);
+        } else {
+            printf("Unrecognized command '%s'.\n", input_buffer->buffer);
+        }
+    }
+}
+----
+
+在这里定义一个 `InputBuffer` 用来封装getline获取的内容
+
+[source, cpp]
+----
+typedef struct {
+  char* buffer;
+  size_t buffer_length;
+  ssize_t input_length;
+} InputBuffer;
+
+InputBuffer* new_input_buffer() {
+  InputBuffer* input_buffer = (InputBuffer*)malloc(sizeof(InputBuffer));
+  input_buffer->buffer = NULL;
+  input_buffer->buffer_length = 0;
+  input_buffer->input_length = 0;
+
+  return input_buffer;
+}
+----
+
+接下来，定义一个print_prompt来给用户打印提示，每次调用读取之前我们都会调用一下这个函数
+
+[source, cpp]
+----
+void print_prompt() { printf("db > "); }
+----
+
+使用getline读取用户的输入，但是这里需要注意的是getline官方给出的说明：
+也就是说，当传入的是一个地址指向的内容是nullptr的时候，getline会默认申请一段内存，在使用结束的时候需要用户自行进行释放。否则或存在内存泄露，当然如果有必要用户可以自己根据需要自行申请内存，只要传入的指针地址不是nullptr那么getline就不会在申请内存
+
+If *lineptr is NULL, then getline() will allocate a buffer for storing the line, which should be freed by the user program.   (In  this  case,
+the value in *n is ignored.)
+
+因此需要定义一个配套的内存释放函数
+[source, cpp]
+----
+ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+
+void read_input(InputBuffer* input_buffer) {
+  ssize_t bytes_read =
+      getline(&(input_buffer->buffer), &(input_buffer->buffer_length), stdin);
+
+  if (bytes_read <= 0) {
+    printf("Error reading input\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Ignore trailing newline
+  input_buffer->input_length = bytes_read - 1;
+  input_buffer->buffer[bytes_read - 1] = 0;
+}
+
+// 配套内存释放函数
+void close_input_buffer(InputBuffer* input_buffer) {
+    free(input_buffer->buffer);
+    free(input_buffer);
+}
+----
+
+最后我们只需要在循环中挨个执行输入的指令即可，全部代码如下：
+
+[source, cpp]
+----
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    char* buffer;
+    size_t buffer_length;
+    ssize_t input_length;
+} InputBuffer;
+
+InputBuffer* new_input_buffer() {
+    InputBuffer* input_buffer = (InputBuffer*)malloc(sizeof(InputBuffer));
+    input_buffer->buffer = NULL;
+    input_buffer->buffer_length = 0;
+    input_buffer->input_length = 0;
+
+    return input_buffer;
+}
+
+void print_prompt() { printf("db > "); }
+
+void read_input(InputBuffer* input_buffer) {
+    //If *lineptr is NULL, then getline() will allocate a buffer for storing the line, which should be freed by the user program
+    ssize_t bytes_read =
+            getline(&(input_buffer->buffer), &(input_buffer->buffer_length), stdin);
+
+    if (bytes_read <= 0) {
+        printf("Error reading input\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Ignore trailing newline
+    input_buffer->input_length = bytes_read - 1;
+    input_buffer->buffer[bytes_read - 1] = 0;
+}
+
+void close_input_buffer(InputBuffer* input_buffer) {
+    free(input_buffer->buffer);
+    free(input_buffer);
+}
+
+int main(int argc, char* argv[]) {
+    InputBuffer* input_buffer = new_input_buffer();
+    while (true) {
+        print_prompt();
+        read_input(input_buffer);
+
+        if (strcmp(input_buffer->buffer, ".exit") == 0) {
+            close_input_buffer(input_buffer);
+            exit(EXIT_SUCCESS);
+        } else {
+            printf("Unrecognized command '%s'.\n", input_buffer->buffer);
+        }
+    }
+}
+----
+
+执行过程如下：
+
+因为这里只实现了.exit这个指令，所以在执行过程中也只会响应这一个指令
+[source, SQL]
+----
+$./a.out
+db > .tables
+Unrecognized command '.tables'.
+db > .exit
+----
+
+=== 世界上最简单的SQL编译器和虚拟机
+
+这里目的是模仿sqlite，那sqlite的前端实现了SQL的编译-解析字符串并且输出内部展现形式-字节码
+这些字节码会传输给虚拟机，虚拟机会执行这些字节码，具体的可以参考sqlite架构： https://www.sqlite.org/arch.html[sqlite arch]
+
+将整个数据操作过程分隔成两个部分有两个好处：
+
+- 减少每个部分的复杂度
+- 允许将编译的字节码缓存以提高性能
+
+为了实现这些我们可以对main进行如下改造
+
+

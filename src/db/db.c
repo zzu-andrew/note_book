@@ -48,16 +48,21 @@ typedef struct {
 
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
 
-const uint32_t ID_SIZE = size_of_attribute(Row, id);
-const uint32_t USERNAME_SIZE = size_of_attribute(Row, username);
-const uint32_t EMAIL_SIZE = size_of_attribute(Row, email);
+
+
+
+const uint32_t ID_SIZE = 4;
+const uint32_t USERNAME_SIZE = 33;
+const uint32_t EMAIL_SIZE = 256;
 const uint32_t ID_OFFSET = 0;
-const uint32_t USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
+const uint32_t USERNAME_OFFSET = 4;
 const uint32_t EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
-const uint32_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
+uint32_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
 const uint32_t PAGE_SIZE = 4096;
 #define TABLE_MAX_PAGES 100
+
+
 
 typedef struct {
     int file_descriptor;
@@ -452,13 +457,23 @@ void cursor_advance(Cursor* cursor) {
 }
 
 Pager* pager_open(const char* filename) {
-    int fd = open(filename,
+    int fd = 0;
+#ifndef _WIN32
+            fd = open(filename,
                   O_RDWR |      // Read/Write mode
                   O_CREAT,  // Create file if it does not exist
                   S_IWUSR |     // User write permission
                   S_IRUSR   // User read permission
     );
-
+#else
+    fd = open(filename, O_RDWR);
+    if (fd == -1)
+    {
+        printf("filename : %s %s errno %d", filename, "Unable to open file\n", errno);
+        creat(filename, O_CREAT);
+        fd = open(filename, O_RDWR);
+    }
+#endif
     if (fd == -1) {
         printf("Unable to open file\n");
         exit(EXIT_FAILURE);
@@ -510,6 +525,40 @@ InputBuffer* new_input_buffer() {
 }
 
 void print_prompt() { printf("db > "); }
+
+#ifdef _WIN32
+ssize_t getline(char** line,size_t *n,FILE *fp)
+{
+    char *buf = *line;
+    ssize_t c,i=0;//i来记录字符串长度，c来存储字符
+    if(buf==NULL||*n==0)
+    {
+        *line = malloc(10);
+        buf = *line;
+        *n = 10;
+    }
+    //buf为或n为0时动态为期分配空间
+    while((c=fgetc(fp))!='\n')
+    {
+        if(c==EOF)
+            return -1;
+        if(i<*n-2)//留2个空间给\n和\0
+        {
+            *(buf+i++)=c;
+        }
+        else
+        {
+            *n = *n+10;
+            buf = realloc(buf,*n);//空间不足时，重新进行分配
+            *(buf+i++)=c;
+        }
+    }
+    *(buf+i++)='\n';
+    *(buf+i)='\0';
+    return i;
+
+}
+#endif
 
 void read_input(InputBuffer* input_buffer) {
     ssize_t bytes_read =
