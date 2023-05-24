@@ -383,7 +383,234 @@ insert语句能像如下方式使用
 insert 1 cstack foo@bar.com
 ----
 
-需要升级prepare_statement接口才能支持这些功能
+需要升级prepare_statement接口才能支持这些功能，升级之后如下：
+
+[source, cpp]
+----
+PrepareResult prepare_statement(InputBuffer* input_buffer,
+                                Statement* statement) {
+    if (strncmp(input_buffer->buffer, "insert", 6) == 0) {
+        statement->type = STATEMENT_INSERT;
+        int args_assigned = sscanf(
+                        input_buffer->buffer, "insert %d %s %s", &(statement->row_to_insert.id),
+                        statement->row_to_insert.username, statement->row_to_insert.email);
+        if (args_assigned < 3) {
+            return PREPARE_SYNTAX_ERROR;
+        }
+        return PREPARE_SUCCESS;
+    }
+    if (strcmp(input_buffer->buffer, "select") == 0) {
+        statement->type = STATEMENT_SELECT;
+        return PREPARE_SUCCESS;
+    }
+
+    return PREPARE_UNRECOGNIZED_STATEMENT;
+}
+----
+
+[source, cpp]
+----
+typedef struct {
+    uint32_t id;
+    char username[COLUMN_USERNAME_SIZE];
+    char email[COLUMN_EMAIL_SIZE];
+} Row;
+
+
+typedef struct {
+    StatementType type;
+    Row row_to_insert;  // only used by insert statement
+} Statement;
+----
+
+在实际使用中我们需要将这些结构数据复制到一个为表的数据结构中，在SQLite中使用B-tree来实现快速查询，插入和删除，这里只是简单的使用一个类B-tree，这个类B-tree会自动按照页增长，但是实际只是将这些页按照数组的形式组织。
+
+下面是实现计划项：
+
+- 我们称存储多行数据的内存块为页
+- 每页尽量多的存储行数据
+- 行数据被序列化之后紧凑的存储在页数据中
+- 页按照需求进行申请
+- 保留一个变长数组存储指向页的指针
+
+首先设计一个紧凑的行数据：
+
+[source, cpp]
+----
+#define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
+
+const uint32_t ID_SIZE = size_of_attribute(Row, id);
+const uint32_t USERNAME_SIZE = size_of_attribute(Row, username);
+const uint32_t EMAIL_SIZE = size_of_attribute(Row, email);
+const uint32_t ID_OFFSET = 0;
+const uint32_t USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
+const uint32_t EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
+const uint32_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
+----
+
+这样定义之后也就意味着序列后的行如下：
+
+.hard code table
+// 指定表为3列，并指定相对宽度
+[cols="2,1,1", options="header"]
+|===
+|column
+|size(bytes)
+|offset
+
+|id
+|4
+|0
+
+|username
+|32
+|4
+
+|email
+|255
+|36
+
+|total
+|291
+|291
+
+|===
+
+数据放入，同样需要拿数据的时候需要将数据从内存中取出来
+
+[soruce, cpp]
+----
+void serialize_row(Row* source, void* destination) {
+  memcpy(destination + ID_OFFSET, &(source->id), ID_SIZE);
+  memcpy(destination + USERNAME_OFFSET, &(source->username), USERNAME_SIZE);
+  memcpy(destination + EMAIL_OFFSET, &(source->email), EMAIL_SIZE);
+}
+
+void deserialize_row(void* source, Row* destination) {
+  memcpy(&(destination->id), source + ID_OFFSET, ID_SIZE);
+  memcpy(&(destination->username), source + USERNAME_OFFSET, USERNAME_SIZE);
+  memcpy(&(destination->email), source + EMAIL_OFFSET, EMAIL_SIZE);
+}
+----
+
+接下来定义一个table用来存放所有的页数据
+
+[source, cpp]
+----
+const uint32_t PAGE_SIZE = 4096;
+#define TABLE_MAX_PAGES 100
+const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
+const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+
+typedef struct {
+  uint32_t num_rows;
+  void* pages[TABLE_MAX_PAGES];
+} Table;
+----
+
+这里将页大小定义成4K大小，因为大多数机器的虚拟内存也是定义为4K，也就以为着数据库中使用的页和实际中机器中的页大小是相等的，这样就能保证操作系统会对数据库中
+的页进行整体而不是分隔来进行操作。
+
+将页的个数定义为100，因为这里使用的是内存，当将这些数据转移到树结构的时候，页的个数将会只有文件大小一个限制
+
+行数据不要在不同的页中，这样就能保证读写数据非常的简单
+
+[source, cpp]
+----
+void* row_slot(Table* table, uint32_t row_num) {
+  uint32_t page_num = row_num / ROWS_PER_PAGE;
+  void* page = table->pages[page_num];
+  if (page == NULL) {
+    // Allocate memory only when we try to access page
+    page = table->pages[page_num] = malloc(PAGE_SIZE);
+  }
+  uint32_t row_offset = row_num % ROWS_PER_PAGE;
+  uint32_t byte_offset = row_offset * ROW_SIZE;
+  return page + byte_offset;
+}
+----
+
+经过改造之后，我们的数据库能够实现数据的插入和查找功能，具体执行结果如下：
+[source, SQL]
+----
+$./a.out
+db > insert 1 cstack foo@bar.com
+Executed.
+db > insert 2 bob bob@example.com
+Executed.
+db > select
+(1, cstack, foo@bar.com)
+(2, bob, bob@example.com)
+Executed.
+db > insert foo bar 1
+Syntax error. Could not parse statement.
+db > .exit
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

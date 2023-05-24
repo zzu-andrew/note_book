@@ -17,7 +17,7 @@ uint32_t RoundUp(uint32_t x, uint32_t align) {
 
 
 
-=== 类型检查
+=== 类型
 
 
 ==== `typecheck`
@@ -58,6 +58,22 @@ uint32_t RoundUp(uint32_t x, uint32_t align) {
 })
 ----
 
+
+==== 获取结构体内部对象大小
+
+使用宏定义实现获取结构体内存成员大小
+
+[source, cpp]
+.size_of_attribute
+----
+typedef struct {
+  uint32_t id;
+} Row;
+
+#define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
+
+const uint32_t ID_SIZE = size_of_attribute(Row, id);
+----
 
 
 
