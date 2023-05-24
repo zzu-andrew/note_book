@@ -3,72 +3,63 @@
 //
 
 #include <iostream>
-#include <unordered_set>
 #include <strings.h>
-#include <map>
-#include <algorithm>
-#include <utility>
-#include <vector>
-#include <cassert>
-#include <queue>
-#include <cstring>
-#include <list>
-#include <memory>
-#include <cmath>
-#include <array>
-#include <set>
-#include <future>
 
-using namespace std;
-
-#include <unistd.h>
-#include <unordered_map>
-
-
-#include <iostream>
-#include <string>
-#include <tuple>
-#include <thread>
-#include <functional>
-#include <algorithm>
-#include <numeric> // std::accumulate
-#include <mutex>
-
-
-
-#include <sstream>
-#include <iomanip>
-#include <cstdlib>
-#include <cstdio>
-#include <cstdarg>
-#include <unordered_map>
+#include <arpa/inet.h>
 
 using namespace std;
 
 
-#include <cstring>
 
-typedef struct {
-    uint32_t id;
-} Row;
+int isLittleEndian() {
+    static unsigned short data = 0x1234;
+    if (*((char*)&data) == 0x34) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
 
 
-#define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
+struct Data {
+    union {
+        uint32_t res;
+        struct {
+           uint8_t res1 : 4;
+           uint8_t res2 : 4;
+           uint8_t res3 : 4;
+           uint8_t res4 : 4;
+           uint8_t res5 : 4;
+           uint8_t res6 : 4;
+           uint8_t res7 : 4;
+           uint8_t res8 : 4;
+        };
+    };
+};
+
 
 
 int main(int argc, char **argv)
 {
 
-    char buffer[1024];
-    strcpy(buffer, "insert data into new isndins");
+    if (isLittleEndian()) {
+        printf("little endian\n");
+    }
+    else {
+        printf("big endian\n");
+    }
 
-    char *keyword = strtok(buffer, " ");
-    char *id_string = strtok(nullptr, " ");
-    char *username = strtok(nullptr, " ");
-    char *email = strtok(nullptr, " ");
 
-    std::cout <<  keyword << " " << id_string << " "  << username << " "  << email << " "  << std::endl;
+    Data data{};
+    data.res1 = 1;
+    data.res2 = 2;
+    data.res3 = 3;
+    data.res4 = 4;
 
+    data.res = htonl(data.res);
+
+    std::cout << data.res1 << data.res2 << data.res3 << data.res4 << std::endl;
 
 
     return 0;

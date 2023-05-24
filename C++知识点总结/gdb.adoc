@@ -18,3 +18,35 @@ endif::rootpath[]
 
 
 
+
+
+
+
+
+
+
+
+
+
+=== set
+
+==== 看其他汇编不习惯？让gdb按照intel格式显示汇编代码
+
+[source, bash]
+----
+set disassembly-flavor intel
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
