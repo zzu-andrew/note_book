@@ -59,14 +59,15 @@ typedef struct {
 int main(int argc, char **argv)
 {
 
+    char buffer[1024];
+    strcpy(buffer, "insert data into new isndins");
 
-    int data_size = 0;
-    int *lp;
-    lp = &data_size;
-    int **llp;
+    char *keyword = strtok(buffer, " ");
+    char *id_string = strtok(nullptr, " ");
+    char *username = strtok(nullptr, " ");
+    char *email = strtok(nullptr, " ");
 
-    std::cout << size_of_attribute(Row, id) << std::endl;
-
+    std::cout <<  keyword << " " << id_string << " "  << username << " "  << email << " "  << std::endl;
 
 
 

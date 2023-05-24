@@ -23,6 +23,8 @@ endif::rootpath[]
 
 == 数据库教程
 
+https://github.com/zzu-andrew/note_book[仓库地址]
+
 - 存储数据的格式是怎样的(在内存和磁盘上)
 - 什么时候存储的数据会从内存转移到磁盘上
 - 为什么数据库中一个table中只能有一个主键
@@ -343,7 +345,7 @@ db > .exit
 
 现在数据库代码正在组件成型，如果能存储一些数据是不是就更加好了？在下一章节中我们将会实现insert和select，创造出一个最为糟糕的数据库存储实现，下面是代码diff的提交实现记录
 
-https://github.com/zzu-andrew/note_book[仓库地址]
+代码仓库见文章开头：
 commitId : 21327325bbc2d63a12e4c1bdd3ed0a3f5bdd687d
 
 === 在内存中，仅支持追加的单表数据库
@@ -547,7 +549,9 @@ Syntax error. Could not parse statement.
 db > .exit
 ----
 
+代码仓库见文章开头，commitID : d88dab30a3ce51c74a6558f715f8949807609b89
 
+添加测试，commitID :
 
 
 
