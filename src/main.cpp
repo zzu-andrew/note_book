@@ -5,7 +5,10 @@
 #include <iostream>
 #include <strings.h>
 
-#include <arpa/inet.h>
+#include <unordered_map>
+#include <thread>
+
+//#include <arpa/inet.h>
 
 using namespace std;
 
@@ -43,23 +46,32 @@ struct Data {
 int main(int argc, char **argv)
 {
 
-    if (isLittleEndian()) {
-        printf("little endian\n");
-    }
-    else {
-        printf("big endian\n");
-    }
+    //if (isLittleEndian()) {
+    //    printf("little endian\n");
+    //}
+    //else {
+    //    printf("big endian\n");
+    //}
+    //
+    //
+    //Data data{};
+    //data.res1 = 1;
+    //data.res2 = 2;
+    //data.res3 = 3;
+    //data.res4 = 4;
+    //
+    //data.res = htonl(data.res);
+    //
+    //std::cout << data.res1 << data.res2 << data.res3 << data.res4 << std::endl;
+
+    std::unordered_map<std::string, std::string> nameMap;
+    nameMap.insert(std::make_pair("", ""));
 
 
-    Data data{};
-    data.res1 = 1;
-    data.res2 = 2;
-    data.res3 = 3;
-    data.res4 = 4;
 
-    data.res = htonl(data.res);
 
-    std::cout << data.res1 << data.res2 << data.res3 << data.res4 << std::endl;
+    std::cout << "std::this_thread::get_id is : " << std::this_thread::get_id() << std::endl;
+
 
 
     return 0;
