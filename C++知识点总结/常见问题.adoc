@@ -1,0 +1,56 @@
+
+:toc:
+
+:icons: font
+
+// 保证所有的目录层级都可以正常显示图片
+:path: C++知识点总结/
+:imagesdir: ../image/
+:srcdir: ../src
+
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+:srcdir: {rootpath}../src/
+endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+:srcdir: {rootpath}{path}../src/
+endif::rootpath[]
+
+== C++常见问题
+
+
+=== class、struct
+
+
+==== struct
+
+当有一个结构体定义时，如果结构体成员变量都没有进行初始化，则可以按照一般结构体进行调用，默认情况下编译器会给结构体生成各种类型的构造函数。
+但是当给结构体成员初始化之后，系统会根据需要生成一个结构体成员的构造函数，必须按照这个生成的构造函数进行调用否则会失败
+
+[source, cpp]
+.IPCCfg
+----
+struct IPCCfg {
+    std::string uuid;
+    void *lpCallBack{nullptr};
+    void *lpUser{nullptr};
+};
+----
+
+如上面的结构体，当结构体成员别初始化列表初始化之后，编译器就会默认生成如下三个构造函数，任何不符合构造函数调用的方式进行初始化结构体都会报错，如果只是想当成简单的结构体使用那就不要对结构体成员使用初始化列表进行初始化。
+[source, cpp]
+----
+IPCCfg::IPCCfg();
+IPCCfg::IPCCfg(const IPCCfg&);
+IPCCfg::IPCCfg(IPCCfg&&);
+----
+
+
+
+
+
+

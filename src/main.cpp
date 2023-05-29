@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <strings.h>
-
+#include <thread>
 #include <unordered_map>
 
 
@@ -43,34 +43,23 @@ struct Data {
 
 
 
+
+struct IPCCfg {
+    std::string uuid;
+    void *lpCallBack{nullptr};
+    void *lpUser{nullptr};
+};
+
+struct IPCCfg1 {
+    std::string uuid;
+    void *lpCallBack;
+    void *lpUser;
+};
+
 int main(int argc, char **argv)
 {
 
-    //if (isLittleEndian()) {
-    //    printf("little endian\n");
-    //}
-    //else {
-    //    printf("big endian\n");
-    //}
-    //
-    //
-    //Data data{};
-    //data.res1 = 1;
-    //data.res2 = 2;
-    //data.res3 = 3;
-    //data.res4 = 4;
-    //
-    //data.res = htonl(data.res);
-    //
-    //std::cout << data.res1 << data.res2 << data.res3 << data.res4 << std::endl;
-
-    std::unordered_map<std::string, std::string> nameMap;
-    nameMap.insert(std::make_pair("", ""));
-
-
-
-
-    std::cout << "std::this_thread::get_id is : " << std::this_thread::get_id() << std::endl;
+    IPCCfg cfg{"fdata", nullptr, nullptr};
 
 
 
