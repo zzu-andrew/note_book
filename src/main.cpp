@@ -6,7 +6,8 @@
 #include <strings.h>
 #include <thread>
 #include <unordered_map>
-
+#include <exception>
+#include <mutex>
 
 //#include <arpa/inet.h>
 
@@ -41,26 +42,39 @@ struct Data {
     };
 };
 
+std::mutex muix;
+
+void LockData(std::unique_lock<std::mutex>* lpLock)
+{
+    std::unique_lock<std::mutex> lodck(muix, std::defer_lock);
+
+    std::cout <<  lpLock->owns_lock() << std::endl;
+
+}
 
 
+bool SafeEqual(const std::string& a, const std::string& b) {
+    if (a.length() != b.length()) {
+        return false;
+    }
 
-struct IPCCfg {
-    std::string uuid;
-    void *lpCallBack{nullptr};
-    void *lpUser{nullptr};
-};
 
-struct IPCCfg1 {
-    std::string uuid;
-    void *lpCallBack;
-    void *lpUser;
-};
+    auto length = a.length();
+    int equal  = 0;
+    for (auto i = 0; i < length; i++) {
+        equal |= a[i] ^ b[i];
+    }
+
+    return equal == 0;
+}
 
 int main(int argc, char **argv)
 {
 
-    IPCCfg cfg{"fdata", nullptr, nullptr};
+    std::unique_lock<std::mutex> lodk(muix);
+    LockData(&lodk);
 
+    SafeEqual("data","data");
 
 
     return 0;

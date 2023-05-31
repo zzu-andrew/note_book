@@ -13,3 +13,57 @@ endif::rootpath[]
 
 
 
+
+
+
+
+
+=== 字符串处理
+
+==== 使用异或加速字符串比对过程
+
+
+[source, go]
+----
+func SafeEqual(a, b string) bool {
+
+	if len(a) != len(b) {
+		return false
+	}
+
+	var equal uint8
+	length := len(a)
+
+	for i := 0; i < length; i++ {
+		equal |= a[i] ^ b[i]
+	}
+
+	return equal == 0
+}
+----
+
+
+[source, cpp]
+----
+bool SafeEqual(const std::string& a, const std::string& b) {
+    if (a.length() != b.length()) {
+        return false;
+    }
+
+
+    auto length = a.length();
+    int equal  = 0;
+    for (auto i = 0; i < length; i++) {
+        equal |= a[i] ^ b[i];
+    }
+
+    return equal == 0;
+}
+----
+
+
+
+
+
+
+
