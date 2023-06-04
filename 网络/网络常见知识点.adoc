@@ -89,6 +89,22 @@ struct Data {
 
 
 
+=== 为什么本地通信无论写的什么IP地址最终都会走lo虚拟地址
+
+在内核初始化local路由表的时候，回把路由表项都设置为RTN_LOCAL，这个过程是在设置本机IP的时候调用fib_inetaddr_event实现的，也就是说本机IP的类型都是RTN_LOCAL
+
+[source, cpp]
+----
+void fib_add_ifaddr(struct in_ifaddr *ifa)
+{
+	fib_magic(RTM_NEWROUTE, RTN_LOCAL, addr, 32, prim);
+}
+----
+
+使用本机IP即使不使用127.0.0.1，内核在查找的时候判断类型依然是RTN_LOCAL，也就是net->loopback_dev，也就是本机lo虚拟网卡。
+
+
+
 
 === 网络相关参考
 
