@@ -1,0 +1,48 @@
+
+:toc:
+
+:icons: font
+
+// 保证所有的目录层级都可以正常显示图片
+:path: 网络/
+:imagesdir: ../image/
+:srcdir: ../src
+
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+:srcdir: {rootpath}../src/
+endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+:srcdir: {rootpath}{path}../src/
+endif::rootpath[]
+
+
+== tcp
+
+- 为什么服务端程序需要先listen一下
+- 半连接和全连接队列长度如何确定
+
+> tcp服务端在处理三次握手的时候需要有半连接和全连接队列配合完成，那么这两个队列在内核中是什么样子？如何想修改他们的长度如何完成？
+
+- cannot assign requested address这个报错你知道是怎么回事吗？该如何解决
+- 一个客户端端口可以同时用在两个连接上吗？
+
+> 假设一个客户端某个端口号已经和某个服务端建立连接了，那么再想和其他服务端建立连接这个端口还能用吗？
+
+- 服务端的全连接和半连接全满了会怎么样？
+
+> 如果服务端连接请求过于频繁，导致全连接和半连接全部都满了会怎样？会不会导致线上问题？会不会导致连接队列溢出，如果有，怎么办？怎样才能解决？
+
+- 创建新连接时，新连接的socket内核对象是什么时候创建的？
+- 建立一条tcp连接需要消耗多长时间？
+- 服务器负载正常但是CPU被打到底(100%)了是怎么回事？
+
+
+=== 深入理解listen
+
+
+
