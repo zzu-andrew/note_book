@@ -35,9 +35,13 @@ include::网络/HTTP.adoc[HTTP]
 include::网络/epoll.adoc[epoll]
 include::网络/QUIC.adoc[quic]
 include::网络/wireshark.adoc[wireshark]
+include::网络/tcp.adoc[tcp]
+include::网络/深入理解Linux网络.adoc[深入理解Linux网络]
+include::网络/网络常见知识点.adoc[网络常见知识点]
 
 
 == 分布式
+include::分布式/etcd.adoc[etcd]
 
 == 数据库
 include::数据库/db_tutorial.adoc[db_tutorial]
