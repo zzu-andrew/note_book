@@ -9,30 +9,39 @@
 #include <exception>
 #include <mutex>
 #include <cstddef>
+#include<ctime>
 
-//#include <arpa/inet.h>
+long getTimeUs()
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME,&ts);
+
+    return ts.tv_sec*1000000 + ts.tv_nsec / 1000;
+}
 
 using namespace std;
 
-class f{
-public:
-    void Show() {
-        std::cout << "ffffffffffffffffffffffffffffffffffffff" << std::endl;
-    }
-};
 
-class son : public f {
-public:
-    void Show(){
-        std::cout << "+++++++++++++++++++++++++++++++++++++++" << std::endl;
-    }
-};
 
 int main(int argc, char **argv)
 {
-    son s;
-    f *lp = &s;
-    lp->Show();
-    ((son*) lp)->Show();
-    return 0;
+    const int LEN = 64*1024*1024;
+    int *arr = new int[LEN];
+
+    auto start = getTimeUs();
+    //for (int i = 0; i < LEN; i += 1) arr[i] = i;
+    for (int i = 0; i < LEN; i += 8) arr[i] = i;
+    auto end = getTimeUs();
+    std::cout << "time : " << end - start << std::endl;
+
+
+
+
+    char buffer[1024];
+    std::string(buffer, 1024);
+    //start = getTimeUs();
+    //for (int i = 0; i < LEN; i += 8) arr[i] = i;
+    //end = getTimeUs();
+    //std::cout << "time : " << end - start << std::endl;
+
 }

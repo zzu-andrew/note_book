@@ -37,12 +37,8 @@ image::image-2022-07-02-10-29-44-536.png[PC系统架构]
 [IMPORTANT]
 处理器的核心就是PC寄存器，用来存储计算机下一步需要执行的指令
 
-<<PCSystem, 程序执行过程>>
+<<PCSystem, 程序执行过程>> +
 假如有一个可执行程序hello, 正常程序是存储在磁盘的中的，当需要执行时，系统会将程序加载到内存中(主内存中)，当处理器开始执行程序hello时，会将指令通过寄存器送往运算单元，并将需要打印的字符等通过寄存器复制到现实设备
-
-
-
-
 
 === CPU缓存
 
@@ -153,52 +149,211 @@ image::image-2023-06-05-17-33-50-430.png[]
 了解这些细节，会有利于我们知道在什么情况下有可以导致缓存的失效。
 
 ==== 缓存的一致性
-对于主流的CPU来说，缓存的写操作基本上是两种策略（参看本站《缓存更新的套路》），
+对于主流的CPU来说，缓存的写操作基本上是两种策略（《 https://coolshell.cn/articles/17416.html[缓存更新的套路]》），
 
-一种是Write Back，写操作只要在cache上，然后再flush到内存上。
-一种是Write Through，写操作同时写到cache和内存上。
+- 一种是Write Back，先写到在cache上，然后通过flush存储到内存上。
+- 一种是Write Through，写操作同时写到cache和内存上。
+
 为了提高写的性能，一般来说，主流的CPU（如：Intel Core i7/i9）采用的是Write Back的策略，因为直接写内存实在是太慢了。
 
 好了，现在问题来了，如果有一个数据 x 在 CPU 第0核的缓存上被更新了，那么其它CPU核上对于这个数据 x 的值也要被更新，这就是缓存一致性的问题。（当然，对于我们上层的程序我们不用关心CPU多个核的缓存是怎么同步的，这对上层的代码来说都是透明的）
 
 一般来说，在CPU硬件上，会有两种方法来解决这个问题。
 
-Directory 协议。这种方法的典型实现是要设计一个集中式控制器，它是主存储器控制器的一部分。其中有一个目录存储在主存储器中，其中包含有关各种本地缓存内容的全局状态信息。当单个CPU Cache 发出读写请求时，这个集中式控制器会检查并发出必要的命令，以在主存和CPU Cache之间或在CPU Cache自身之间进行数据同步和传输。
-Snoopy 协议。这种协议更像是一种数据通知的总线型的技术。CPU Cache通过这个协议可以识别其它Cache上的数据状态。如果有数据共享的话，可以通过广播机制将共享数据的状态通知给其它CPU Cache。这个协议要求每个CPU Cache 都可以“窥探”数据事件的通知并做出相应的反应。如下图所示，有一个Snoopy Bus的总线。
+- Directory 协议。这种方法的典型实现是要设计一个集中式控制器，它是主存储器控制器的一部分。其中有一个目录存储在主存储器中，其中包含有关各种本地缓存内容的全局状态信息。当单个CPU Cache 发出读写请求时，这个集中式控制器会检查并发出必要的命令，以在主存和CPU Cache之间或在CPU Cache自身之间进行数据同步和传输。
+- Snoopy 协议。这种协议更像是一种数据通知的总线型的技术。CPU Cache通过这个协议可以识别其它Cache上的数据状态。如果有数据共享的话，可以通过广播机制将共享数据的状态通知给其它CPU Cache。这个协议要求每个CPU Cache 都可以“窥探”数据事件的通知并做出相应的反应。如下图所示，有一个Snoopy Bus的总线。
 
+image::image-2023-06-06-09-15-49-155.png[]
 
 因为Directory协议是一个中心式的，会有性能瓶颈，而且会增加整体设计的复杂度。而Snoopy协议更像是微服务+消息通讯，所以，现在基本都是使用Snoopy的总线的设计。
 
 这里，我想多写一些细节，因为这种微观的东西，让人不自然地就会跟分布式系统关联起来，在分布式系统中我们一般用Paxos/Raft这样的分布式一致性的算法。而在CPU的微观世界里，则不必使用这样的算法，原因是因为CPU的多个核的硬件不必考虑网络会断会延迟的问题。所以，CPU的多核心缓存间的同步的核心就是要管理好数据的状态就好了。
 这里介绍几个状态协议，先从最简单的开始，MESI协议，这个协议跟那个著名的足球运动员梅西没什么关系，其主要表示缓存数据有四个状态：Modified（已修改）, Exclusive（独占的）,Shared（共享的），Invalid（无效的）。
 
-这些状态的状态机如下所示（有点复杂，你可以先不看，这个图就是想告诉你状态控制有多复杂）：
+这些状态的状态机如下所示
 
+image::image-2023-06-06-09-17-46-030.png[]
 
+下面是个示例（如果你想看一下动画演示的话，这里有一个网页（ https://www.scss.tcd.ie/Jeremy.Jones/VivioJS/caches/MESIHelp.htm[MESI Interactive Animations]），你可以进行交互操作，这个动画演示中使用的Write Through算法）：
 
-下面是个示例（如果你想看一下动画演示的话，这里有一个网页（MESI Interactive Animations），你可以进行交互操作，这个动画演示中使用的Write Through算法）：
-
-
-当前操作	CPU0	CPU1	Memory	说明
-1) CPU0 read(x)	 x=1 (E)		x=1	只有一个CPU有 x 变量，
-所以，状态是 Exclusive
-2) CPU1 read(x)	 x=1 (S)	x=1(S)	x=1	有两个CPU都读取 x 变量，
-所以状态变成 Shared
-3) CPU0 write(x,9)	 x=9 (M)	x=1(I)	x=1	变量改变，在CPU0中状态
-变成 Modified，在CPU1中
-状态变成 Invalid
-4) 变量 x 写回内存	 x=9 (M)	X=1(I)	x=9	目前的状态不变
-5) CPU1  read(x)	 x=9 (S)	x=9(S)	x=9	变量同步到所有的Cache中，
-状态回到Shared
-
+教程ppt详见 https://www.scss.tcd.ie/Jeremy.Jones/CSU34021/6%20multiprocessors.pdf[multiprocessors]
 
 MESI 这种协议在数据更新后，会标记其它共享的CPU缓存的数据拷贝为Invalid状态，然后当其它CPU再次read的时候，就会出现 cache miss 的问题，此时再从内存中更新数据。从内存中更新数据意味着20倍速度的降低。我们能不能直接从我隔壁的CPU缓存中更新？是的，这就可以增加很多速度了，但是状态控制也就变麻烦了。还需要多来一个状态：Owner(宿主)，用于标记，我是更新数据的源。于是，出现了 MOESI 协议
 
 MOESI协议的状态机和演示示例我就不贴了（有兴趣可以上Berkeley上看看相关的课件），我们只需要理解MOESI协议允许 CPU Cache 间同步数据，于是也降低了对内存的操作，性能是非常大的提升，但是控制逻辑也非常复杂。
 
-顺便说一下，与 MOESI 协议类似的一个协议是 MESIF，其中的 F 是 Forward，同样是把更新过的数据转发给别的 CPU Cache 但是，MOESI 中的 Owner 状态 和MESIF 中的 Forward 状态有一个非常大的不一样—— Owner状态下的数据是dirty的，还没有写回内存，Forward状态下的数据是clean的，可以丢弃而不用另行通知。
+==== 程序性能
 
-需要说明的是，AMD用MOESI，Intel用MESIF。所以，F 状态主要是针对 CPU L3 Cache 设计的（前面我们说过，L3是所有CPU核心共享的）。（相关的比较可以参看StackOverlow上这个问题的答案）
+[source, cpp]
+----
+const int LEN = 64*1024*1024;
+int *arr = new int[LEN];
+
+for (int i = 0; i < LEN; i += 1) arr[i] *= i;
+
+for (int i = 0; i < LEN; i += 8) arr[i] *= i;
+----
+
+> 跑的时候，一定得让两个循环分开跑，否则第一次从内存中加载cache会影响第二次的数据
+
+按照循环的次数，第二个循环应该比第一个循环快8倍，但是实际的计算结果是，第二个循环耗时只比第一个循环耗时快2.5倍左右，第一次耗时235ms第二次93ms，这里最主要的原因就是cache line，因为CPU会以一个cache line为最小单位加载，也就是16个32bits，所以无论是步长1还是8相差都差不多，后面的乘法不消耗CPU时间，有乘法运算单元。
+
+[source, cpp]
+----
+for (int i = 0; i < 10000000; i++) {
+    for (int j = 0; j < size; j += increment) {
+        memory[j] += j;
+    }
+}
+----
+
+我们测试一下，在下表中， 表头是步长，也就是每次跳多少个整数，而纵向是这个数组可以跳几次（你可以理解为要几条Cache Line），于是表中的任何一项代表了这个数组有多少，而且步长是多少。比如：横轴是 512，纵轴是4，意思是，这个数组有 4*512 = 2048 个长度，访问时按512步长访问，也就是访问其中的这几项：[0, 512, 1024, 1536] 这四项。
+
+表中同的项是，是循环1000万次的时间，单位是“微秒”（除以1000后是毫秒）
+
+[source, cpp]
+----
+| count |   1    |   16  |  512  | 1024  |
+------------------------------------------
+|     1 |  17539 | 16726 | 15143 | 14477 |
+|     2 |  15420 | 14648 | 13552 | 13343 |
+|     3 |  14716 | 14463 | 15086 | 17509 |
+|     4 |  18976 | 18829 | 18961 | 21645 |
+|     5 |  23693 | 23436 | 74349 | 29796 |
+|     6 |  23264 | 23707 | 27005 | 44103 |
+|     7 |  28574 | 28979 | 33169 | 58759 |
+|     8 |  33155 | 34405 | 39339 | 65182 |
+|     9 |  37088 | 37788 | 49863 |156745 |
+|    10 |  41543 | 42103 | 58533 |215278 |
+|    11 |  47638 | 50329 | 66620 |335603 |
+|    12 |  49759 | 51228 | 75087 |305075 |
+|    13 |  53938 | 53924 | 77790 |366879 |
+|    14 |  58422 | 59565 | 90501 |466368 |
+|    15 |  62161 | 64129 | 90814 |525780 |
+|    16 |  67061 | 66663 | 98734 |440558 |
+|    17 |  71132 | 69753 |171203 |506631 |
+|    18 |  74102 | 73130 |293947 |550920 |
+----
+
+我们可以看到，从 [9，1024] 以后，时间显著上升。包括 [17，512] 和 [18,512] 也显著上升。这是因为，我机器的 L1 Cache 是 32KB, 8 Way 的，前面说过，8 Way的有64组，每组8个Cache Line，当for-loop步长超过1024个整型，也就是正好 4096 Bytes时，也就是导致内存地址的变化是变化在高位的24bits上，而低位的12bits变化不大，尤其是中间6bits没有变化，导致全部命中同一组set，导致大量的cache 冲突，导致性能下降，时间上升。而 [16, 512]也是一样的，其中的几步开始导致L1 Cache开始冲突失效。
+
+*逐行遍历快还是逐列遍历好*
+
+接下来，我们再来看个示例。下面是一个二维数组的两种遍历方式，一个逐行遍历，一个是逐列遍历，这两种方式在理论上来说，寻址和计算量都是一样的，执行时间应该也是一样的。
+
+[source,cpp]
+----
+const int row = 1024;
+const int col = 512
+int matrix[row][col];
+
+//逐行遍历
+int sum_row=0;
+for(int _r=0; _r<row; _r++) {
+    for(int _c=0; _c<col; _c++){
+        sum_row += matrix[_r][_c];
+    }
+}
+
+//逐列遍历
+int sum_col=0;
+for(int _c=0; _c<col; _c++) {
+    for(int _r=0; _r<row; _r++){
+        sum_col += matrix[_r][_c];
+    }
+}
+----
+然而，并不是，在我的机器上，得到下面的结果。
+
+- 逐行遍历：0.081ms
+- 逐列遍历：1.069ms
+执行时间有十几倍的差距。其中的原因，就是逐列遍历对于CPU Cache 的运作方式并不友好，所以，付出巨大的代价。
+
+接下来，我们来看一下多核下的性能问题，参看如下的代码。两个线程在操作一个数组的两个不同的元素（无需加锁），线程循环1000万次，做加法操作。在下面的代码中，我高亮了一行，就是p2指针，要么是p[1]，或是 p[30]，理论上来说，无论访问哪两个数组元素，都应该是一样的执行时间。
+
+[source, cpp]
+----
+void fn (int* data) {
+    for(int i = 0; i < 10*1024*1024; ++i)
+        *data += rand();
+}
+
+int p[32];
+
+int *p1 = &p[0];
+int *p2 = &p[1]; // int *p2 = &p[30];
+
+thread t1(fn, p1);
+thread t2(fn, p2);
+----
+
+然而，并不是，在我的机器上执行下来的结果是：
+
+- 对于 p[0] 和 p[1] ：560ms
+- 对于 p[0] 和 p[30]：104ms
+
+这是因为 p[0] 和 p[1] 在同一条 Cache Line 上，而 p[0] 和 p[30] 则不可能在同一条Cache Line 上 ，CPU的缓存最小的更新单位是Cache Line，所以，[red]*这导致虽然两个线程在写不同的数据，但是因为这两个数据在同一条Cache Line上，就会导致缓存需要不断进在两个CPU的L1/L2中进行同步，从而导致了5倍的时间差异*。
+
+线程越多就越快吗？
+
+接下来，我们再来看一下另外一段代码：我们想统计一下一个数组中的奇数个数，但是这个数组太大了，我们希望可以用多线程来完成这个统计。下面的代码中，我们为每一个线程传入一个 id ，然后通过这个 id 来完成对应数组段的统计任务。这样可以加快整个处理速度。
+
+[source, cpp]
+----
+int total_size = 16 * 1024 * 1024; //数组长度
+int* test_data = new test_data[total_size]; //数组
+int nthread = 6; //线程数（因为我的机器是6核的）
+int result[nthread]; //收集结果的数组
+
+void thread_func (int id) {
+    result[id] = 0;
+    int chunk_size = total_size / nthread + 1;
+    int start = id * chunk_size;
+    int end = min(start + chunk_size, total_size);
+
+    for ( int i = start; i < end; ++i ) {
+        if (test_data[i] % 2 != 0 ) ++result[id];
+    }
+}
+----
+
+然而，在执行过程中，你会发现，6个线程居然跑不过1个线程。因为根据上面的例子你知道 result[] 这个数组中的数据在一个Cache Line中，所以，所有的线程都会对这个 Cache Line 进行写操作，导致所有的线程都在不断地重新同步 result[] 所在的 Cache Line，所以，导致 6 个线程还跑不过一个线程的结果。这叫 False Sharing。
+
+优化也很简单，使用一个线程内的变量
+
+[source, cpp]
+----
+void thread_func (int id) {
+    result[id] = 0;
+    int chunk_size = total_size / nthread + 1;
+    int start = id * chunk_size;
+    int end = min(start + chunk_size, total_size);
+
+    int c = 0; //使用临时变量，没有cache line的同步了
+    for ( int i = start; i < end; ++i ) {
+        if (test_data[i] % 2 != 0 ) ++c;
+    }
+    result[id] = c;
+}
+----
+
+
+
+
+参考：
+https://coolshell.cn/articles/20793.html[与程序员相关的CPU缓存知识] +
+https://people.freebsd.org/~lstewart/articles/cpumemory.pdf[cpumemory] +
+https://queue.acm.org/detail.cfm?id=2492433[Nonblocking Algorithms and Scalable Multicore Programming] +
+https://www.eetimes.com/optimizing-for-instruction-caches-part-1/[Optimizing for instruction caches, part 1] +
+https://www.eetimes.com/optimizing-for-instruction-caches-part-2/[Optimizing for instruction caches, part 2] +
+https://www.eetimes.com/optimizing-for-instruction-caches-part-3/[Optimizing for instruction caches, part 3] +
+http://igoro.com/archive/gallery-of-processor-cache-effects/[gallery-of-processor-cache-effects] +
+https://www.cs.swarthmore.edu/~kwebb/cs31/f18/memhierarchy/caching.html[caching] +
+
+
+
+
+
 
 
 
