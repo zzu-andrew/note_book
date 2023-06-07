@@ -378,6 +378,13 @@ or it can masquerade as any other block.
 puts "I'm a source block!"
 --
 
+=== 添加颜色块
+
+
+- 失效：[red]#红色#
+- 命中：[yellow]#黄色#
+- 更新：[blue]#绿色#
+
 === 列表
 
 - 通过在第一个列表之后插入一个空白行和一行注释可以将两个相邻列表分开
@@ -625,12 +632,16 @@ image::sunset.jpg[]
 
 image::sunset.jpg[Sunset]
 
+# 添加图片对其信息
+image::image-2022-10-17-09-33-51-443.png[UMA ,550, align=center]
+
 .A mountain sunset
 [#img-sunset]
 [caption="Figure 1: ",link=https://www.flickr.com/photos/javh/5448336655]
 image::sunset.jpg[Sunset,300,200]
 image::https://asciidoctor.org/images/octocat.jpg[GitHub mascot]
 ----
+
 
 ==== 视频
 

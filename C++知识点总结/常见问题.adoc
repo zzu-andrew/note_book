@@ -53,4 +53,13 @@ IPCCfg::IPCCfg(IPCCfg&&);
 
 
 
+=== std::string底层实现COW
+
+
+
+https://www.ccppcoding.com/archives/1201[COW]
+
+
+
+
 

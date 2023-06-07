@@ -60,6 +60,6 @@ include::RPC/RPC.adoc[RPC]
 
 == utils
 
-include::utils/asciidoc_manual.adoc[AsciiDoc教程]
+include::utils/git.adoc[git]
 
 

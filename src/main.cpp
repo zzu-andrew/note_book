@@ -25,23 +25,11 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-    const int LEN = 64*1024*1024;
-    int *arr = new int[LEN];
 
-    auto start = getTimeUs();
-    //for (int i = 0; i < LEN; i += 1) arr[i] = i;
-    for (int i = 0; i < LEN; i += 8) arr[i] = i;
-    auto end = getTimeUs();
-    std::cout << "time : " << end - start << std::endl;
+    std::string name = "";
+
+    name.c_str()
 
 
-
-
-    char buffer[1024];
-    std::string(buffer, 1024);
-    //start = getTimeUs();
-    //for (int i = 0; i < LEN; i += 8) arr[i] = i;
-    //end = getTimeUs();
-    //std::cout << "time : " << end - start << std::endl;
-
+    return 0;
 }

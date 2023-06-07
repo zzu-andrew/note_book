@@ -62,3 +62,23 @@ void callFoo() {
 
 
 
+
+
+
+
+
+
+
+
+
+=== 参考
+
+https://gcc.gnu.org/onlinedocs/gcc-4.6.0/libstdc++/api/dir_e96818ea44b74decf0d0168e5ad4fe6f.html[stl gcc各个版本在线手册]
+
+
+
+
+
+
+
+

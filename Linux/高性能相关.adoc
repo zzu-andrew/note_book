@@ -578,6 +578,13 @@ full avg10=0.00 avg60=0.00 avg300=0.00 total=812908
 
 
 
+=== 设计一个高效内存池
+
+https://www.ccppcoding.com/archives/183[内存池]
+
+相关 ： 操作系统CPU缓存相关章节
+
+
 
 
 
