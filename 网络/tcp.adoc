@@ -42,6 +42,11 @@ endif::rootpath[]
 - 服务器负载正常但是CPU被打到底(100%)了是怎么回事？
 
 
+.网络协议栈
+image::../image/image-2023-06-07-15-23-19-171.png[网络协议栈, , align="center"]
+
+
+
 === 深入理解listen
 
 
