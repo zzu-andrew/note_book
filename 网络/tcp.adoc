@@ -46,8 +46,26 @@ endif::rootpath[]
 image::../image/image-2023-06-07-15-23-19-171.png[网络协议栈, , align="center"]
 
 
-
 === 深入理解listen
+
+
+
+
+
+
+
+
+参考：
+
+https://mp.weixin.qq.com/s?__biz=MzA3NjY2NzY1MA==&mid=2649740393&idx=1&sn=b048e8e068052549af0c44cb678a7140&chksm=8746ba04b0313312fe87e346c0c68d235a8e81b31de1453392427af6384e612ad44713627eb0&scene=27[eBPF内核协议栈背负太多的历史包袱]
+https://mp.weixin.qq.com/s/uWRg1fhHZh_ttd2NUsAh9w[XDPF/eBPF]
+https://mp.weixin.qq.com/s/TwKOwg2RFBYKZF160Zw7lA[一个奇葩的网络问题]
+
+
+
+
+
+
 
 
 
