@@ -48,6 +48,74 @@ image::../image/image-2023-06-07-15-23-19-171.png[网络协议栈, , align="cent
 
 === 深入理解listen
 
+在开启服务之前总是会调用一下listen系统接口，那这个底层干了啥？为啥服务端需要调用客户端不需要调用？
+
+==== 系统函数
+
+socket函数的定义在net/socket.c文件中。具体实现如下：
+
+.file net/socket.c
+[source, cpp]
+----
+
+/*
+ *	Perform a listen. Basically, we allow the protocol to do anything
+ *	necessary for a listen, and if that works, we mark the socket as
+ *	ready for listening.
+ */
+
+SYSCALL_DEFINE2(listen, int, fd, int, backlog)
+{
+	struct socket *sock;
+	int err, fput_needed;
+	int somaxconn;
+
+	sock = sockfd_lookup_light(fd, &err, &fput_needed);
+	if (sock) {
+	    // 获取内核参数 net.core.somaxconn - 内核配置允许最大的连接队列个数
+		somaxconn = sock_net(sock->sk)->core.sysctl_somaxconn;
+		if ((unsigned int)backlog > somaxconn)
+			backlog = somaxconn;
+
+		err = security_socket_listen(sock, backlog);
+		if (!err)  // 使用协议栈注册进来的listen函数
+			err = sock->ops->listen(sock, backlog);
+
+		fput_light(sock->file, fput_needed);
+	}
+	return err;
+}
+----
+
+用户使用的socket文件描述符，只是一个整数，内核是没有办法使用的，所以实际使用中需要根据用户提供的整数查找出内核使用的socket对象。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
