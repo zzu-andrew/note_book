@@ -22,6 +22,31 @@ endif::rootpath[]
 
 == tcp
 
+
+=== tcp哪些不得不知的事情
+
+.TCP
+****
+TCP很复杂，复杂到难以想象，很多人抱怨为什么TCP不能精简点，有这样想法的人是没有看TCP的发展史。因为实际网络中的各种不确定情况都需要靠TCP来解决，而这些问题还会导致一些列子问题，问题带问题子子孙孙无穷尽已。但是这并不是说TCP不值得学，而是TCP太值得学习了，你通过学习TCP能学习很多问题的解决方案，也能学习到很多best practice，而这些都是经过无数次实践检验的宝贵经验。
+****
+
+- 为什么要记录那么多，因为TCP真他妈太复杂了，不记录一些知识点肯定会被忘记的
+- 经过30多年的修改，TCP的复杂程度已经到了无以复加的程度，所以很多组织和公司开始绕过内核的tcp来实现一些功能如：DPDK, XDP
+
+
+
+
+
+
+
+
+
+
+
+
+
+=== TCP连接建立过程
+
 - 为什么服务端程序需要先listen一下
 - 半连接和全连接队列长度如何确定
 
@@ -52,11 +77,16 @@ image::../image/image-2023-06-07-15-23-19-171.png[网络协议栈, , align="cent
 
 
 
+
+
+
 参考：
 
 https://mp.weixin.qq.com/s?__biz=MzA3NjY2NzY1MA==&mid=2649740393&idx=1&sn=b048e8e068052549af0c44cb678a7140&chksm=8746ba04b0313312fe87e346c0c68d235a8e81b31de1453392427af6384e612ad44713627eb0&scene=27[eBPF内核协议栈背负太多的历史包袱]
 https://mp.weixin.qq.com/s/uWRg1fhHZh_ttd2NUsAh9w[XDPF/eBPF]
 https://mp.weixin.qq.com/s/TwKOwg2RFBYKZF160Zw7lA[一个奇葩的网络问题]
+
+https://coolshell.cn/articles/11564.html[tcp那些事]
 
 
 
