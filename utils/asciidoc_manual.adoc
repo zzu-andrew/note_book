@@ -635,13 +635,18 @@ image::sunset.jpg[Sunset]
 # 添加图片对其信息
 image::image-2022-10-17-09-33-51-443.png[UMA ,550, align=center]
 
+# 添加图片，并为图片添加超链接，点击图片可跳转
 .A mountain sunset
 [#img-sunset]
 [caption="Figure 1: ",link=https://www.flickr.com/photos/javh/5448336655]
 image::sunset.jpg[Sunset,300,200]
+# 如果有网络支持显示在线图片，可搭配图床显示
 image::https://asciidoctor.org/images/octocat.jpg[GitHub mascot]
 ----
 
+[#img-sunset]
+[caption="Figure 1: ",link=https://www.flickr.com/photos/javh/5448336655]
+image::image-2023-06-12-13-30-37-335.png[Sunset,300,200]
 
 ==== 视频
 
