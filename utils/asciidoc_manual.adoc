@@ -678,6 +678,26 @@ enclosing the text in pluses, then again in backticks.
 A statement.footnote:[Clarification about this statement.] A bold statement!footnoteref:[disclaimer,Opinions are my own.] Another bold statement.footnoteref:[disclaimer]
 ----
 
+=== 公式
+
+stem:[sqrt(4) = 2]
+
+Water (stem:[H_2O]) is a critical component.
+
+.An e-xciting limit with LaTeX!
+[stem]
+++++
+\lim_{n \to \infty}\frac{n}{\sqrt[n]{n!}} = {\large e}
+++++
+
+.A basic square root with AsciiMath
+[asciimath]
+++++
+sqrt(4) = 2
+++++
+
+
+
 === 表格
 
 - 除非制定了cols属性，否则列的数量等于块分隔符之间第一行(非空)上的单元格分隔符字符的数量
@@ -754,11 +774,6 @@ int GetData(int idx) {
 ----
 
 |===
-
-
-
-
-
 
 - 包含其他标签的表
 加a之后会将表格中的数据按照asciidoc语法格式化
@@ -866,18 +881,6 @@ Robyn:Indestructable:Dance
 19, 14
 --
 
-
-
-
-https://blog.csdn.net/somken/article/details/108262323
-
-
-
-
-
-
-
-
 === 属性
 
 - 可以使用双冒号来定义属性
@@ -974,3 +977,9 @@ https://blog.csdn.net/weixin_34409741/article/details/94689288[asciidoc使用说
 // 以下内容会出现在当前文档的尾部，按照脚注进行显示
 
 A statement .footnote:[Clarification about this statement.] A bold statement!footnoteref:[disclaimer,Opinions are my own.] Another bold statement.footnoteref:[disclaimer]
+
+
+==== 参考
+https://docs.asciidoctor.org/asciidoc/latest/stem/[asciidoc]
+
+

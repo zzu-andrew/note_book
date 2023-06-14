@@ -30,6 +30,16 @@ endif::rootpath[]
 TCP很复杂，复杂到难以想象，很多人抱怨为什么TCP不能精简点，有这样想法的人是没有看TCP的发展史。因为实际网络中的各种不确定情况都需要靠TCP来解决，而这些问题还会导致一些列子问题，问题带问题子子孙孙无穷尽已。但是这并不是说TCP不值得学，而是TCP太值得学习了，你通过学习TCP能学习很多问题的解决方案，也能学习到很多best practice，而这些都是经过无数次实践检验的宝贵经验。
 ****
 
+- TCP的头格式包括源端口和目标端口，序号，确认号，窗口大小和包类型等关键信息。
+- TCP的状态机用于维护连接状态，建立和断开连接需要不同数量的握手和挥手。
+- TCP使用序号来解决包乱序问题，使用确认号来解决丢包问题。
+- TCP的重传机制包括超时重传和快速重传，用于确保数据的可靠传输。
+- TCP中的超时重传机制可以选择只重传超时的包或者重传超时后的所有包。
+- TCP中的快速重传机制可以在接收到乱序的包后立即重传丢失的包。
+- TCP中的重传机制会带来带宽和效率的损失，因此不是一个理想的解决方案。
+- TCP使用时间等待状态来保证连接的正常关闭，在连接关闭后要等待一段时间才能释放资源。
+- TCP的时间等待状态可以通过调整参数来控制并发连接的数量。
+
 - 为什么要记录那么多，因为TCP真他妈太复杂了，不记录一些知识点肯定会被忘记的
 - 经过30多年的修改，TCP的复杂程度已经到了无以复加的程度，所以很多组织和公司开始绕过内核的tcp来实现一些功能如：DPDK, XDP
 
@@ -118,10 +128,122 @@ ____
 [caption=" ", link=https://www.researchgate.net/figure/An-illustration-of-TCPs-sliding-window-mechanism-with-a-fixed-window-size_fig4_221353829]
 image::image-2023-06-13-17-14-30-519.png[]
 
-但是fast retransmit只解决了一个问题，就是timeout的问题，还有一个问题必须面对，就是重传之前的一个还是把所有的都重传的问题。在发送端来看，并不知道这个ack2对应哪个包，是缺失是#2,#3,#4,#5...哪个导致的ack2发送端并不清楚，发送端很有可能要把所有的都重传一下。
+但是fast retransmit只解决了一个问题，就是timeout的问题，还有一个问题必须面对，就是重传之前的一个还是把所有的都重传的问题。在发送端来看，并不知道这个ack2对应哪个包，是缺失是#2,#3,#4,#5...哪个导致的ack2发送端并不清楚，发送端很有可能要把所有的都重传一下。可见快速重传机制可能导致无效数据的发送。
 
 ===== SACK 方法
 
+另外一个更好的方法叫：selective acknowledgement(SACK)(参考RFC2018)，这种方式是在tcp头里面添加一个叫做sack的东西，ack还是fast retransmit的Ack，SACK则是汇报收到的数据碎片。总之就是让ack还担任自己的工作，告诉发送端我接收的连续数据的最大值，然后增加ACK来告诉发送端，你有这些碎片数据不需要进行重复发送了，我已经收到了。
+
+image::image-2023-06-14-09-56-34-154.png[]
+
+有个SACK之后，发送端就可以根据回传的SACK来确认接收端收到了哪些数据，这样就可以作为fast retransmit算法的补充。当然这个功能需要双方都支持的时候才有用，在linux中可以通过tcp_sack参数打开这个功能。
+
+这里还需要注意一个问题——接收方Reneging，所谓Reneging的意思就是接收方有权把已经报给发送端SACK里的数据给丢了。这样干是不被鼓励的，因为这个事会把问题复杂化了，但是，接收方这么做可能会有些极端情况，比如要把内存给别的更重要的东西。所以，发送方也不能完全依赖SACK，还是要依赖ACK，并维护Time-Out，如果后续的ACK没有增长，那么还是要把SACK的东西重传，另外，接收端这边永远不能把SACK的包标记为Ack。
+
+____
+SACK会消费发送方的资源，试想，如果一个攻击者给数据发送方发一堆SACK的选项，这会导致发送方开始要重传甚至遍历已经发出的数据，这会消耗很多发送端的资源。详细的东西请参看《TCP SACK的性能权衡》
+____
+
+===== Duplicate SACK – 重复收到数据的问题
+
+Duplicate SACK又称D-SACK，其主要使用了SACK来告诉发送方有哪些数据被重复接收了。RFC-2883 里有详细描述和示例。下面举几个例子（来源于 https://datatracker.ietf.org/doc/html/rfc2883#autoid-5[RFC-2883]）
+
+.RFC2883 autoid-4
+____
+This section specifies the use of SACK blocks when the SACK option is used in reporting a duplicate segment.  When D-SACK is used, the
+first block of the SACK option should be a D-SACK block specifying the sequence numbers for the duplicate segment that triggers the
+acknowledgement.
+____
+
+D-SACK使用了SACK的第一个段来做标志，
+
+如果SACK的第一个段的范围被ACK所覆盖，那么就是D-SACK
+如果SACK的第一个段的范围被SACK的第二个段覆盖，那么就是D-SACK
+
+*示例一：ACK丢包*
+
+下面的示例中，丢了两个ACK，所以，发送端重传了第一个数据包（3000-3499），于是接收端发现重复收到，于是回了一个SACK=3000-3500，因为ACK都到了4000意味着收到了4000之前的所有数据，所以这个SACK就是D-SACK——旨在告诉发送端我收到了重复的数据，而且我们的发送端还知道，数据包没有丢，丢的是ACK包。
+
+[source, cpp]
+----
+  Transmitted  Received    ACK Sent
+  Segment      Segment     (Including SACK Blocks)
+
+  3000-3499    3000-3499   3500 (ACK dropped)
+  3500-3999    3500-3999   4000 (ACK dropped)
+  3000-3499    3000-3499   4000, SACK=3000-3500
+                                        ---------
+----
+
+ 示例二，网络延误
+
+下面的示例中，网络包（1000-1499）被网络给延误了，导致发送方没有收到ACK，而后面到达的三个包触发了“Fast Retransmit算法”，所以重传，但重传时，被延误的包又到了，所以，回了一个SACK=1000-1500，因为ACK已到了3000，所以，这个SACK是D-SACK——标识收到了重复的包。
+
+这个案例下，发送端知道之前因为“Fast Retransmit算法”触发的重传不是因为发出去的包丢了，也不是因为回应的ACK包丢了，而是因为网络延时了。
+
+[source, cpp]
+----
+    Transmitted    Received    ACK Sent
+    Segment        Segment     (Including SACK Blocks)
+
+    500-999        500-999     1000
+    1000-1499      (delayed)
+    1500-1999      1500-1999   1000, SACK=1500-2000
+    2000-2499      2000-2499   1000, SACK=1500-2500
+    2500-2999      2500-2999   1000, SACK=1500-3000
+    1000-1499      1000-1499   3000
+                   1000-1499   3000, SACK=1000-1500
+                                          ---------
+----
+
+==== TCP的RTT算法
+
+我们知道在TCP重传机制中timeout的设置对于重传非常重要。
+
+- 如果设置长了，重发过程就慢，数据丢了老半天才开始重发，没有效率性能特别差
+- 设短了，会导致可能没有丢就重发。重发快导致网络拥塞，导致更多的超时，更多的超时导致更多的重发。
+
+而且这个超时时间在不同网络环境下需要设置不同的值，并不能写死一个值。只能动态地进行设置。为了动态的进行设置，Tcp引入了RTT-Round trip time, 也就是一个数据包从发送出去到回来的时间，这样发送端就大概知道用多少时间，从而可以方便的设置timeOut-RTO(Restransmission Timeout)，以让我们的重传机制更加高效。那么这个算法就只是简单的记录下从发送到接收一个数据包的时间这么简单吗？很显然不是的如果只是简单的这样计算那么会引入更多的问题，比如这次计算时间时很可能因为网络问题导致计算的时间过长或者过短，那么还是会有开头所说的问题。
+
+===== 经典算法
+
+https://datatracker.ietf.org/doc/rfc793/[RFC793] 中定义的经典算法是这样的：
+
+- 首先对RTT进行采样，记录下最近几次的RTT值
+- 然后做平滑计算SRTT(Smoothed RTT)。公式为(其中的 stem:[\alpha] 取值在0.8到0.9之间，这个算法英文叫做Exponential weighted moving average，中文叫做：加权移动平均)
+
+.Exponential weighted moving average
+[stem]
+++++
+\text { SRTT }=\left(\alpha^{\star} \text { SRTT }\right)+\left((1-\alpha)^{\star} \text { RTT }\right)
+++++
+
+- 开始计算RTO。公式如下
+
+[stem]
+++++
+\text { RTO }=\min \left[\text { UBOUND, } \max \left[\text { LBOUND, }\left(\beta^{\star} \text { SRTT) }\right]\right]
+++++
+
+其中：
+
+- UBOUND是最大的timeout时间，上限值
+- LBOUND是最小的timeout时间，下限值
+- β 值一般在1.3到2.0之间。
+
+===== Karn / Partridge 算法
+
+上面算法解决了RTT计算问题，但是在重传时还是会有问题，你是使用第一次发送数据的时间和ack回来的时间来做为RTT样本值，还是用重传回来的时间和ACK回来的时间做RTT样本值？
+
+这个问题你无论选哪个都有对应的问题：
+
+
+
+
+
+
+
+https://corporatefinanceinstitute.com/resources/capital-markets/exponentially-weighted-moving-average-ewma/[EMA]
 
 
 
@@ -136,10 +258,16 @@ image::image-2023-06-13-17-14-30-519.png[]
 
 
 
-====== Duplicate SACK – 重复收到数据的问题
 
 
-参考： +
+
+
+
+
+
+
+
+==== 参考： +
 https://github.com/InterviewMap/CS-Interview-Knowledge-Map/blob/master/Network/Network_en.md[Network] +
 https://www.filibeto.org/sun/lib/networking/tuning/ttcp.html[tcp transaction] +
 https://blog.liu-kevin.com/2021/01/04/linuxzhi-wang-luo/[tcp调优] +
