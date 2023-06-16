@@ -12,6 +12,7 @@ endif::rootpath[]
 == 常用算法
 
 
+https://coolshell.cn/articles/2583.html[常用算法推荐]
 
 
 

@@ -25,6 +25,14 @@ Please see the CONTRIBUTING file in this source distribution for more informatio
 ## reference
 
 [sobyte](https://www.sobyte.net)
+
 [coolshell](https://coolshell.cn/)
+
 [serverframework](https://serverframework.com/)
+
+[duke大学网络教程](https://intronetworks.cs.luc.edu/current/html)
+
+[duke slides](https://people.duke.edu/~zg70/courses/ECE356/slides/)
+
+[拥塞控制算法系统设计](https://tcpcc.systemsapproach.org/index.html)
 
