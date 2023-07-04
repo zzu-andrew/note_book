@@ -109,6 +109,26 @@ Memory描述符告知GCC：
 
 
 
+=== 重载
+
+当一个类多处使用，想要直接打印，但是有不能到处对打印的地方进行重载，可以考虑逆向思考，直接重载ostream。这样一来就可以在任何地方使用cout直接打印类对象
+
+[source, cpp]
+----
+struct Vector2 {
+    int x;
+    int y;
+};
+
+std::ostream& operator<<(std::ostream& stream, const Vector2& vector) {
+    stream << vector.x << ", " << vector.y;
+    return stream;
+}
+
+Vector2 vector{1,2};
+std::cout << vector << std::endl;
+----
+
 
 
 
