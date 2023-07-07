@@ -1,3 +1,10 @@
+//
+// Created by wangyz38535 on 2023/7/7.
+//
+
+#ifndef NODE_BOOKS_THREAD_POOL_SIMPLE_H
+#define NODE_BOOKS_THREAD_POOL_SIMPLE_H
+
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -97,28 +104,32 @@ void task(int i) {
     std::cout << "Thread " << std::this_thread::get_id() << ": Task " << i << " is done." << std::endl;
 }
 
-int main() {
-    try {
-        ThreadPool pool;
-        for (int i = 0; i < 8; ++i) {
-            pool.enqueue([i] { task(i); });
-        }
-        while (true) {
-            std::vector<bool> threads_executing = pool.get_threads_executing();
-            std::cout << "Threads executing: ";
-            for (bool executing : threads_executing) {
-                std::cout << (executing ? "T" : "F") << " ";
-            }
-            std::cout << std::endl;
-            if (pool.get_threads_executing().empty()) {
-                break;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        }
-        pool.wait();
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
-    return 0;
-}
+//int main() {
+//    try {
+//        ThreadPool pool;
+//        for (int i = 0; i < 8; ++i) {
+//            pool.enqueue([i] { task(i); });
+//        }
+//        while (true) {
+//            std::vector<bool> threads_executing = pool.get_threads_executing();
+//            std::cout << "Threads executing: ";
+//            for (bool executing : threads_executing) {
+//                std::cout << (executing ? "T" : "F") << " ";
+//            }
+//            std::cout << std::endl;
+//            if (pool.get_threads_executing().empty()) {
+//                break;
+//            }
+//            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+//        }
+//        pool.wait();
+//    }
+//    catch (const std::exception& e) {
+//        std::cerr << "Error: " << e.what() << std::endl;
+//    }
+//    return 0;
+//}
+
+
+
+#endif //NODE_BOOKS_THREAD_POOL_SIMPLE_H
