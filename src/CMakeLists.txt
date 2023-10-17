@@ -35,6 +35,8 @@ IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
 
     add_executable(elf_main
             elf_parser/main.c)
+
+
 ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Windows")
     MESSAGE(STATUS "current platform: Windows")
 ELSEIF (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
