@@ -1,22 +1,20 @@
+#include <cctype>
+#include <string>
 #include <iostream>
-#include <set>
-#include <algorithm>
 
-int main() {
-    std::set<int> set1 {1, 2, 3};
-    std::set<int> set2 {3, 2, 1};
-
-    bool isEqual = std::equal(set1.begin(), set1.end(), set2.begin(),
-                              [](const int& a, const int& b) { return a == b; });
-
-    // 输出结果
-    if (isEqual) {
-        std::cout << "set1 and set2 are equal." << std::endl;
-    } else {
-        std::cout << "set1 and set2 are not equal." << std::endl;
+int isNumber(const std::string& str) {
+    for (char const &c : str) {
+        if (std::isdigit(c) == 0) return 0;
     }
+    return str.length();
+}
+int main() {
+    std::string str1 = "";
+    std::string str2 = "1234a";
 
-    std::all_of()
+    std::cout << "Length of str1 is: " << isNumber(str1) << std::endl;  // Outputs: Length of str1 is: 5
+    std::cout << "Length of str2 is: " << isNumber(str2) << std::endl;  // Outputs: Length of str2 is: 0
+
 
     return 0;
 }
