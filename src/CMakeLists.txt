@@ -5,6 +5,10 @@ add_executable(main
 target_include_directories(main
         PUBLIC ../inc)
 
+
+target_link_libraries(main
+        PUBLIC pthread)
+
 add_executable(memory_management
         memory_management/memory_management.cpp)
 target_include_directories(memory_management

@@ -23,6 +23,10 @@ endif::rootpath[]
 == 深入理解Linux网络
 
 
+=== tcp连接建立过程
+
+
+image::network/tcp_connect.png[]
 
 
 
