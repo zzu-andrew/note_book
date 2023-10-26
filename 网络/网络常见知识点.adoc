@@ -161,13 +161,162 @@ void fib_add_ifaddr(struct in_ifaddr *ifa)
 https://coolshell.cn/articles/11564.html
 
 
+=== 网络问题排查
 
 
+==== ethtool工具
 
+*查看和修改网卡RingBuffer最大值和当前设置*
+[source, bash]
+----
+# 查看
+$ ethtool -g ens160
+# 修改网卡硬件缓存大小
+$ ethtool -G eth0 rx 4096 tx 4096
+----
 
+*查看网卡丢包统计*
 
+[source, bash]
+----
+$ ethtool -S eth0
+----
 
+*查看网卡配置状态*
+[source, bash]
+----
+$ethtool ens160
+Settings for ens160:
+	Supported ports: [ TP ]
+	Supported link modes:   1000baseT/Full
+	                        10000baseT/Full
+	Supported pause frame use: No
+	Supports auto-negotiation: No
+	Supported FEC modes: Not reported
+	Advertised link modes:  Not reported
+	Advertised pause frame use: No
+	Advertised auto-negotiation: No
+	Advertised FEC modes: Not reported
+	Speed: 10000Mb/s
+	Duplex: Full
+	Port: Twisted Pair
+	PHYAD: 0
+	Transceiver: internal
+	Auto-negotiation: off
+	MDI-X: Unknown
+Cannot get wake-on-lan settings: Operation not permitted
+	Link detected: yes
+----
 
+如果通过ethtool查看网卡的speed等配置不符合预期，可以通过ethtool让网卡自动协商。
+
+[source, bash]
+----
+$ethtool -r  eth1/eth0;
+----
+
+如果发现，上下游设备不支持自协商，可以强制设置端口的速率：
+[source, bash]
+----
+$ethtool -s eth1 speed 1000 duplex full autoneg off
+----
+
+*查看流控统计信息*
+
+[source, bash]
+----
+$ethtool -S eth1 | grep control
+----
+
+*查看网络流控配置*
+[source, bash]
+----
+$ethtool -a eth1
+----
+
+*关闭网卡流控*
+[source, bash]
+----
+ethtool -A ethx autoneg off //自协商关闭
+ethtool -A ethx tx off //发送模块关闭
+ethtool -A ethx rx off //接收模块关闭
+----
+
+*查看网卡firmware版本*
+[source, bash]
+----
+$ethtool -i eth0
+----
+
+*单核负载过高导致丢包*
+当单核心因为软中断占用过多时会导致新来的数据软中断无法处理而丢包，导致网络数据的处理速度跟不上网卡的接收速度。
+通过命令mpstat -P ALL 1可以每隔一秒查看一下当前cpu的使用情况
+[source, bash]
+----
+mpstat -P ALL 1
+Linux 3.10.0-862.11.6.el7.x86_64 (localhost.localdomain) 	10/26/2023 	_x86_64_	(4 CPU)
+01:27:31 PM  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle
+01:27:32 PM  all    7.30    0.00    7.03    0.00    0.00    0.00    0.00    0.00    0.00   85.68
+01:27:32 PM    0    5.43    0.00    7.61    0.00    0.00    0.00    0.00    0.00    0.00   86.96
+01:27:32 PM    1    7.45    0.00    7.45    0.00    0.00    0.00    0.00    0.00    0.00   85.11
+01:27:32 PM    2    5.43    0.00    5.43    0.00    0.00    1.09    0.00    0.00    0.00   88.04
+01:27:32 PM    3   11.83    0.00    6.45    0.00    0.00    0.00    0.00    0.00    0.00   81.72
+----
+
+如果出现这种情况，比如soft占用100%，这个时候可以通过一下几种方法中的一种或者多种组合来解决问题：
+
+- 调整RSSfootnote:[Receive Side Scaling,用于多核系统中分发网络流量到不同的CPU核心进行处理]队列。
+
+[source, bash]
+----
+# 查看RSS队列配置
+ethtool -x eth0
+# 调整配置
+ethtool -X eth0 xxx
+----
+
+- 保证网卡中断配置均衡 `cat /proc/interrupts`
+
+[source, bash]
+----
+# 调整irq
+irqbalance
+# 查看当前运行情况
+service irqbalance status
+# 终止服务
+service irqbalance stop
+#中断绑CPU核
+echo mask > /proc/irq/xxx/smp_affinity
+----
+
+- 根据CPU和网卡队列个数调整网卡多队列和RPS配置
+
+协议栈开启RPS并设置RPS
+[source, bash]
+----
+
+echo $mask（CPU配置）> /sys/class/net/$eth/queues/rx-$i/rps_cpusecho 4096（网卡buff）> /sys/class/net/$eth/queues/rx-$i/rps_flow_cnt2）
+#CPU小于网卡队列个数，绑中断就可以，可以试着关闭RPS看一下效果：
+echo 0 > /sys/class/net/<dev>/queues/rx-<n>/rps_cpu
+----
+
+- numa CPU调整，对其网卡位置，可以提高内核处理速度，从而给更多CPU应用包，从而减缓丢包率
+[source, bash]
+----
+ethtool -i eth1|grep bus-info
+lspci -s bus-info -vv|grep node
+----
+上面中断和 RPS 设置里面 mask 需要重新按 numa CPU 分配重新设置；
+
+- 可以试着开启中断聚合(需要网卡支持)
+
+[source, bash]
+----
+# 查看是否支持
+ethtool -c ethx
+# 调整
+ethtool -C ethx adaptive-rx on
+----
 
 
 
