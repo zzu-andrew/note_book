@@ -1,6 +1,6 @@
 
 :toc:
-
+:icons: font
 // 保证所有的目录层级都可以正常显示图片
 :path: utils/
 :imagesdir: ../image/
@@ -22,33 +22,23 @@ ifndef::rootpath[]
 :datadir: {rootpath}{path}/data/
 endif::rootpath[]
 
-== 序列化
+== 技术文档写作模板
 
+=== 抛出问题类型模板
 
-=== XML
+[source, cpp]
+----
+示例引出问题
 
+设计原理
 
+数据结构
 
+示例说明
 
+小结
 
-=== JSON
+拓展资料
 
-web端 Json序列化比较好定义
-一般HTTP json序列化比较简单
-
-
-
-
-=== protobuf
-
-
-protobuf 速度快 占用宽带少
-
-
-
-
-
-
-
-
-
+参考文献
+----

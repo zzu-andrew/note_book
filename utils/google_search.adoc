@@ -1,0 +1,59 @@
+
+:toc:
+
+// 保证所有的目录层级都可以正常显示图片
+:path: utils/
+:imagesdir: ../image/
+:srcdir: ../src
+:datadir: data/
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+
+:srcdir: {rootpath}../src/
+:datadir: {rootpath}{path}../data/
+endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+
+:srcdir: {rootpath}{path}../src/
+:datadir: {rootpath}{path}/data/
+endif::rootpath[]
+
+== google深度使用
+
+
+=== 指定类型进行搜索
+
+指定搜索结果为pdf
+
+关键词 + filetype:pdf，目前支持搜索的文档格式， 如.xls、.ppt、.doc，.rtf，WordPerfect文档，Lotus1- 2-3文档，Adobe的.pdf文档，ShockWave的.swf文档（Flash动画）等
+
+.filetype:pdf
+====
+道德经 filetype:pdf
+
+资产负债表 filetype:doc OR filetype:xls OR filetype:ppt
+====
+
+指定在哪些网站上进行搜索，通过site指定搜索网站之后，搜索结果只会在指定的网站进行搜索
+
+.site:edu.cn
+====
+搜索引擎 技巧 site:edu.cn
+
+"search engine" tips site:www.zdnet.com OR site:www.cnet.com
+====
+
+查看有多少人使用了你的网站(链接)
+
+.link:www.baidu.com
+====
+link:www.baidu.com
+====
+
+
+
+
