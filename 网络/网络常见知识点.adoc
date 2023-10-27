@@ -318,5 +318,18 @@ ethtool -c ethx
 ethtool -C ethx adaptive-rx on
 ----
 
+*分片重组导致丢包*
+
+[source, bash]
+----
+# 查看是否有分片重组导致丢包发生
+netstat -s|grep timeout
+601 fragments dropped after timeout
+# 通过调整分片重组超时时间来解决
+# 通过
+sysctl -a| grep net.ipv4.ipfrag_time
+net.ipv4.ipfrag_time = 30
+sysctl -w net.ipv4.ipfrag_time=60
+----
 
 
