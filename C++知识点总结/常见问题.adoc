@@ -61,5 +61,36 @@ https://www.ccppcoding.com/archives/1201[COW]
 
 
 
+=== 为什么不推荐使用C++的参数默认值特别是继承类中使用
 
+在C++中，函数参数的默认值是在编译时处理的，具体来说，是在预处理阶段处理的。预处理器会在编译之前读取代码，并处理其中的预处理指令，如#include、#define等。在这个过程中，预处理器会检查函数定义的参数列表和参数的默认值，并将它们添加到函数原型中。
+
+因此、在预处理如果用的是基类指针指向的函数，那么C++预处理器会将默认值填写成基类的默认值，如果是继承类对象调用又会使用继承类的默认值。如果基类被继承时有不同的默认值，那么你用同一个对象不同指针类型调用同一个函数时，默认值是不同的。
+
+[source, cpp]
+----
+
+class A {
+public:
+    virtual int32_t GetDatabase(int name = 1, int32_t data = 10) = 0;
+};
+
+class B : public A {
+public:
+    int32_t GetDatabase(int name = 1,  int32_t data = 9) override {
+        return data;
+    }
+};
+
+
+B b;
+A* lpa = &b;
+// 结果 10
+std::cout << lpa->GetDatabase() << std::endl;
+// 结果 9
+std::cout << b.GetDatabase() << std::endl;
+
+}
+
+----
 
