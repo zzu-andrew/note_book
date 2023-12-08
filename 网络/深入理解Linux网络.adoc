@@ -102,5 +102,21 @@ static inline bool ipv4_is_test_198(__be32 addr)
 }
 ----
 
+==== 理论上只要服务端足够一个一台主机能建立无数条链接
+
+有很多网友当知道建立连接需要占用一个端口时，就说一台客户端机最大只能建立65535个连接，因为端口限制的原因，其实这是不正确的。因为连接时，看的是四元组(其实更多如下内核源码中对是否重复判断，除了ip端口，还判断网卡等), 所以只要服务端够多的情况下，无论客户端建立多少连接都能保证四元组的唯一，也就能保证连接能正常建立。
+
+[source, cpp]
+----
+#define INET_TW_MATCH(__sk, __net, __cookie, __saddr, __daddr, __ports, __dif) \
+	((inet_twsk(__sk)->tw_portpair == (__ports))	&&		\
+	 (inet_twsk(__sk)->tw_daddr	== (__saddr))	&&		\
+	 (inet_twsk(__sk)->tw_rcv_saddr	== (__daddr))	&&		\
+	 (!(__sk)->sk_bound_dev_if	||				\
+	   ((__sk)->sk_bound_dev_if == (__dif))) 	&&		\
+	 net_eq(sock_net(__sk), (__net)))
+----
+
+
 
 
