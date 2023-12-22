@@ -59,4 +59,7 @@ add_executable(db
 add_executable(db_example
         db/db_example.cpp)
 
+add_subdirectory(smart_ptr)
+
+
 

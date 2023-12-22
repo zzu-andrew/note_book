@@ -1,0 +1,70 @@
+
+:toc:
+
+:icons: font
+
+// 保证所有的目录层级都可以正常显示图片
+:path: 网络/
+:imagesdir: ../image/
+:srcdir: ../src
+
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+:srcdir: {rootpath}../src/
+endif::rootpath[]
+
+ifndef::rootpath[]
+:rootpath: ../
+:srcdir: {rootpath}{path}../src/
+endif::rootpath[]
+
+
+
+
+
+
+下面脚本实习拿了禁止除了22号端口之外的所有端口联网
+[source, bash]
+----
+#!/bin/bash
+
+# 允许22号端口的TCP连接
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+
+# 拒绝其他端口的TCP/udp连接，
+for port in {1..65534}; do
+    # 跳过指定的端口
+    if [ $i -eq 5 ]; then
+        echo "Skipping number 5"
+        continue
+    fi
+    iptables -A INPUT -p tcp --dport $port -j DROP
+    iptables -A OUTPUT -p tcp --dport $port -j DROP
+
+    iptables -A INPUT -p udp --dport $port -j DROP
+    iptables -A OUTPUT -p udp --dport $port -j DROP
+done
+
+# 保存iptables规则
+service iptables save
+----
+
+查看所有iptables的规则
+
+[source, bash]
+----
+iptables -L
+----
+恢复所有端口的联网
+
+[source, bash]
+----
+# 运行以下命令以删除所有规则
+iptables -F
+# 运行一下命令允许所有端口连接
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD ACCEPT
+----
