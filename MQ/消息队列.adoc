@@ -1,0 +1,40 @@
+
+// 保证所有的目录层级都可以正常显示图片
+:path: MQ/
+:imagesdir: ../image/
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+endif::rootpath[]
+
+
+== 消息队列
+
+
+=== 消息队列必知必会
+
+==== 消息幂等
+消息幂等是指消息驱动系统中，对同一消息投递或处理，系统保证其处理结果与仅处理一次该消息的结果相同。换句话说，无论消息被送达多少次，系统的状态变更、业务逻辑执行以及对外部的影响都应保持一致。
+
+.eg:
+1. 数据库操作，`INSERT IF NOT EXISTS`, `UPDATE ... WHERE id = ? AND version = ?` （乐观锁）
+2. tcp状态机，同类型tcp消息过来tcp状态机处理逻辑相同。
+
+
+
+==== ACK和NACK
+
+手工ACK（Acknowledgement）和NACK（Negative Acknowledgement）是消费者对消息处理状态的反馈机制，允许消费者主动控制消息的确认过程。
+
+- 手工ACK（Acknowledgement）
+
+含义与目的： 手工ACK是指消费者在接收到消息并完成处理后，主动向消息队列系统发送一个确认信号，表明该消息已被正确处理。这样做的目的是通知消息队列系统可以安全地将该消息从未确认列表中移除，不再对其进行重发。
+
+操作方式： 通常，消费者通过调用消息队列客户端API提供的acknowledge方法，并传入消息的唯一标识（如RabbitMQ中的deliveryTag、Kafka中的offset和partition等）来执行手工ACK。
+
+- 手工NACK（Negative Acknowledgement）
+
+含义与目的： 手工NACK是消费者向消息队列系统反馈消息处理失败的一种机制。当消费者接收到消息但无法正常处理时，发送NACK通知消息队列系统该消息需要重新投递或采取其他补偿措施。
+
+操作方式： 通常，消费者通过调用客户端API提供的nack或类似的否定确认方法，并传入相应的消息标识符。有些系统（如RabbitMQ）还支持附带参数，如是否将消息重新放入队列（requeue）。
