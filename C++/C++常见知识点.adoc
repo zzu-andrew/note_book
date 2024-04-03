@@ -12,39 +12,7 @@ endif::rootpath[]
 
 == C++常见知识点总结
 
-=== 必备知识
-
-==== 1. 某文件中定义的静态全局变量(静态外部变量(函数外部定义))其作用域是？
-本文件，静态全局变量限制了其作用域，导致该变量只能在其所在的源文件有效。正是因为作用域局限于一个源文件内，因此可以避免其他源文件中同名变量引起的错误。如果当前源文件已经有同名静态变量，会优先使用静态变量。
-
-==== 2. 通常使用__plusplus来判断一段程序是使用C++编译器编译的还是使用C编译器编译的
-[source, cpp]
-----
-#ifdef __cplusplus
-// C++
-#else
-//C
-#endif
-----
-
-==== 3. C++函数中值的传递方式有哪几种，以及相互之间的区别
-
-C++函数有三种传递方式：值传递、指针传递和引用传递
-- 指针有自己的内存空间，引用知识一个别名
-- sizeof计算指针的大小为4,而引用的大小为对象的大小
-- 可以用 const指针但是不能有 const引用
-[source, cpp]
-----
-int * const data = &dataSize;   // 可以有const指针
-int & const data = dataSize;    // 但是引用不能是const的， 但是别名可以定义成const，其实这一切都是因为引用只是值得别名
-const & int data = dataSize;   // 引用的别名是可以定义为const的
-----
-- 指针可以被初始化为
-nullptr，但是引用必须被初始化，且必须是一个已有对象的引用
-- 指针可以一有多级指针(**p)，而引用只能有一级
-
-
-==== STL原理及实现
+=== STL原理及实现
 STL有六大组件，六大组件之间可以嵌套使用。
 
 - 容器(containers)
@@ -152,7 +120,6 @@ C++多态分为静态多态(编译时多态)和动态多态(运行时多态)两�
 为了解决以上问题，引入纯虚函数概念，将函数定义为纯虚函数，则编译器要求派生类中必须予以重写以实现多态性，同时含有纯虚函数的类称为抽象类，它不能生成对象。声明了纯虚函数的类不能创建实例，只能创建它的派生类的实例。
 
 定义了纯虚函数的类，相当于java的接口。纯虚函数让所有类的对象(派生类)都可以执行纯虚函数的动作，但类无法为纯虚函数提供一个合理地缺省实现。所以纯虚函数的声明就是在告诉类的设计者，你必须提供一个纯虚函数的实现，但我不知道你会怎样实现它。
-
 
 ==== 虚函数常见问题
 
@@ -403,5 +370,106 @@ C++程序执行时将内存大方向分为4个区域：
 - 全局区：存放全局变量和静态变量以及常量
 - 栈区：由编译器自动分配释放，存放函数的参数值，局部变量等
 - 堆区：由程序员分配和释放，若程序员不释放程序结束时由操作系统回收
+
+==== nodiscard属性
+可用来防止以下问题
+
+-  **内存泄露** ，例如返回值中含有动态分配的内存，但并未使用。
+-  **未知的或出乎意料的行为** ，例如因为没有使用返回值而导致了一些奇怪的行为。
+-  **不必要的开销** ，例如因为返回值没被使用而进行了一些无意义的行为。
+
+.防止出乎意料的行为
+[source, cpp]
+----
+class MyContainer {
+    ...
+public:
+    // 部分人会把empty当成清空函数使用，添加nodiscard之后就能有效的避免
+    // 把empty当成clear使用的情况出现
+    [[nodiscard]] bool empty() const noexcept;
+    ...
+};
+----
+
+.内存泄露
+[source, cpp]
+----
+class MyContainer {
+    ...
+public:
+    // 添加nodiscard防止调用CreateBuffer函数不处理返回值，导致内存泄露
+    [[nodiscard]] char* CreateBuffer(int32_t size) const noexcept {
+        return new (std::nothrow) char[size];
+    }
+    ...
+};
+----
+
+.无意义的调用
+[source, cpp]
+----
+class Helpers {
+    ...
+public:
+    // 非必要不要调用的函数，因为调用会非常耗时
+    [[nodiscard]] bool IsAllRunning() const noexcept {
+        // 连接各个分布式服务端，查看是否都正常运行
+        bool bRunning = false;
+        ...
+        return bRunning;
+    }
+    ...
+};
+----
+
+==== fallthrough属性
+
+部分switch中如果想case打通时总是编译器总是会给出警告，如果想不给出警告可以通过设置fallthrough属性来告诉编译器这里就是要打通case
+
+[source, cpp]
+----
+void commentPlace(int place)
+{
+    switch (place) {
+        case 1:
+            std::cout << "very ";
+            [[fallthrough]];
+        case 2:
+            std::cout << "well\n";
+            break;
+        default:
+            std::cout << "OK\n";
+            break;
+    }
+}
+----
+
+
+
+=== 变参函数
+
+==== 变参回调函数的使用
+
+.调用变参回调函数的案例
+[source, cpp]
+----
+template<typename CB>
+class CountCalls
+{
+private:
+    CB callback;    // 要调用的回调函数
+    long calls = 0; // 调用的次数
+public:
+    explicit CountCalls(CB cb) : callback(cb) {}
+    template<typename... Args>
+    int32_t operator() (Args&&... args) {
+        ++calls;
+        return callback(std::forward<Args>(args)...);
+    }
+    long count() const {
+        return calls;
+    }
+};
+----
 
 

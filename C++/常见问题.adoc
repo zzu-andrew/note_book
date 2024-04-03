@@ -94,3 +94,32 @@ std::cout << b.GetDatabase() << std::endl;
 
 ----
 
+
+=== 重载
+
+重载并不只是对操作符进行简单的重载操作，还有部分的隐含规则。比如对->进行重载，如果返回的是指针那么肯定不能连续调用两次->而只调用一次，重载的operator->返回的指针类型应该与原始对象类型兼容。
+
+[source, cpp]
+----
+// 对应的调用方式  data.operator->().data();
+std::string operator->() {
+    return name;
+}
+// 对应的调用方式data->data()，而且需要注意的是，重载之后调用->返回的事string*解引用之后的值，也就是说，返回类型是*但是经过->的调用返回的实际是std::string类型的数据，会自动解引用
+std::string* operator->() {
+    return &name;
+}
+// 如果是普通函数，那么返回类型为std::string*调用之后，类型还是std::string不会解引用
+// 调用方式data.GetName()->data();
+std::string* GetName() {
+    return &name;
+}
+----
+
+
+
+
+
+
+
+
