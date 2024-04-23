@@ -47,9 +47,24 @@ private:
 };
 
 
+int GetData(std::unique_lock<std::mutex> &lk) {
+
+
+
+
+    return 0;
+}
+
+
 // 简单实现一个同时只有指定人数能获取的信号量，permits_为指定多少人能同时获取，获取的人数不能超过这个数，否则等待
 
 int main(int argc, char *argv[]) {
+
+    std::mutex mux;
+
+    std::unique_lock<std::mutex> lock(mux);
+    GetData(lock);
+
 
 
     return 0;

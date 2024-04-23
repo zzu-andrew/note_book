@@ -62,6 +62,9 @@ add_executable(db_example
 add_executable(semaphore
         semaphore/semaphore.cpp)
 
+add_executable(defer
+        defer/defer.cpp)
+
 add_subdirectory(smart_ptr)
 
 
