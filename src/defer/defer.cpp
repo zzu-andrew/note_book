@@ -8,6 +8,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <functional>
+#include <set>
 
 
 class LambdaDefer {
@@ -18,6 +19,10 @@ public:
         if (m_func) {
             m_func();
         }
+    }
+
+    void SetNoDefer() {
+        m_func = nullptr;
     }
 
 private:
@@ -40,6 +45,14 @@ int main(int argc, char *argv[]) {
     });
 
     lp = &b;
+
+
+    std::set<int32_t> data{a,b};
+
+    for (auto d : data) {
+        std::cout << d << std::endl;
+    }
+
 
 
     return 0;
