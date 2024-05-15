@@ -25,7 +25,7 @@ add_subdirectory(src)
 set(list1 A B)
 
 foreach(loopVar IN LISTS list1)
-    message("Iteration for: ${loopVar}")
+    message(STATUS "Iteration for: ${loopVar}")
 endforeach()
 
 
