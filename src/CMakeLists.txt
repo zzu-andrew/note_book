@@ -1,3 +1,6 @@
+
+include_directories(../inc)
+
 add_executable(main
         main.cpp
         extern.cpp)
@@ -66,6 +69,8 @@ add_executable(defer
         defer/defer.cpp)
 
 add_subdirectory(smart_ptr)
+
+add_subdirectory(track_new)
 
 
 
