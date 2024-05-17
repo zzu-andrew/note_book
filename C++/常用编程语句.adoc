@@ -7,6 +7,8 @@
 === 位操作
 
 ==== 上调到字节对其大小
+
+.按照对其大小对传入数值进行向上取整
 [source, cpp]
 ----
 uint32_t RoundUp(uint32_t x, uint32_t align) {
