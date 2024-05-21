@@ -56,7 +56,7 @@ void callFoo() {
 
 模版的推导只是进行参数的推导，不会进行返回值的推导，因此到模版类型为函数返回值时需要使用内嵌类型来帮助模板推导内嵌类型
 
-[soource, cpp]
+[source, cpp]
 ----
 template <class T>
 struct MyIter {
@@ -108,7 +108,7 @@ class C<T*> {...}; // 这个特化版本仅适用于T为指针的情况，
 
 === traits(萃取)
 
-使用T*可以对模板进行偏特化，但是如果是一般定义模板只会定义T类型的，因此内嵌型别也只会在T类型中声明
+使用T*可以对模板进行偏特化，但是一般定义模板只会定义T类型的，因此内嵌型别也只会在T类型中声明，这个时候就得借助萃取技术来实现内置类型的获取了。
 
 .traits
 [source, cpp]
@@ -132,8 +132,34 @@ func (I ite)
 
 ----
 
+将上述代码使用萃取技术
 
+[source, cpp]
+----
+template <class I>
+struct iterator_traits {   // traits 意为特性
+    typedef typename I::value_type value_type;
+}
 
+template <class I>
+typename iterator_traits<T>::value_type   // 这里是函数的返回值
+func (I ite)
+{
+    return ite;
+}
+----
+
+经过traits的封装之后，带来的好处就是特化版本也能进行处理了
+
+[source, cpp]
+----
+template <class I>
+struct iterator_traits<I*> {   // traits 意为特性
+    typedef I value_type;
+}
+----
+
+而且经过上述处理之后，原生指针本身是没有value_type的也能使用value_type了
 
 
 
