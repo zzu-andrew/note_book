@@ -72,6 +72,8 @@ add_subdirectory(smart_ptr)
 
 add_subdirectory(track_new)
 
+add_subdirectory(allocator)
+
 
 
 
