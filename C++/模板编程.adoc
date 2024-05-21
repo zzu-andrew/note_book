@@ -54,12 +54,83 @@ void callFoo() {
 }
 ----
 
+模版的推导只是进行参数的推导，不会进行返回值的推导，因此到模版类型为函数返回值时需要使用内嵌类型来帮助模板推导内嵌类型
+
+[soource, cpp]
+----
+template <class T>
+struct MyIter {
+    typedef T value_type;  // 内嵌型别声明(netsted type)
+    T* ptr; //
+    explicit MyIter(T* p = 0) : ptr (p) {}
+    T& operator*() const { return *ptr;}
+    // ...
+};
+----
+
+当一个类型是模板时，必须加上typename让编译器知道当前的类型是个模板，并不是普通的类型
+.template
+[source, cpp]
+----
+template <class I>
+typename I::value_type   // 这里是函数的返回值
+func (I ite)
+{
+    return ite;
+}
+----
 
 
+=== 偏特化(Partial Specialization)
+
+偏特化的大致意思如果一个class template拥有一个以上的template参数，我们可以针对某个或者全部的template参数进行特化工作。
+
+[source, cpp]
+----
+template <typename U, typename V, typename T>
+class C {...};
+----
+
+partial的字面意思容易误导人，让人们以为所谓的偏特化一定是将其中的U,V,T指定为特定的某个参数值。其实不然，所谓的Partial Specialization意思是提供一份template定义式，而其本身仍为templatized。《泛型思维》中的定义更加准确一点：针对任何template参数更进一步的条件限制所设计出来的一个特化版本。
+
+[source, cpp]
+----
+template<typename T>
+class C{...};    // 这个泛化版本允许接收T为任何型别
+
+/*******************************/
+template<typename T>
+class C<T*> {...}; // 这个特化版本仅适用于T为指针的情况，
+                    // T为原生指针，也是对T为任何型别的一个更进一步的条件限制
+
+----
 
 
+=== traits(萃取)
 
+使用T*可以对模板进行偏特化，但是如果是一般定义模板只会定义T类型的，因此内嵌型别也只会在T类型中声明
 
+.traits
+[source, cpp]
+----
+
+template <class T>
+struct MyIter {
+    typedef T value_type;  // 内嵌型别声明(netsted type)
+    T* ptr; //
+    explicit MyIter(T* p = 0) : ptr (p) {}
+    T& operator*() const { return *ptr;}
+    // ...
+};
+
+template <class I>
+typename I::value_type   // 这里是函数的返回值
+func (I ite)
+{
+    return ite;
+}
+
+----
 
 
 
