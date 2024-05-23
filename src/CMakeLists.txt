@@ -68,6 +68,8 @@ add_executable(semaphore
 add_executable(defer
         defer/defer.cpp)
 
+add_executable(lru lru_cache/lru_cache.cpp)
+
 add_subdirectory(smart_ptr)
 
 add_subdirectory(track_new)
