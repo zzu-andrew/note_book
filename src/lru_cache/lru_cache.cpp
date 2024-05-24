@@ -54,7 +54,7 @@ public:
         auto it = m_cacheItemsMap.find(key);
         if (it == m_cacheItemsMap.end()) {
         } else {
-            // 将最新的节点提前
+            // 将内部元素指定的值移动到开头，这种一定效率特别高
             m_cacheItemsList.splice(m_cacheItemsList.begin(), m_cacheItemsList, it->second);
             add(it->second->second);
         }
@@ -74,6 +74,7 @@ public:
     }
 
 private:
+    // 这里借用，list移动只要不更改当前值，原有的迭代器就有效
     std::list<key_value_pair_t> m_cacheItemsList;
     std::unordered_map<key_t, list_iterator_t> m_cacheItemsMap;
     size_t m_maxSize;
