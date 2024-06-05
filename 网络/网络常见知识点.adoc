@@ -333,3 +333,35 @@ sysctl -w net.ipv4.ipfrag_time=60
 ----
 
 
+
+=== 连接失败问题查询
+
+主要通过观察listen队列和accept队列的问题来断定连接创建失败时由于具体哪个地方导致的问题。
+
+.通过ss查看accept队列的大小以及当前队列中现存待连接完成的个数
+[source, bash]
+----
+# -l 显示正在监听的socket
+# -n 不解析服务器名称
+# -t 只显示tcp socket
+[wangyz@localhost /home/wangyz]$ss  -lnt
+State       Recv-Q Send-Q                             Local Address:Port                                            Peer Address:Port
+LISTEN      0      100                                    127.0.0.1:25                                                         *:*
+LISTEN      0      128                                    127.0.0.1:6010                                                       *:*
+LISTEN      0      100                                            *:16506                                                      *:*
+LISTEN      0      100                                            *:20571                                                      *:*
+LISTEN      0      50                                             *:8091                                                       *:*
+LISTEN      0      128                                  10.20.26.58:36379                                                      *:*
+----
+
+Recv-Q代表待accept的个数，也就是队列中有多少连接，Send-Q代表队列的最大值，队列的大小长度取决于somaxconn配置和backlog之间的最小值，min(somaxconn, backlog)，somaxconn是内核配置，backlog是listen中传入
+
+[source, bash]
+----
+[wangyz@localhost /home/wangyz]$date;netstat -s|grep overflowed
+2024年 06月 05日 星期三 14:22:15 CST
+    48883 times the listen queue of a socket overflowed
+----
+
+通过netstat查看listen溢出的数量，如果一直在增加说明存在accept溢出问题。
+

@@ -22,10 +22,14 @@ endif::rootpath[]
 
 
 
+== 网络工具
+
+=== iptables防火墙
 
 
+下面脚本实现禁止除了22号端口之外的所有端口联网
 
-下面脚本实习拿了禁止除了22号端口之外的所有端口联网
+.禁用端口
 [source, bash]
 ----
 #!/bin/bash
@@ -68,3 +72,9 @@ iptables -P INPUT ACCEPT
 iptables -P OUTPUT ACCEPT
 iptables -P FORWARD ACCEPT
 ----
+
+
+
+
+
+
