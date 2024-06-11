@@ -18,7 +18,18 @@ using namespace std;
 int main(int argc, char* argv[]) {
 
 
-    int32_t data = 12;
+
+    std::map<int32_t, int32_t>   iPairs;
+    iPairs[1] = 1;
+    iPairs[1] = 2;
+    iPairs[1] = 3;
+    iPairs[1] = 4;
+    iPairs[2] = 1;
+
+    for (const auto& pair : iPairs) {
+        std::cout << pair.first << " " << pair.second << std::endl;
+    }
+
 
 
 
