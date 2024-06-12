@@ -19,18 +19,22 @@ int main(int argc, char* argv[]) {
 
 
 
-    std::map<int32_t, int32_t>   iPairs;
-    iPairs[1] = 1;
-    iPairs[1] = 2;
-    iPairs[1] = 3;
-    iPairs[1] = 4;
-    iPairs[2] = 1;
+    std::vector<int> v = {1};
 
-    for (const auto& pair : iPairs) {
-        std::cout << pair.first << " " << pair.second << std::endl;
-    }
+    // 打印原始排列
+    std::cout << "Original permutation: ";
+    for (int n : v)
+        std::cout << n << ' ';
+    std::cout << '\n';
 
+    // 生成并打印所有排列
+    do {
+        for (int n : v)
+            std::cout << n << ' ';
+        std::cout << '\n';
+    } while (std::next_permutation(v.begin(), v.end()));
 
+    return 0;
 
 
     return 0;
