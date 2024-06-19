@@ -13,29 +13,26 @@
 using namespace std;
 
 
-
-
 int main(int argc, char* argv[]) {
 
+    uint32_t uIndex = 0;
+    uIndex = uIndex - 1;
+    std::cout << uIndex << std::endl;
+
+    int32_t index = uIndex;
+
+    std::cout << index << std::endl;
 
 
-    std::vector<int> v = {1};
+    uIndex = index;
+    std::cout << uIndex << std::endl;
 
-    // 打印原始排列
-    std::cout << "Original permutation: ";
-    for (int n : v)
-        std::cout << n << ' ';
-    std::cout << '\n';
 
-    // 生成并打印所有排列
-    do {
-        for (int n : v)
-            std::cout << n << ' ';
-        std::cout << '\n';
-    } while (std::next_permutation(v.begin(), v.end()));
-
-    return 0;
-
+    index = 2147483647;
+    std::cout << index++ << std::endl;
+    uIndex = index;
+    std::cout << uIndex << std::endl;
+    std::cout << index++ << std::endl;
 
     return 0;
 }
