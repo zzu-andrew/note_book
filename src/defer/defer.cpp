@@ -9,7 +9,7 @@
 #include <condition_variable>
 #include <functional>
 #include <set>
-
+#include <map>
 
 class LambdaDefer {
 public:
@@ -28,6 +28,43 @@ public:
 private:
     std::function<int32_t()> m_func;
 };
+
+
+
+
+class LambdaDeferTuple {
+public:
+    LambdaDeferTuple() : m_funcIndex(0), m_funcs{} {}
+
+    ~LambdaDeferTuple() {
+        for (const auto& pair : m_funcs) {
+            if (pair.second) {
+                pair.second();
+            }
+        }
+    }
+
+    uint32_t PushFunction(std::function<uint32_t()>&& func) {
+        auto index = m_funcIndex.fetch_add(1);
+        m_funcs.insert(std::make_pair(index, func));
+        return index;
+    }
+
+    void PopFunction(uint32_t index) {
+        m_funcs.erase(index);
+    }
+
+    void SetNoDefer() {
+        m_funcs.clear();
+    }
+
+private:
+    std::atomic<uint32_t> m_funcIndex;
+    std::map<uint32_t, std::function<int32_t()>> m_funcs;
+};
+
+
+
 
 // 证明在C++中也存在闭包问题，如下在lambda函数中，如果按照  lp 传入那么最终打印出来的事a的地址
 // 如果按照   &lp 的方式传入，那么经过后面的地址更改，打印出来的事b的地址
