@@ -64,32 +64,36 @@ private:
 };
 
 
-
-
 // 证明在C++中也存在闭包问题，如下在lambda函数中，如果按照  lp 传入那么最终打印出来的事a的地址
 // 如果按照   &lp 的方式传入，那么经过后面的地址更改，打印出来的事b的地址
 
 int main(int argc, char *argv[]) {
 
-    int a = 12;
-    int b = 14;
-    int *lp = &a;
-    printf("&a = %p\n", &a);
-    printf("&b = %p\n", &b);
-    LambdaDefer defer([&lp]()->int32_t {
-        printf("lp = %p\n", lp);
+
+    LambdaDeferTuple defer;
+
+    defer.PushFunction([]()->int32_t {
+        std::cout << "Function 1" << std::endl;
         return 0;
     });
 
-    lp = &b;
 
+    defer.PushFunction([]()->int32_t {
+        std::cout << "Function 2" << std::endl;
+        return 0;
+    });
 
-    std::set<int32_t> data{a,b};
+    auto index = defer.PushFunction([]()->int32_t {
+        std::cout << "Function 3" << std::endl;
+        return 0;
+    });
 
-    for (auto d : data) {
-        std::cout << d << std::endl;
-    }
+    defer.PushFunction([]()->int32_t {
+        std::cout << "Function 4" << std::endl;
+        return 0;
+    });
 
+    defer.PopFunction(index);
 
 
     return 0;

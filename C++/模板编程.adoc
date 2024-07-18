@@ -162,8 +162,31 @@ struct iterator_traits<I*> {   // traits 意为特性
 而且经过上述处理之后，原生指针本身是没有value_type的也能使用value_type了
 
 
+=== 函数绑定(mem_fn)
 
+使用mem_fn轻松将成员函数绑定为可以直接调用的函数形式。
 
+[source, cpp]
+----
+#include <iostream>
+#include <functional>
+
+class MyClass {
+public:
+    void print(int value) const {
+        std::cout << "Value: " << value << std::endl;
+    }
+};
+
+int main() {
+    MyClass myObject;
+    //auto boundPrint = std::bind(std::mem_fn(&MyClass::print), &myObject, std::placeholders::_1);
+    //std::function<void(int)> boundPrint = std::bind(std::mem_fn(&MyClass::print), &myObject, std::placeholders::_1);
+    std::function<void(int)> boundPrint = std::bind(&MyClass::print, &myObject, std::placeholders::_1);
+    boundPrint(10);  // 输出 "Value: 10"
+    return 0;
+}
+----
 
 
 

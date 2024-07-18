@@ -12,102 +12,43 @@
 #include <algorithm>
 #include <sstream>
 #include <atomic>
+#include <iostream>
+#include <unistd.h>
+#include <cerrno>
 
 using namespace std;
 
+#include <iostream>
+#include <map>
+#include <set>
+#include <string>
+#include <functional>
+#include <algorithm>
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <mutex>
+#include <condition_variable>
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <mutex>
+#include <condition_variable>
 
 
-class LambdaDeferTuple {
-public:
-    LambdaDeferTuple() : m_funcIndex(0), m_funcs{} {}
+int main() {
 
-    ~LambdaDeferTuple() {
-        for (const auto& pair : m_funcs) {
-            if (pair.second) {
-                pair.second();
-            }
-        }
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool dataReady = false;
+
+    std::unique_lock<std::mutex> lck(mtx);
+    // 等待直到dataReady为true或超时
+    if (!cv.wait_for(lck, std::chrono::seconds(5), []{ return false; })) {
+        std::cout << "timeout " << std::endl;
+    } else {
+        std::cout << "dataReady..." << std::endl;
     }
-
-    uint32_t PushFunction(std::function<uint32_t()>&& func) {
-        auto index = m_funcIndex.fetch_add(1);
-        m_funcs.insert(std::make_pair(index, func));
-        return index;
-    }
-
-    void PopFunction(uint32_t index) {
-        m_funcs.erase(index);
-    }
-
-    void SetNoDefer() {
-        m_funcs.clear();
-    }
-
-private:
-    std::atomic<uint32_t> m_funcIndex;
-    std::map<uint32_t, std::function<int32_t()>> m_funcs;
-};
-
-
-
-
-int main(int argc, char* argv[]) {
-
-    LambdaDeferTuple tuple;
-
-    int32_t  index = 0;
-    tuple.PushFunction([index]()->int32_t {
-
-        std::cout << index << std::endl;
-        return 0;
-    });
-
-    index ++;
-    tuple.PushFunction([index]()->int32_t {
-
-        std::cout << index << std::endl;
-        return 0;
-    });
-
-    index ++;
-    tuple.PushFunction([index]()->int32_t {
-
-        std::cout << index << std::endl;
-        return 0;
-    });
-
-    index ++;
-    tuple.PushFunction([index]()->int32_t {
-
-        std::cout << index << std::endl;
-        return 0;
-    });
-
-    index ++;
-    tuple.PushFunction([index]()->int32_t {
-
-        std::cout << index << std::endl;
-        return 0;
-    });
-
-    index ++;
-    auto funcIndex = tuple.PushFunction([index]()->int32_t {
-
-        std::cout << index << std::endl;
-        return 0;
-    });
-
-    tuple.PopFunction(funcIndex);
-
-    index ++;
-    tuple.PushFunction([index]()->int32_t {
-
-        std::cout << index << std::endl;
-        return 0;
-    });
-
-
-
 
     return 0;
 }
