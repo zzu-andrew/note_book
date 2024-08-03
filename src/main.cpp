@@ -73,16 +73,15 @@ std::string Rtrim(const std::string& original, const std::string& chars = "\t\n\
 
 int main() {
 
-    std::string name = "CONNECT\r\n";
+    static int primes[] = {509, 509, 1021, 2053, 4093,
+                           8191, 16381, 32771, 65521, INT_MAX
+    };
 
-    std::cout << name.find_last_not_of("\t\n\r\v\f ") << std::endl;
+    // 使用for循环取一个计数值
+    int i;
+    for (i = 1; primes[i] < 65528; i++);
 
-    std::cout << name.size() << name.size()-1 << std::endl;
-    auto str = Rtrim(name);
-    std::cout << str << std::endl;
-    std::cout << str.size() << std::endl;
-
-
+    std::cout << i << "    " << primes[i - 1] << std::endl;
 
 
     return 0;
