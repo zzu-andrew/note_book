@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <cerrno>
 
+
 using namespace std;
 
 #include <iostream>
@@ -56,9 +57,6 @@ std::tuple<int32_t, std::string> GetCouples() {
 int main() {
 
 
-    std::string name;
-    int32_t iRet = 0;
-    std::tie(iRet, name) = GetCouples();
 
 
 
