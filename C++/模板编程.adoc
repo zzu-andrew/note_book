@@ -189,6 +189,20 @@ int main() {
 ----
 
 
+=== 数据绑定
+
+[source, cpp]
+----
+std::tuple<int32_t, std::string> GetCouples() {
+    return {0, "name"};
+}
+
+std::string name;
+int32_t iRet = 0;
+std::tie(iRet, name) = GetCouples();
+
+----
+
 
 
 === 参考
