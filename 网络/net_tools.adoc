@@ -40,8 +40,8 @@ iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 # 拒绝其他端口的TCP/udp连接，
 for port in {1..65534}; do
     # 跳过指定的端口
-    if [ $i -eq 5 ]; then
-        echo "Skipping number 5"
+    if [ $i -eq 22 ]; then
+        echo "Skipping number 22"
         continue
     fi
     iptables -A INPUT -p tcp --dport $port -j DROP
