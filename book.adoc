@@ -74,5 +74,6 @@ include::RPC/RPC.adoc[RPC]
 
 == utils
 
+include::utils/cmakelists.adoc[cmakelists]
 include::utils/git.adoc[git]
 

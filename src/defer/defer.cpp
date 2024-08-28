@@ -95,6 +95,19 @@ int main(int argc, char *argv[]) {
 
     defer.PopFunction(index);
 
+    int32_t i = 3;
+    do {
+        LambdaDefer defer1([]()->int32_t {
+            std::cout << "do while" << std::endl;
+            return 0;
+        });
+    }
+    while(i-- > 0);
+
+
+
+    std::cout << "==================end============================" << std::endl;
+
 
     return 0;
 }

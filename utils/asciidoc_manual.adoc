@@ -394,6 +394,7 @@ puts "I'm a source block!"
 - 约定使用(//)作为注释向其他作者提供一个提示，也用来分隔列表
 
 所有开头的列表，无论你是按照哪个字幕写的开头，都会自动进行升序排序，并且自动对标识符进行升序，书写的人不用担心标识符信息不符
+
 [source, bash]
 ----
 1.   阿拉伯数字标注的列表项目.
@@ -607,7 +608,7 @@ link:/home/works/dataSize/details.pdf[test data]
 
 - 相对路径
 
-link:index.html[Docs]
+//link:index.html[Docs]
 
 ==== 电子邮件
 

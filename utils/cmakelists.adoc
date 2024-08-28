@@ -1,0 +1,249 @@
+
+:toc:
+
+// 保证所有的目录层级都可以正常显示图片
+:path: utils/
+:imagesdir: ../image/
+:srcdir: ../src
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+
+:srcdir: {rootpath}../src/
+:datadir: {rootpath}{path}../data/
+endif::rootpath[]
+
+//ifndef::rootpath[]
+//:rootpath: ../
+//
+//:srcdir: {rootpath}{path}../src/
+//:datadir: {rootpath}{path}/data/
+//endif::rootpath[]
+
+== CMakeLists
+
+
+=== 项目开头
+
+.eg1
+[source, cmake]
+----
+# Use at least CMake 3.3
+cmake_minimum_required (VERSION 3.3.0)
+cmake_policy(VERSION 3.2.2)
+cmake_policy(SET CMP0054 NEW)
+
+# Set up the project
+project (civetweb)
+----
+
+.eg2
+[source, cmake]
+----
+
+cmake_minimum_required(VERSION 3.2)
+
+project(optimized_cplusplus)
+
+set(CMAKE_CXX_FLAGS "-std=c++11")
+
+
+add_definitions("-std=c++11 -O0 -g -pg -Wall")
+# O2 for lantency test
+#add_definitions("-std=c++11 -O2 -g -Wall")
+#set(CXX_FLAGS
+#    #-g
+#    # -DVALGRIND
+#    # -DCHECK_PTHREAD_RETURN_VALUE
+#    # -D_FILE_OFFSET_BITS=64
+#     -Wall
+#    # -Wextra
+#    -fpermissive
+#    # -Werror
+#    # -Wconversion
+#    # -Wno-unused-parameter
+#    # -Wold-style-cast
+#    # -Woverloaded-virtual
+#    # -Wpointer-arith
+#    # -Wshadow
+#    # -Wwrite-strings
+#    # -march=native
+#)
+
+message(STATUS "==========" ${PROJECT_SOURCE_DIR})
+
+include_directories("${
+}/inc/")
+
+add_subdirectory(src)
+add_subdirectory(gtest)
+add_subdirectory(api_design)
+add_subdirectory(functional_programming)
+add_subdirectory(data_struct_algorithm)
+
+# 设置头文件搜索路径  ${PROJECT_SOURCE_DIR} 代表的事当前CMakeLists.txt所在的文件夹
+include_directories("${PROJECT_SOURCE_DIR}/inc/")# basic
+----
+
+=== 添加通用定义
+
+[source, cmake]
+----
+# 添加通用定义
+add_definitions(-O0)
+
+add_definitions(-DUSE_DATA)
+----
+
+
+=== `set` 命令
+
+为生成物添加指定字段
+
+[source, cmake]
+----
+# 为调试版本的生成物，在后面添加d,例如：libglog.a --> libglogd.a
+set (CMAKE_DEBUG_POSTFIX d)
+----
+
+设置生成物输出路径
+[source, cmake]
+----
+# 设置静态库文件目录
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+# 动态库文件目录
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+# 可执行文件目录
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+----
+
+=== `option` 命令
+
+[source, cmake]
+----
+# 设置之后会能在对应的编译源码中使用对应的宏变量获取
+option(USER_DEFINE "User define data" ON)
+----
+
+=== 文件操作
+
+获取文件路径、前缀和文件名
+
+[source, cmake]
+----
+# 格式
+get_filename_component(outVar input component [CACHE])
+
+set(input /some/path/foo.bar.txt)
+get_filename_component(path1 ${input} DIRECTORY) # /some/path
+get_filename_component(path2 ${input} PATH) # /some/path
+get_filename_component(fullName ${input} NAME) # foo.bar.txt
+get_filename_component(baseName ${input} NAME_WE) # foo
+get_filename_component(extension ${input} EXT) # .bar.txt
+
+# 同样能用来获取绝对路径 input can be a relative path or it can be an absolute path.
+get_filename_component(outVar input component [BASE_DIR dir] [CACHE])
+ABSOLUTE
+    Compute the absolute path of input without resolving symbolic links.
+REALPATH
+    Compute the absolute path of input with symbolic links resolved.
+
+# 获取文件或文件夹的绝对路径
+get_filename_component(CCAPI_PROJECT_DIR ../ ABSOLUTE)
+----
+
+提取文件中所有的源码文件
+
+[source, cmake]
+----
+# 将src目录下的所有源码都添加给 dlms_src变量
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src dlms_src)
+----
+
+TIP: 如果是低版本可以像下面这种方式进行操作
+
+[source, cmake]
+----
+# 将指定目录下对应后缀的文件赋值给 CPP_SRC_LIST 变量
+file(GLOB_RECURSE CPP_SRC_LIST ${CMAKE_CURRENT_LIST_DIR}/*/*.cpp)
+----
+
+常用操作
+
+.将指定目录下的文件都单独编译成可执行文件
+[source, cmake]
+----
+# all cpp files
+file(GLOB_RECURSE CPP_SRC_LIST ${CMAKE_CURRENT_LIST_DIR}/*/*.cpp)
+# generate target for every cpp file
+foreach(v ${CPP_SRC_LIST})
+    # file relative path from src/
+    string(REGEX MATCH ".*" relative_path ${v})
+    # delete string "src/"
+    string(REGEX REPLACE "src/" "" target_name ${relative_path})
+    # rename '/' and '.' to '_'
+    string(REGEX REPLACE "/|\\." "_" target_name ${target_name})
+
+    add_executable(${target_name}_cpp ${v})
+endforeach()
+----
+
+=== 编译操作
+
+链接库
+
+[source, cmake]
+----
+# 当所有的对象都需要连接某一个库时，可以使用
+link_libraries(OpenSSL::Crypto OpenSSL::SSL ${ADDITIONAL_LINK_LIBRARIES})
+----
+
+添加宏定义
+[source, cmake]
+----
+# 可以使用 add_definitions实现
+add_definitions(-DSomeSymbol /DFoo=Value ...)
+remove_definitions(-DSomeSymbol /DFoo=Value ...)
+# 在新版本中更更倾向于使用
+add_compile_definitions(SomeSymbol Foo=Value ...)
+# 可以直接将变量的名字写上实现宏定义透传
+add_compile_definitions(CCAPI_ENABLE_SERVICE_MARKET_DATA)
+----
+
+编译依赖
+
+TIP: 如果一个目标被另外一个目标依赖，那么编译这个目标之前会先编译这个依赖的目标，这样就能控制 `CMakeLists` 编译目标的顺序
+
+[source, cmake]
+----
+# 编译依赖，如果添加依赖编译时会将对应的目标也进行编译
+add_dependencies(dlms websocket)
+----
+
+常用编译选项
+
+[source, cmake]
+----
+# 当C++或C使用该编译选项时，运行出错会打印出具体出错的代码位置
+# -fsanitize=address 代码运行出错打印出代码出错的行数(address：行数)
+#  -fsanitize=address -fno-sanitize-recover=all -fno-omit-frame-pointer
+
+----
+
+
+
+
+=== 常用条件判断
+
+
+[source, cmake]
+----
+# 如果发现不满足条件，打印调试信息，并结束当前cmakelists的执行过程
+if(NOT DOXYGEN_FOUND)
+  message(WARNING "Doxygen not found - Documentation will not be generated!")
+  return()
+endif()
+----
+
+
