@@ -231,6 +231,42 @@ add_dependencies(dlms websocket)
 
 ----
 
+==== 链接静态库
+
+.eg1
+[source, cmake]
+----
+# 指定链接库的查询路径
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../ThirdPartyLib)
+# 定义可执行文件
+add_executable(${PROJECT_NAME}
+               ${ALL_SOURCES}
+               ${ALL_INCLUDES}
+)
+
+# 指定静态库
+target_link_libraries(${PROJECT_NAME}
+    srtp2
+    # -lsrtp2 #前面也可以加-l
+    # libsrtp2.a #可以明确指定静态库
+)
+----
+
+
+[source, cmake]
+----
+find_library(srtp2Lib srtp2 HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdPartyLib)
+# find_library(srtp2Lib libsrtp2.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdPartyLib)
+
+add_executable(${PROJECT_NAME}
+               ${ALL_SOURCES}
+               ${ALL_INCLUDES}
+)
+
+target_link_libraries(${PROJECT_NAME}
+                       ${srtp2Lib}
+)
+----
 
 
 
