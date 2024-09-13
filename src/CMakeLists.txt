@@ -10,7 +10,8 @@ target_include_directories(main
 
 
 target_link_libraries(main
-        PUBLIC pthread)
+        PUBLIC pthread
+        PUBLIC dl)
 
 add_executable(memory_management
         memory_management/memory_management.cpp)
@@ -56,11 +57,11 @@ ELSE ()
 ENDIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 
-add_executable(db
-        db/db.c)
-
-add_executable(db_example
-        db/db_example.cpp)
+#add_executable(db
+#        db/db.c)
+#
+#add_executable(db_example
+#        db/db_example.cpp)
 
 add_executable(semaphore
         semaphore/semaphore.cpp)

@@ -26,10 +26,18 @@ void print_stack_trace() {
         char *libname = 0;
 
         for (char *p = strings[i]; *p; ++p) {
-            if (*p == '(') mangled_name = p;
-            else if (*p == '+') offset_begin = p;
-            else if (*p == ')' && offset_begin != 0) offset_end = p;
-            else if (*p == '[') libname = p;
+            if (*p == '(') {
+                mangled_name = p;
+            }
+            else if (*p == '+') {
+                offset_begin = p;
+            }
+            else if (*p == ')' && offset_begin != 0) {
+                offset_end = p;
+            }
+            else if (*p == '[') {
+                libname = p;
+            }
         }
 
 
@@ -37,6 +45,8 @@ void print_stack_trace() {
                strings[i], mangled_name ? " at " : "",
                offset_begin ? offset_begin + 1 : "", offset_end ? "" : "",
                libname ? libname + 1 : "");
+
+
 
     }
 
