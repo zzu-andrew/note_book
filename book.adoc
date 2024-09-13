@@ -48,6 +48,7 @@ include::网络/网络常见知识点.adoc[网络常见知识点]
 
 == 分布式
 include::分布式/etcd.adoc[etcd]
+include::分布式/分布式常见知识点.adoc[etcd]
 
 <<<
 

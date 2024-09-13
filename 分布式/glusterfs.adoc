@@ -1,0 +1,26 @@
+
+:toc:
+
+:icons: font
+
+:path: 分布式/
+:imagesdir: ../image/
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+endif::rootpath[]
+
+== GlusterFs
+
+
+
+
+
+https://docs.gluster.org/en/latest/Quick-Start-Guide/Quickstart/[使用文档]
+
+https://github.com/gluster/glusterfs
+
+
+
+
