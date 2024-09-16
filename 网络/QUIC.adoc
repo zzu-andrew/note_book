@@ -22,7 +22,7 @@ endif::rootpath[]
 
 == QUIC
 
-# 4.17 如何基于 UDP 协议实现可靠传输？
+=== 4.17 如何基于 UDP 协议实现可靠传输？
 
 大家好，我是小林。
 
@@ -289,9 +289,9 @@ QUIC 实现了两种级别的流量控制，分别为 Stream 和 Connection 两�
 
 那么整个 Connection 的可用窗口 = 20 + 30 + 10 = 60
 
-```text
+____
 可用窗口 = Stream 1 可用窗口 + Stream 2 可用窗口 + Stream 3 可用窗口
-```
+____
 
 ## QUIC 对拥塞控制改进
 
