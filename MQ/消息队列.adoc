@@ -1,4 +1,6 @@
 
+:toc:
+
 // 保证所有的目录层级都可以正常显示图片
 :path: MQ/
 :imagesdir: ../image/
@@ -38,3 +40,37 @@ endif::rootpath[]
 含义与目的： 手工NACK是消费者向消息队列系统反馈消息处理失败的一种机制。当消费者接收到消息但无法正常处理时，发送NACK通知消息队列系统该消息需要重新投递或采取其他补偿措施。
 
 操作方式： 通常，消费者通过调用客户端API提供的nack或类似的否定确认方法，并传入相应的消息标识符。有些系统（如RabbitMQ）还支持附带参数，如是否将消息重新放入队列（requeue）。
+
+
+
+=== 为什么kafka比rocketMQ快
+
+
+主要原因是kafka中使用了sendfile， 而RocketMQ中使用了mmap
+
+[source, cpp]
+----
+#include <sys/sendfile.h>
+
+ssize_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count);
+
+// iSendSize = sendfile(xxx)
+
+void *mmap(void *addr, size_t length, int prot, int flags,
+                  int fd, off_t offset);
+// addr = mmap(xxx)
+----
+
+可以看到如果使用sendfile只能拿到发送了多少个字节的数据，这样适合Kafka因为kafka追求的就是极致的性能传输，而RocketMQ需要知道具体发送了什么内容，方便二次投递如果发送失败需要将对应的消息放到死信队列。
+
+https://www.bilibili.com/video/BV1Zy411e7qY/?spm_id_from=333.788&vd_source=d0f1fc53c13a7dcbda92faa2e368b71e[为什么kafka比rocketMQ快]
+
+
+
+
+
+
+
+
+
+

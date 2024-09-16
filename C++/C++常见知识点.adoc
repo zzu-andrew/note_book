@@ -13,6 +13,7 @@ endif::rootpath[]
 == C++常见知识点总结
 
 === STL原理及实现
+
 STL有六大组件，六大组件之间可以嵌套使用。
 
 - 容器(containers)
@@ -57,6 +58,11 @@ image::image-2022-06-05-12-13-07-200.png[STL六大组件关系图]
  set,map,multimap,multiset-基于红黑树实现(RB-tree)，一种加上额外平衡条件的二叉树
  hash table-散列表，详见：redis内存分析
  hash_map,hash_set,hash_multset,hash_multimap- 基于hash table实现
+
+
+
+
+
 
 === 虚函数
 ==== 虚函数实现
@@ -216,12 +222,74 @@ public:
 [NOTE]
 如果想创建只能在栈上进行实例化的类，可以将函数operator new和operator delete定义为私有，这样无法在外部使用new和delete调用operator new和operator delete，该类的对象只能在栈上创建。
 
+
+==== 为什么需要私有继承
+
+实现数据的封装
+
+1. 私有继承的子类对象不能直接访问父类的任何成员
+2. 基类指针不能指向私有继承的子类对象
+
+|===
+|继承描述符|父public成员|父protected成员 |父private成员
+
+|public
+|子public成员
+|子protected成员
+|-
+
+|protected
+|子protected成员
+|子protected成员
+|-
+
+|private
+|子private成员
+|子private成员
+|-
+
+|===
+
+
+[source, cpp]
+----
+
+class Logger {
+public:
+    void log(const std::string& message) {
+
+    }
+};
+
+class Database : private Logger {
+public:
+    Database() = default;
+
+    // 外部无法访问基类的log成员，实现将基类的public成员进行隐藏
+    void connect(const std::string& host) {
+        this->log("Connecting to database..."); // 使用基类的 log 方法
+        // 实现数据库连接逻辑...
+    }
+};
+
+// 私有继承的子类对象不能直接访问父类的任何成员
+Database database;
+database.connect("tether");
+
+// 基类指针能指向私有继承的子类对象吗？
+Logger *lpLog = &database; // 错误，基类指针不能指向私有继承的子类对象
+
+----
+
+
 === 内存分配
+
 - 静态存储区分配。内存在程序编译期间就已经分配好，这块内存在程序整个运行期间都存在，例如全局变量，static 变量
 - 在栈上创建，在执行函数时，函数内部局部变量的存储单元都可以在栈上创建，函数执行结束时这些存储单元自动被释放，栈内存分配运算内置于处理器的指令集中，效率很高，但是分配器的内存容量有限。
 - 从堆上分配，亦称为动态分配，程序在运行的时候Malloc或者new申请任意多的内存，程序员自己负责在何时用free或delete释放内存，动态内存的生存期由我们决定，使用灵活，但是问题也多
 
 === 指针问题
+
 将一个数组当成参数传递给函数，回退化为指针，说是指针退化，不如说是数组退化为指针
 
 [source, cpp]
@@ -256,7 +324,75 @@ a. 引入辅助类
 b. 使用句柄类
 ====
 
+
+==== 不能再堆上创建的类
+
+要实现一个不能在堆上创建的类，通常是指禁止使用`new`操作符来动态分配此类的对象。这可以通过多种方式来实现，例如：
+
+1. **私有化构造函数**：将构造函数声明为私有，使外部无法直接实例化此类。
+2. **私有化`new`操作符**：将`new`操作符声明为私有成员函数，使其无法在类外部使用。
+3. **使用静态成员函数作为工厂方法**：提供一个静态成员函数来创建对象，而不是直接使用`new`。
+
+下面是一个具体的例子，展示如何实现一个不能在堆上创建的类：
+
+[source,cpp]
+----
+#include <iostream>
+
+class NonHeapCreatable {
+private:
+    NonHeapCreatable() {} // 私有化构造函数，防止外部直接实例化
+
+public:
+    static NonHeapCreatable& getInstance() {
+        static NonHeapCreatable instance; // 静态局部变量确保单一实例
+        return instance;
+    }
+
+    void doSomething() const {
+        std::cout << "Doing something useful." << std::endl;
+    }
+};
+
+int main() {
+    // 不能直接使用 new 创建 NonHeapCreatable 对象
+    // NonHeapCreatable* ptr = new NonHeapCreatable(); // 错误
+
+    // 使用静态成员函数创建单例对象
+    NonHeapCreatable& singleton = NonHeapCreatable::getInstance();
+    singleton.doSomething();
+
+    return 0;
+}
+----
+
+- 私有化 new操作符
+
+[source, cpp]
+----
+class A
+{
+public:
+    A(int a):_x(a){}
+    int Display() {
+        return _x;
+    }
+    void setVal(int x) {
+        _x = x;
+        return;
+    }
+private:
+    //
+    int _x;
+    // 私有化 new 这样就不能调用 new 创建该对象了
+    void* operator new(size_t t){
+    }
+};
+----
+
+
 === 重载和重写的区别
+
 - override(重写)
 a. 方法名、参数、返回值相同
 b. 子方法不能缩小父类方法的访问权限
@@ -353,6 +489,7 @@ const的在不同场景的中的表现有些不同。
 ----
 
 ==== typeof
+
 C语言新增关键字，在Linux内核中非常常见，一个类型很难手写确定时可以使用typeof来让编译器自动推敲，该关键字在C99中已经支持
 
 1. 如果是函数表达式，则给出函数的返回类型
@@ -360,16 +497,24 @@ C语言新增关键字，在Linux内核中非常常见，一个类型很难手�
 2. 如果是其他变量，推导出对应变量的类型
 
 ==== new在C++中是？
+
 关键字和运算符，
+
 malloc是库函数，不在编译器控制范围之内；
 new是运算符，在编译器控制范围之内；调用
 malloc时，从堆中申请内存；调用
 new时，从堆中申请内存并为内存调用构造函数。
+
 C++程序执行时将内存大方向分为4个区域：
+
 - 代码区域：存放函数体的二进制代码，由操作系统进行管理的
 - 全局区：存放全局变量和静态变量以及常量
 - 栈区：由编译器自动分配释放，存放函数的参数值，局部变量等
 - 堆区：由程序员分配和释放，若程序员不释放程序结束时由操作系统回收
+
+new可分为operator new(new 操作)、new operator(new 操作符)和placement new(定位 new)，其中operator new执行和malloc相同的任务，即分配内存，但对构造函数一无所知；而 new operator则调用operator new，分配内存后再调用对象构造函数进行对象的构造。
+
+
 
 ==== nodiscard属性
 可用来防止以下问题
@@ -444,9 +589,175 @@ void commentPlace(int place)
 }
 ----
 
+==== mutable
+
+当定义一个map对象，需要向里面插入数据时，总是需要对对应的对象实现const入参类型的赋值构造函数，但是这种构造函数对于需要内部申请内存做转移的功能非常不友好，这个时候就需要使用mutable关键字了，也就是说，添加mutable之后的成员变量能无视所有的const修饰
+
+[source, cpp]
+----
+struct ConditionLIst {
+
+    ConditionLIst() = default;
+    ConditionLIst(const ConditionLIst& other) {
+        iCount = other.iCount;
+        lpData = other.lpData;
+        // other是const类型也能对other对象的成员变量的值进行更改
+        // 因为lpData 有mutable关键字修饰
+        other.lpData = nullptr;
+    }
+
+    virtual void ShowData() {
+
+    }
+
+    int iCount{};  // 计数器
+    mutable char *lpData{nullptr}; // 数据内存申请
+};
+
+// -----
+std::map<int, ConditionLIst> mapCondition;
+ConditionLIst conditionList{};
+mapCondition.insert(std::make_pair(1, conditionList));
+----
+
+==== explicit
+
+两种常见的隐式转换
+
+- 单参数的构造函数或N个参数中有N-1个默认参数的构造函数
+
+[source, cpp]
+----
+// 其他类型转化为该类
+class A
+{
+public:
+      A(stirng s);
+      A(string s,int a = 0);
+};
+----
+
+- 使用 `operator what_you_want_to_convert_type() const`
+
+[source, cpp]
+----
+// 该类转化为其他类型
+class A
+{
+public:
+      operator char*() const
+      {
+          return data;//当从其他类型转换到char*时自动调用
+      }
+private:
+      char* data;
+};
+----
+
+- 解决办法
+
+在单参数的构造函数或N个参数中有N-1个是默认参数的构造函数声明之前加上explicit。
 
 
-=== 变参函数
+
+
+
+=== 什么是C++ RAIL
+
+
+Resource Acquisition Is Initialization or RAII, is a C++ programming technique which binds the life cycle of a resource that must be acquired before use (allocated heap memory, thread of execution, open socket, open file, locked mutex, disk space, database connection—anything that exists in limited supply) to the lifetime of an object.
+
+资源获取即初始化 （RAII） 是一种 C++ 编程技术，它将使用前必须获取的资源的生命周期（分配的堆内存、执行线程、开放套接字、打开的文件、锁定的互斥锁、磁盘空间、数据库连接 - 任何供应有限的东西）绑定到对象的生命周期。
+
+
+
+
+
+
+=== 跨平台
+
+==== 普通继承
+
+[source, cpp]
+----
+class A
+{
+        int i;    //4byte
+        char c1;//1byte
+};
+class B :  public A
+{
+        char c2;//1byte
+};
+class C :  public B
+{
+     char c3;//1byte
+};
+----
+
+在64位g++下，调用sizeof(A)、sizeof(B)、sizeof(C)后的结果均为8；在vs2013下分别为8,12,16
+
+.g++于vs结构体对其不一致
+****
+g++下：普通继承时，派生类和基类的内存空间没有间隔。
+    A：4+1+3(补齐) = 8
+    B：4+1+1(c2)+2(补齐) = 8
+    C：4+1+1(c2)+1(c3)+1(补齐) = 8
+注意这里所有成员均为私有成员，如果改成public或protected则大小会有变化
+vs2013下：普通继承时，派生类和基类的内存空间需要独立，即先补齐基类，再分配派生类。
+    A：4+1+3(补齐) = 8
+    B：4+1+3(补齐) + 1(c2)+3(补齐) = 12
+    C：4+1+3(补齐) + 1(c2)+3(补齐) + 1(c3)+3(补齐) = 16
+****
+
+
+==== 虚拟继承
+
+
+
+[source, cpp]
+----
+class A
+{
+        int i;    //4byte
+        char c1;//1byte
+};
+class B : virtual public A
+{
+        char c2;//1byte
+};
+class C : virtual public B
+{
+     char c3;//1byte
+};
+----
+
+调用sizeof(A)、sizeof(B)、sizeof(C)后，32位g++下，分别为8,16,24；64位g++下，分别为：8,24,40；vs2013下分别为8,16,24
+
+.g++于vs结构体对其不一致
+****
+32位g++下：
+    A：仍然是4+1+3(补齐) = 8
+    B：4+1+3 + 4(vptr)+1(c2)+3(补齐) = 16
+    C；4+1+3 + 4(vptr)+1(c2)+3(补齐) + 4(vptr)+1(c3)+3(补齐) = 24
+64位g++下：
+    A：仍然是4+1+3(补齐) = 8
+    B：4+1+3 + 8(vptr)+1(c2)+7(补齐) = 24
+    C；4+1+3 + 8(vptr)+1(c2)+7(补齐) + 8(vptr)+1(c3)+7(补齐) = 40
+vs2013下：
+    A：仍然是4+1+3(补齐) = 8
+    B：4+1+3 + 4(vptr)+1(c2)+3(补齐) = 16
+    C；4+1+3 + 4(vptr)+1(c2)+3(补齐) + 4(vptr)+1(c3)+3(补齐) = 24
+注意这里vs2013的情况表面看上去和32位g++相同，实则不然。例如去掉class B对于A的虚拟继承性
+****
+
+调用sizeof(A)、sizeof(B)、sizeof(C)后，32位g++下，分别为8,16,24；64位g++下，分别为：8,24,40；vs2013下分别为8,16,24
+
+
+
+
+
+=== 参数
 
 ==== 变参回调函数的使用
 
@@ -473,27 +784,11 @@ public:
 ----
 
 
+==== 为什么函数参数的入栈的顺序是从右往左
+因为好多函数是不定参数个数的，比如最常用的printf，所以需要参数的入栈顺序是从右往左。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+那么从右向左压栈之后，只需要从栈定开始挨个取
+如果参数是从右向左入栈，那么printf可以从栈顶开始依次读取参数，直到所有的参数都被处理完毕
 
 
 
