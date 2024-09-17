@@ -3,7 +3,6 @@
 #include <iostream>
 #include <utility>
 #include <vector>
-
 #include <set>
 #include <map>
 #include <utility>  // for std::forward()
@@ -16,49 +15,47 @@
 #include <unistd.h>
 #include <cerrno>
 #include <cstring>
+#include <condition_variable>
+#include <algorithm>
+#include <unordered_map>
+
+
 using namespace std;
 
-#include <iostream>
-#include <map>
-#include <set>
-#include <string>
-#include <functional>
-#include <algorithm>
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include <mutex>
-#include <condition_variable>
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include <mutex>
-#include <condition_variable>
 
 
 
-
-class Base {
+class Solution {
 public:
-    virtual void func() { std::cout << "Base func()" << std::endl; }
-
-private:
-    int iCount;  // 整数计数
+    int lengthOfLongestSubstring(string s) {
+        unordered_map<char, int> charIndex;
+        int left = 0, maxLength = 0;
+        for (int right = 0; right < s.length(); ++right) {
+            if (charIndex.find(s[right]) != charIndex.end() && charIndex[s[right]] >= left) {
+                left = charIndex[s[right]] + 1;
+            }
+            charIndex[s[right]] = right;
+            maxLength = std::max(maxLength, right - left + 1);
+        }
+        return maxLength;
+    }
 };
 
-class Derived1 : virtual public Base {
+class Solution1 {
 public:
-    virtual void func() override { std::cout << "Derived1 func()" << std::endl; }
-};
-
-class Derived2 : virtual public Base {
-public:
-    virtual void func() override { std::cout << "Derived2 func()" << std::endl; }
-};
-
-class Combined : public Derived1, public Derived2 {
-public:
-    void func() override { std::cout << "Combined func()" << std::endl; }
+    static int lengthOfLongestSubstring(string s) {
+        unordered_map<char, int> charIndex;
+        int left = 0, maxLength = 0;
+        for (int right = 0; right < s.length(); ++right) {
+            //  charIndex[s[right]] >= left 因为map中没有剔除前面重复的字符 这里保证一下，只有重复的是left后面的才更新left
+            if (charIndex.find(s[right]) != charIndex.end() && charIndex[s[right]] >= left) {
+                left = charIndex[s[right]] + 1;
+            }
+            charIndex[s[right]] = right;
+            maxLength = std::max(maxLength, right - left + 1);
+        }
+        return maxLength;
+    }
 };
 
 
@@ -70,9 +67,9 @@ int main() {
 
 
 
-    Derived1 derived_1;
-    Derived2 derived_2;
-    Combined combined;
+    cout << Solution1::lengthOfLongestSubstring("abba") << std::endl;
+
+
 
 
 
