@@ -50,7 +50,51 @@ https://pkg.go.dev/os/signal#hdr-Go_programs_that_use_cgo_or_SWIG
 
 == 进程
 
+
+[ditaa]
+....
+(内存高地址) --> (内存低地址)
+
++-------------------+
+| env strings       | 环境变量
++-------------------+
+| argv strings      | 命令行字符串
++-------------------+
+| env pointers      | 环境变量指针
++-------------------+
+| argv pointers     | 命令行参数个数
++-------------------+
+| argc              | 命令行个数
++-------------------+
+| main              | 函数的栈帧
++-------------------+
+| func_1            | 函数的栈帧
++-------------------+
+| func_2            |
++-------------------+
+| func_3            |
++-------------------+ 栈区域(main到...)
+| Stack             |
++-------------------+
+|   ... ...         |
++-------------------+
+| Heap              | 堆区
++-------------------+
+| BSS               | 非初始化数据区
++-------------------+
+| Data Segment      | 初始化数据区
++-------------------+
+|Text               | 代码区域
++-------------------+
+(内存低地址)
+....
+
+
 https://stackoverflow.com/questions/131303/how-can-i-measure-the-actual-memory-usage-of-an-application-or-process[How can I measure the actual memory usage of an application or process?]
+
+
+
+
 
 
 
