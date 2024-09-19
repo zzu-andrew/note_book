@@ -36,6 +36,19 @@ int main(int argc, char* argv[]) {
 
 
 
+    std::map<std::string, std::string> mapStr;
+
+
+    mapStr.emplace("datassssssssssssssssssssss", "  a1111111111111111111111111111111111");
+    auto insertPair = mapStr.emplace("datassssssssssssssssssssss", "  x11111111111111111111111111111111111");
+    std::cout << insertPair.second << std::endl;
+
+    std::cout << mapStr.size() << mapStr["datassssssssssssssssssssss"] << std::endl;
+
+
+    //
+
+
 
 
 
