@@ -65,9 +65,6 @@ ENDIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
 add_executable(semaphore
         semaphore/semaphore.cpp)
 
-add_executable(defer
-        defer/defer.cpp)
-
 add_executable(stack_frame
         stack_frames/stack_frames.cpp)
 

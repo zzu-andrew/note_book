@@ -126,7 +126,7 @@ image::image-2024-09-16-20-32-05-073.png[IP数据报格式]
 ==== ICMP 网际控制报文协议
 
 .ICMP 报文格式：
-image::image-2024-09-12-22-14-39-480.png[]
+image::network/image-2024-09-20-16-12-45-641.png[icmp网际协议]
 
 应用：
 

@@ -133,4 +133,29 @@ std::cout << vector << std::endl;
 
 
 
+=== 常用编程技巧
+
+==== 在头文件中订阅通用字符串数组
+
+在头文件中定义数组，必须使用const进行定义，这里两个const都不能少，否者会被C++编译器错误的认为是重复定义，导致编译失败。
+
+[source, cpp]
+----
+// 定义一个枚举类型 Color
+enum class Color {
+    Red,
+    Green,
+    Blue
+};
+
+// 创建一个字符串数组，用于存储每个颜色的字符串描述
+const char* const colorNames[] = {
+    "Red",
+    "Green",
+    "Blue"
+};
+----
+
+
+
 

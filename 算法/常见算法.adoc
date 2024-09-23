@@ -1,0 +1,267 @@
+
+// 保证所有的目录层级都可以正常显示图片
+:path: 算法/
+:imagesdir: ../image/
+
+// 只有book调用的时候才会走到这里
+ifdef::rootpath[]
+:imagesdir: {rootpath}{path}{imagesdir}
+endif::rootpath[]
+
+
+== 常用算法
+
+=== 常见排序算法实现
+
+==== 1. 冒泡排序（Bubble Sort）
+
+冒泡排序是一种简单的排序算法，它重复地遍历要排序的数列，一次比较两个元素，如果它们的顺序错误就把它们交换过来。
+
+[source,cpp]
+----
+void bubbleSort(std::vector<int>& arr) {
+    int n = arr.size();
+    bool swapped;
+    for (int i = 0; i < n - 1; i++) {
+        swapped = false;
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                std::swap(arr[j], arr[j + 1]);
+                swapped = true;
+            }
+        }
+        if (!swapped) break; // 已经排好序
+    }
+}
+----
+
+==== 2. 插入排序（Insertion Sort）
+
+插入排序是通过构建有序序列，对于未排序数据，在已排序序列中从后向前扫描，找到相应位置并插入。
+
+[source,cpp]
+----
+void insertionSort(std::vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 1; i < n; ++i) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            --j;
+        }
+        arr[j + 1] = key;
+    }
+}
+----
+
+==== 3. 选择排序（Selection Sort）
+
+选择排序是通过从未排序序列中找到最小（大）元素，存放到排序序列的末尾。
+
+[source,cpp]
+----
+void selectionSort(std::vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 0; i < n - 1; ++i) {
+        int min_idx = i;
+        for (int j = i + 1; j < n; ++j) {
+            if (arr[j] < arr[min_idx]) {
+                min_idx = j;
+            }
+        }
+        std::swap(arr[min_idx], arr[i]);
+    }
+}
+----
+
+==== 4. 快速排序（Quick Sort）
+
+快速排序是一种高效的排序算法，采用分治法策略来把一个序列分成较小和较大的两个子序列。
+
+[source,cpp]
+----
+void quickSort(std::vector<int>& arr, int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+
+        quickSort(arr, low, pi - 1); // 递归排序左子序列
+        quickSort(arr, pi + 1, high); // 递归排序右子序列
+    }
+}
+
+int partition(std::vector<int>& arr, int low, int high) {
+    int pivot = arr[high]; // 选取最后一个元素作为基准
+    int i = (low - 1); // 最小元素索引
+
+    for (int j = low; j <= high - 1; j++) {
+        if (arr[j] < pivot) {
+            i++;
+            std::swap(arr[i], arr[j]);
+        }
+    }
+    std::swap(arr[i + 1], arr[high]);
+    return (i + 1);
+}
+----
+
+==== 5. 归并排序（Merge Sort）
+
+归并排序也是一种分治法算法，将数组分成两半，分别排序，然后合并。
+
+[source,cpp]
+----
+void mergeSort(std::vector<int>& arr, int left, int right) {
+    if (left < right) {
+        int middle = left + (right - left) / 2;
+
+        mergeSort(arr, left, middle);
+        mergeSort(arr, middle + 1, right);
+
+        merge(arr, left, middle, right);
+    }
+}
+
+void merge(std::vector<int>& arr, int left, int middle, int right) {
+    int n1 = middle - left + 1;
+    int n2 = right - middle;
+
+    std::vector<int> L(n1), R(n2);
+
+    for (int i = 0; i < n1; i++) {
+        L[i] = arr[left + i];
+    }
+    for (int j = 0; j < n2; j++) {
+        R[j] = arr[middle + 1 + j];
+    }
+
+    int i = 0, j = 0, k = left;
+
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            i++;
+        } else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+}
+----
+
+==== 6. 堆排序（Heap Sort）
+
+堆排序是一种基于二叉堆数据结构的排序算法。
+
+[source,cpp]
+----
+void heapify(std::vector<int>& arr, int n, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+
+    if (left < n && arr[left] > arr[largest])
+        largest = left;
+
+    if (right < n && arr[right] > arr[largest])
+        largest = right;
+
+    if (largest != i) {
+        std::swap(arr[i], arr[largest]);
+        heapify(arr, n, largest);
+    }
+}
+
+void heapSort(std::vector<int>& arr) {
+    int n = arr.size();
+
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        heapify(arr, n, i);
+    }
+
+    for (int i = n - 1; i >= 0; i--) {
+        std::swap(arr[0], arr[i]);
+        heapify(arr, i, 0);
+    }
+}
+----
+
+这些排序算法各有优缺点，选择合适的算法取决于具体的应用场景和数据特点。例如，快速排序通常比其他算法更快，但对于小数组或部分已排序的数据，插入排序可能更有效。归并排序则在处理大规模数据时表现出色，因为它具有稳定的性能。
+
+
+=== 排序和查找算法
+
+
+https://coolshell.cn/articles/2583.html[常用算法推荐]
+
+
+====  二分查找算法
+
+
+
+
+
+
+
+=== 字符串处理
+
+==== 使用异或加速字符串比对过程
+
+
+[source, go]
+----
+func SafeEqual(a, b string) bool {
+
+	if len(a) != len(b) {
+		return false
+	}
+
+	var equal uint8
+	length := len(a)
+
+	for i := 0; i < length; i++ {
+		equal |= a[i] ^ b[i]
+	}
+
+	return equal == 0
+}
+----
+
+
+[source, cpp]
+----
+bool SafeEqual(const std::string& a, const std::string& b) {
+    if (a.length() != b.length()) {
+        return false;
+    }
+
+
+    auto length = a.length();
+    int equal  = 0;
+    for (auto i = 0; i < length; i++) {
+        equal |= a[i] ^ b[i];
+    }
+
+    return equal == 0;
+}
+----
+
+
+
+
+
+
+

@@ -52,6 +52,10 @@ include::分布式/分布式常见知识点.adoc[etcd]
 
 <<<
 
+== MQ
+include::MQ/kafka.adoc[kafka]
+
+
 == 数据库
 include::数据库/db_tutorial.adoc[db_tutorial]
 
@@ -72,6 +76,14 @@ include::Linux/深入理解Linux内核.adoc[深入理解Linux内核]
 include::RPC/RPC.adoc[RPC]
 
 <<<
+
+== 算法
+
+include::算法/常见算法.adoc[常见算法]
+include::算法/设计模式.adoc[设计模式]
+
+<<<
+
 
 == utils
 

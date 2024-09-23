@@ -36,14 +36,12 @@ int main(int argc, char* argv[]) {
 
 
 
-    std::map<std::string, std::string> mapStr;
 
 
-    mapStr.emplace("datassssssssssssssssssssss", "  a1111111111111111111111111111111111");
-    auto insertPair = mapStr.emplace("datassssssssssssssssssssss", "  x11111111111111111111111111111111111");
-    std::cout << insertPair.second << std::endl;
+    char buff[1024] {0};
+    snprintf(buff, sizeof(buff), "%s%s%s", "mc%%consumer",  "_", "test");
+    printf("buff = %s\n", buff);
 
-    std::cout << mapStr.size() << mapStr["datassssssssssssssssssssss"] << std::endl;
 
 
     //

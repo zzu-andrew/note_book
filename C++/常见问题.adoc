@@ -141,5 +141,58 @@ C++不是类型安全的，因此如果想让程序跳转到指定地址，只�
 
 
 
+=== 内存溢出检测方式
+
+====  asan
+
+Asan（AddressSanitizer）是一个用于检测C/C++程序中内存错误的工具，它可以快速定位诸如使用未初始化的内存、越界访问等问题。它是通过在编译阶段插入额外的检查代码来实现的，这使得它可以在运行时捕捉到这些错误。
+
+下面是如何使用Asan的基本步骤：
+
+### 安装Asan
+首先确保你的系统上已经安装了支持Asan的编译器（如GCC或Clang）。对于Ubuntu系统，可以使用如下命令来安装Clang和Asan：
+```bash
+sudo apt-get install clang llvm libc++-dev libc++abi-dev
+```
+
+### 编译项目
+使用支持Asan的编译器来编译你的项目。通常，这意味着要添加`-fsanitize=address`标志来启用Asan。例如，如果你正在使用g++编译器，可以这样编译你的程序：
+```bash
+g++ -g -fsanitize=address -o myprogram myprogram.cpp
+```
+对于CMake项目，可以添加以下选项：
+```cmake
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+```
+
+### 运行程序
+编译完成后，你可以直接运行带有Asan的可执行文件。Asan会在运行时报告任何检测到的内存错误。例如：
+```bash
+./myprogram
+```
+如果程序中有内存错误，Asan会输出详细的错误信息，并指出错误发生的源码位置。
+
+### 查看报告
+Asan会输出一些有关内存问题的日志信息到标准错误输出(stderr)。如果需要更详细的报告或者想要控制Asan的行为，可以通过环境变量来配置，例如：
+```bash
+ASAN_OPTIONS=detect_leaks=0 ./myprogram
+```
+这个命令会关闭Asan对内存泄漏的检测。
+
+### 调试
+根据Asan提供的错误信息，你可以使用调试器（如GDB）来进一步分析问题所在。由于Asan提供了符号化后的堆栈跟踪，这将有助于找到问题的根本原因。
+
+### 注意事项
+- 使用Asan编译的程序会有一定的性能损失，因为Asan需要在运行时进行额外的检查。
+- Asan主要用于开发阶段查找错误，在生产环境中通常不会使用。
+
+以上就是使用Asan的基本方法，希望对你有所帮助！如果有具体的问题或者更详细的需求，请随时提问。
+
+
+
+
+
+
+
 
 

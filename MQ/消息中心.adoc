@@ -10,6 +10,16 @@ ifdef::rootpath[]
 :imagesdir: {rootpath}{path}{imagesdir}
 endif::rootpath[]
 
+== 为什么RocketMQ性能不如kafka
+
+
+
+
+
+
+
+
+
 
 == 消息队列
 
@@ -64,6 +74,20 @@ void *mmap(void *addr, size_t length, int prot, int flags,
 可以看到如果使用sendfile只能拿到发送了多少个字节的数据，这样适合Kafka因为kafka追求的就是极致的性能传输，而RocketMQ需要知道具体发送了什么内容，方便二次投递如果发送失败需要将对应的消息放到死信队列。
 
 https://www.bilibili.com/video/BV1Zy411e7qY/?spm_id_from=333.788&vd_source=d0f1fc53c13a7dcbda92faa2e368b71e[为什么kafka比rocketMQ快]
+
+
+
+
+=== 实现关键点
+
+
+
+客户端选择哪个分区进行发送，需要看客户端中的过滤条件是否参与计算，如果参与计算就会按照过滤条件计算出一个分区，然后按照指定分区进行发送。
+订阅时广播消费是订阅所有的分区，集群订阅时指定分区进行订阅
+
+
+
+
 
 
 
