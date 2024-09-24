@@ -23,28 +23,8 @@
 using namespace std;
 
 
-
-
-
-
-
-
-
-
-
 int main(int argc, char* argv[]) {
 
-
-
-
-
-    char buff[1024] {0};
-    snprintf(buff, sizeof(buff), "%s%s%s", "mc%%consumer",  "_", "test");
-    printf("buff = %s\n", buff);
-
-
-
-    //
 
 
 
