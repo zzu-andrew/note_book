@@ -28,6 +28,17 @@ int main(int argc, char* argv[]) {
 
 
 
+    std::map<int, int> IntMap;
+
+    IntMap.insert(std::make_pair(1,3));
+
+    auto iter = IntMap.find(2);
+    if (iter == IntMap.end()) {
+        IntMap.erase(iter);
+    }
+
+
+
 
 
 

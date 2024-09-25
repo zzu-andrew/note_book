@@ -12,40 +12,41 @@ target_include_directories(main
 target_link_libraries(main
         PUBLIC pthread)
 
-add_executable(memory_management
-        memory_management/memory_management.cpp)
-target_include_directories(memory_management
-        PUBLIC memory_management
-        PUBLIC ../inc)
+#add_executable(memory/memory_management
+#        memory/memory_management/memory_management.cpp)
+#target_include_directories(memory/memory_management
+#        PUBLIC memory/memory_management
+#        PUBLIC ../inc)
 
-add_executable(exception_sample
-        exception_sample/exception_sample.cpp)
-target_include_directories(exception_sample
-        PUBLIC exception_sample
-        PUBLIC ../inc)
+#add_executable(C++/exception_sample
+#        C++/exception_sample/exception_sample.cpp)
+#target_include_directories(C++/exception_sample
+#        PUBLIC C++/exception_sample
+#        PUBLIC ../inc)
 
 
 IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
     MESSAGE(STATUS "current platform: Linux ")
 
-    add_executable(ftrace
-            ftrace/ftrace.c)
+    add_executable(linux/ftrace
+            linux/ftrace/ftrace.c)
 
-    add_executable(tracer
-            tracer/tracer.c)
+    add_executable(linux/tracer
+            linux/tracer/tracer.c)
 
     add_executable(tracer2
-            tracer/tracer2.c)
+            linux/tracer/tracer2.c)
 
     add_executable(tracer_test
-            tracer/tracer_test.c)
+            linux/tracer/tracer_test.c)
 
-    add_executable(elf_parser
-            elf_parser/elf_parser.cpp)
+    add_executable(C++/elf_parser
+            C++/elf_parser/elf_parser.cpp)
 
     add_executable(elf_main
-            elf_parser/main.c)
+            C++/elf_parser/main.c)
 
+    add_subdirectory(linux)
 
 ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Windows")
     MESSAGE(STATUS "current platform: Windows")
@@ -62,23 +63,25 @@ ENDIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
 #add_executable(db_example
 #        db/db_example.cpp)
 
-add_executable(semaphore
-        semaphore/semaphore.cpp)
+#add_executable(linux/semaphore
+#        linux/semaphore/semaphore.cpp)
+#
+#add_executable(stack_frame
+#        C++/stack_frames/stack_frames.cpp)
 
-add_executable(stack_frame
-        stack_frames/stack_frames.cpp)
 
 
+#add_executable(lru algorithm/lru_cache/lru_cache.cpp)
+#
+add_subdirectory(C++/smart_ptr)
 
-add_executable(lru lru_cache/lru_cache.cpp)
-
-add_subdirectory(smart_ptr)
-
-add_subdirectory(track_new)
+add_subdirectory(linux/track_new)
 
 add_subdirectory(allocator)
 
 add_subdirectory(utils)
+
+add_subdirectory(memory)
 
 #add_subdirectory(tie)
 
