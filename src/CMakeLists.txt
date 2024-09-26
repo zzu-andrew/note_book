@@ -28,10 +28,10 @@ target_link_libraries(main
 IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
     MESSAGE(STATUS "current platform: Linux ")
 
-    add_executable(linux/ftrace
+    add_executable(ftrace
             linux/ftrace/ftrace.c)
 
-    add_executable(linux/tracer
+    add_executable(racer
             linux/tracer/tracer.c)
 
     add_executable(tracer2
@@ -40,7 +40,7 @@ IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
     add_executable(tracer_test
             linux/tracer/tracer_test.c)
 
-    add_executable(C++/elf_parser
+    add_executable(elf_parser
             C++/elf_parser/elf_parser.cpp)
 
     add_executable(elf_main

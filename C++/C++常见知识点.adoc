@@ -59,7 +59,9 @@ image::image-2022-06-05-12-13-07-200.png[STL六大组件关系图]
  hash table-散列表，详见：redis内存分析
  hash_map,hash_set,hash_multset,hash_multimap- 基于hash table实现
 
+=== STL各个数据结构底层实现原理
 
+- vector: 底层是动态数组实现
 
 
 
