@@ -9,16 +9,25 @@ ifdef::rootpath[]
 :imagesdir: {rootpath}{path}{imagesdir}
 endif::rootpath[]
 
-
-
-
 == RocketMQ
 
+在现实生活中，并不是所有消息都是生产了之后就立马投递给消费者。比如你定了杯奶茶，但是不想商家立马配送，而是想中午再让商家派送。
 
+那么问题来了，有没有解决方案呢？
+当然有，没有什么是一个中间层解决不了的，如果有，那就再加一层。
+解决这样问题的中间件就是-RocketMQ。
 
+image::mq/image-2024-09-26-15-20-11-076.png[]
 
+=== RocketMQ是什么？
 
+RocketMQ是阿里自研的国产消息队列，目前已经是Apache的顶级项目，和其他消息队列一样，它接收来自生产者的消息，将消息分类，每一个类都是一个topic，消费者根据需要订阅topic，获取里面的消息。
 
+image::mq/image-2024-09-26-16-41-58-161.png[]
+
+很像kafka，因为RocketMQ很多功能就是借鉴的kafka，那么问题很自然就来了，既然RocketMQ借鉴了kafka又很多功能都相同，那他们之间的区别又是什么呢？
+
+=== RocketMQ
 
 
 
