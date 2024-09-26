@@ -37,6 +37,9 @@ int main(int argc, char* argv[]) {
         IntMap.erase(iter);
     }
 
+    std::vector<int> IntVector;
+    IntVector.insert();
+
 
 
 

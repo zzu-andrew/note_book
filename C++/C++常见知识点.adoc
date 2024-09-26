@@ -63,6 +63,25 @@ image::image-2022-06-05-12-13-07-200.png[STL六大组件关系图]
 
 - vector: 底层是动态数组实现
 
+准确的来说是一个由三个指针管理的动态数组。
+
+[source, cpp]
+----
+struct _Vector_impl
+   : public _Tp_alloc_type
+   {
+ pointer _M_start;
+ pointer _M_finish;
+ pointer _M_end_of_storage;
+};
+----
+- list: 双向链表
+- map: 底层红黑树
+- deque： 双端队列
+- stack: 抽象容器适配器
+- queue: 抽象容器适配器
+- priority_queue: 优先队列
+
 
 
 
