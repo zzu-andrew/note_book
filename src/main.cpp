@@ -23,27 +23,21 @@
 using namespace std;
 
 
+const char * const SubStatusStr[] = {"init", "subscribe", "subscribed", "deleteting", "firstSub"};
+
+
+
 int main(int argc, char* argv[]) {
 
 
 
+    std::atomic<uint32_t> iCount;
 
-    std::map<int, int> IntMap;
+    iCount.store(108);
 
-    IntMap.insert(std::make_pair(1,3));
+    iCount.store(iCount.load() % 100);
 
-    auto iter = IntMap.find(2);
-    if (iter == IntMap.end()) {
-        IntMap.erase(iter);
-    }
-
-    std::vector<int> IntVector;
-    IntVector.insert();
-
-
-
-
-
+    std:cout << iCount << std::endl;
 
 
     return 0;
