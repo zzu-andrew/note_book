@@ -591,12 +591,76 @@ SYSCALL_DEFINE2(listen, int, fd, int, backlog)
 
 
 
+=== tcp中用到的算法
+
+==== Nagel算法
 
 
+Nagle算法就是为了尽可能发送大块数据，避免网络中充斥着许多小数据块。根据实际代码可以得出以下结论：
+
+1. 如果包长度达到最大数据长度MSS(Maximum Segment Size，作为MTU的一部分)
+2. 包含FIN标记的立即传输
+3. 设置了TCP_NODELAY选项允许发送
+4. 未设置TCP_CORK选项，若所有发送出去的小数据包均被确认，则允许发送
+5. 上述条件都不满足但是发生了超时(一般为200ms)，则立即发送
 
 
+.network/ipv4/tcp_output.c
+[source, cpp]
+----
+/* Return false, if packet can be sent now without violation Nagle's rules:
+ * 1. It is full sized.
+ * 2. Or it contains FIN. (already checked by caller)
+ * 3. Or TCP_CORK is not set, and TCP_NODELAY is set.
+ * 4. Or TCP_CORK is not set, and all sent packets are ACKed.
+ *    With Minshall's modification: all sent small packets are ACKed.
+ */
+static inline bool tcp_nagle_check(const struct tcp_sock *tp,
+				  const struct sk_buff *skb,
+				  unsigned int mss_now, int nonagle)
+{
+	return skb->len < mss_now &&
+        // nonagle与TCP_NAGLE_CORK按位与的结果不为零，表示 TCP_CORK 标志未设置。
+		((nonagle & TCP_NAGLE_CORK) ||
+		 (!nonagle && tp->packets_out && tcp_minshall_check(tp)));
+}
 
+/* Return true if the Nagle test allows this packet to be
+ * sent now.
+ */
+static inline bool tcp_nagle_test(const struct tcp_sock *tp, const struct sk_buff *skb,
+				  unsigned int cur_mss, int nonagle)
+{
+	/* Nagle rule does not apply to frames, which sit in the middle of the
+	 * write_queue (they have no chances to get new data).
+	 *
+	 * This is implemented in the callers, where they modify the 'nonagle'
+	 * argument based upon the location of SKB in the send queue.
+	 */
+	if (nonagle & TCP_NAGLE_PUSH)
+		return true;
 
+	/* Don't use the nagle rule for urgent data (or for the final FIN).
+	 * Nagle can be ignored during F-RTO too (see RFC4138).
+	 */
+	if (tcp_urg_mode(tp) || (tp->frto_counter == 2) ||
+	    (TCP_SKB_CB(skb)->tcp_flags & TCPHDR_FIN))
+		return true;
+
+	if (!tcp_nagle_check(tp, skb, cur_mss, nonagle))
+		return true;
+
+	return false;
+}
+----
+
+*TCP_NODELAY*
+
+TCP_NODELAY 选项用于禁用Nagle算法。Nagle算法是为了减少网络上的小数据包数量，它会延迟发送小的数据块直到有足够的数据组成一个完整的最大段尺寸（MSS）。然而，这种延迟对于需要高实时性的应用（如在线游戏或实时通信）来说是不可接受的。通过设置 TCP_NODELAY，应用程序可以确保每个写操作的结果都会立即发送给对方，尽管这样做可能会增加网络上的小数据包数量。
+
+*TCP_QUICKACK*
+
+TCP_QUICKACK 选项允许接收端在接收到数据后尽快发送确认（ACK）。默认情况下，TCP协议可能会延迟发送ACK，以便与其他数据一起打包发送，从而减少网络上的ACK包数量。然而，在某些情况下，快速返回ACK可能是有益的，比如在需要快速确认数据已经送达的情况下。TCP_QUICKACK 可以让接收端在接收到数据后更快地发送ACK，但这并不意味着它会影响数据的发送策略。
 
 
 
