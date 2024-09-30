@@ -23,7 +23,10 @@
 using namespace std;
 
 
-const char * const SubStatusStr[] = {"init", "subscribe", "subscribed", "deleteting", "firstSub"};
+
+
+
+
 
 
 
@@ -31,13 +34,6 @@ int main(int argc, char* argv[]) {
 
 
 
-    std::atomic<uint32_t> iCount;
-
-    iCount.store(108);
-
-    iCount.store(iCount.load() % 100);
-
-    std:cout << iCount << std::endl;
 
 
     return 0;
