@@ -411,6 +411,45 @@ private:
 };
 ----
 
+=== C++对象模型
+
+
+
+
+==== 为什么nullptr指针能调用成员函数
+
+C++中非虚成员函数和普通函数都是存储在全局代码区的，区别就是C++总成员函数调用会默认生成一个this指针作为第一个参数传入到函数中，如：
+
+[source, cpp]
+----
+class MyClass {
+public:
+    MyClass(int value) : data(value) {}
+
+    void printData() const {
+        //std::cout << data << std::endl;
+    }
+
+private:
+    int data;
+};
+----
+
+调用堆栈如下，编译器会自动将函数首个参数设置为this指针。
+
+[source, cpp]
+----
+#0  MyClass::printData (this=0x0) at E:\work\note_book\src\main.cpp:34
+#1  0x0000000000401571 in main () at E:\work\note_book\src\main.cpp:44
+#2  0x00000000004013c7 in __tmainCRTStartup ()
+----
+
+因此，非虚函数能从全局代码去找到，this指针虽然为nullptr依然能够当成正常的参数传递，只要不再函数内部使用this指针就行。
+
+但是虚函数不能使用nullptr指针调用，因为虚函数是动态绑定的，需要调用对象里面的虚函数表查找对应的函数，因此需要调用this指针。
+
+
+
 
 === 重载和重写的区别
 

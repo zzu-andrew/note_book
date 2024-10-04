@@ -25,20 +25,36 @@ using namespace std;
 
 const char * const SubStatusStr[] = {"init", "subscribe", "subscribed", "deleteting", "firstSub"};
 
+class MyClass {
+public:
+    MyClass(int value) : data(value) {}
+
+    virtual void printData() const {
+        //std::cout << data << std::endl;
+    }
+
+private:
+    int data;
+};
+
+class MyClass1 {
+public:
+    MyClass(int value) : data(value) {}
+
+    virtual void printData() const {
+        //std::cout << data << std::endl;
+    }
+
+private:
+    int data;
+};
 
 
-int main(int argc, char* argv[]) {
+int main() {
+    MyClass *lpObj = new MyClass(1);
 
-
-
-    std::atomic<uint32_t> iCount;
-
-    iCount.store(108);
-
-    iCount.store(iCount.load() % 100);
-
-    std:cout << iCount << std::endl;
-
+    // 调用成员函数
+    lpObj->printData();  // 静态绑定调用
 
     return 0;
 }
