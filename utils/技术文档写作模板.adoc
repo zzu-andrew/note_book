@@ -42,3 +42,13 @@ endif::rootpath[]
 
 参考文献
 ----
+
+=== 工程创建
+
+Mapnik -- 用于将经纬度信息渲染成图片
+GraphHopper - 用于实现路径规划
+
+
+
+
+
