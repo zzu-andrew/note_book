@@ -18,43 +18,32 @@
 #include <condition_variable>
 #include <algorithm>
 #include <unordered_map>
-
+#include <list>
 
 using namespace std;
 
 
-const char * const SubStatusStr[] = {"init", "subscribe", "subscribed", "deleteting", "firstSub"};
 
-class MyClass {
-public:
-    MyClass(int value) : data(value) {}
 
-    virtual void printData() const {
-        //std::cout << data << std::endl;
-    }
-
-private:
-    int data;
-};
-
-class MyClass1 {
-public:
-    MyClass(int value) : data(value) {}
-
-    virtual void printData() const {
-        //std::cout << data << std::endl;
-    }
-
-private:
-    int data;
-};
 
 
 int main() {
-    MyClass *lpObj = new MyClass(1);
 
-    // 调用成员函数
-    lpObj->printData();  // 静态绑定调用
+
+    std::set<int> setAlices{1};
+    std::set<int> setAlices2{2};
+    std::set<int> setRet{};
+
+    std::set_difference(setAlices2.begin(), setAlices2.end(),
+                        setAlices.begin(), setAlices.end(), std::inserter(setRet, setRet.begin()));
+
+    for (const auto& index : setRet) {
+        std::cout << index << std::endl;
+    }
+
+
+
+
 
     return 0;
 }

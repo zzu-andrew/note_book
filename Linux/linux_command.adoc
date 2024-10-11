@@ -15,10 +15,6 @@ ifdef::rootpath[]
 :srcdir: {rootpath}../src/
 endif::rootpath[]
 
-ifndef::rootpath[]
-:rootpath: ../
-:srcdir: {rootpath}{path}../src/
-endif::rootpath[]
 
 
 == Linux命令
