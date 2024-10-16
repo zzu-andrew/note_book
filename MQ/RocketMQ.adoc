@@ -13,6 +13,8 @@ endif::rootpath[]
 
 在现实生活中，并不是所有消息都是生产了之后就立马投递给消费者。比如你定了杯奶茶，但是不想商家立马配送，而是想中午再让商家派送。
 
+image::mq/image-2024-10-16-14-27-27-791.png[]
+
 那么问题来了，有没有解决方案呢？
 当然有，没有什么是一个中间层解决不了的，如果有，那就再加一层。
 解决这样问题的中间件就是-RocketMQ。
@@ -25,11 +27,37 @@ RocketMQ是阿里自研的国产消息队列，目前已经是Apache的顶级项
 
 image::mq/image-2024-09-26-16-41-58-161.png[]
 
-很像kafka，因为RocketMQ很多功能就是借鉴的kafka，那么问题很自然就来了，既然RocketMQ借鉴了kafka又很多功能都相同，那他们之间的区别又是什么呢？
+是不是很像kafka，因为RocketMQ很多功能就是借鉴的kafka，那么问题很自然就来了，既然RocketMQ借鉴了kafka又很多功能都相同，那他们之间的区别又是什么呢？
 
-=== RocketMQ
+=== RocketMQ 和 Kafka的区别
 
+RocketMQ 的架构是参考了kafka的设计思想，但同时又在kafka的基础上做了些调整。
+这些调整总结来说就是和Kafka相比，架构上做了减法，但是在功能上做了加法。
 
+*在架构上做减法*
+
+在开始RocketMQ之前先来回顾一下kafka的架构。
+
+kafka中通过topic对消息进行分类。
+
+.增加生产者和消费者
+image::mq/image-2024-09-23-16-38-46-657.png[]
+
+为了提升单个topic的并发性能，将单个topic拆分为多个partition
+
+.多分区
+image::mq/image-2024-09-23-17-24-09-993.png[]
+
+- 为了提升系统扩展性，将多个partition分别部署在不同的broker上
+- 为了提升系统的可用性，为partition加了多个副本
+- 为了协调和管理kafka集群的数据信息，引入zookeeper作为协调节点
+
+.kafka模型
+image::mq/image-2024-09-26-14-39-01-956.png[]
+
+kafka本身已经是一个非常强的消息队列了，我们接下来看看RocketMQ在kafka的架构基础上，还能玩出什么花样来。
+
+==== 简化协调节点
 
 
 
