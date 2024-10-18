@@ -21,6 +21,21 @@ endif::rootpath[]
 
 
 
+=== sysctl命令
+
+==== 查看所有系统配置列表
+
+可以使用 `sysctl -a` 列出当前所有系统配置的列表，比如：
+
+[source,cpp]
+----
+$sysctl -a |grep time |grep wait
+net.netfilter.nf_conntrack_dccp_timeout_timewait = 240
+net.netfilter.nf_conntrack_sctp_timeout_cookie_wait = 3
+net.netfilter.nf_conntrack_tcp_timeout_close_wait = 60
+net.netfilter.nf_conntrack_tcp_timeout_fin_wait = 120
+net.netfilter.nf_conntrack_tcp_timeout_time_wait = 120
+----
 
 
 
