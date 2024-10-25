@@ -59,10 +59,15 @@ kafka本身已经是一个非常强的消息队列了，我们接下来看看Roc
 
 ==== 简化协调节点
 
+zookeeper在kafka架构中会和broker进行通信，维护kafka集群信息，一个新的broker连接上zookeeper上之后，其他的broker就能立马感知到它的加入，像这种能在分布式环境中让多个实例获取到同一份信息的服务，就是所谓的分布式协调服务。
 
 
+.zookeeper管理
+image::mq/image-2024-09-26-14-19-34-857.png[]
 
+但是zookeeper作为一个通用的分布式协调服务，它不仅可以用于服务注册和发现，还可以用于分布式锁、配置管理等场景，kafka其实只是用到了部分功能，对于整个系统来说就好比杀鸡用牛刀，太重了。
 
+所以在RocketMQ中直接将zookeeper去掉，换成了nameserver，是一种更加轻量式，管理消息队列的集群消息，生产者通过nameserver获取得到topic和broker的路由信息
 
 
 

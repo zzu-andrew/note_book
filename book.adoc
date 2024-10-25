@@ -34,6 +34,12 @@ include::C++/模板编程.adoc[模板编程]
 
 <<<
 
+== go
+
+include::go/go语言基础.adoc[go基础]
+include::go/go常见问题.adoc[go常见问题]
+include::go/内存管理.adoc[内存管理]
+
 == 网络
 include::网络/tcpdump.adoc[tcpdump]
 include::网络/HTTP.adoc[HTTP]
