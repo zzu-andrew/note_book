@@ -30,12 +30,16 @@ using namespace std;
 int main() {
 
 
-    std::this_thread::sleep_for(std::chrono::seconds(18));
+    std::set<int> setAlices{1};
+    std::set<int> setAlices2{2};
+    std::set<int> setRet{};
 
+    std::set_difference(setAlices2.begin(), setAlices2.end(),
+                        setAlices.begin(), setAlices.end(), std::inserter(setRet, setRet.begin()));
 
-
-
-
+    for (const auto& index : setRet) {
+        std::cout << index << std::endl;
+    }
 
 
 

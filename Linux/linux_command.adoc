@@ -75,6 +75,20 @@ ls /sys/class/net/<interfaces>/queues
 
 
 
+=== 网络命令
+
+==== netstat
+
+==== lsof
+
+- 查看文件是哪个进程打开的
+
+lsof filename
+
+- 查看端口是哪个进程打开的
+
+lsof -i :22
+
 
 
 
