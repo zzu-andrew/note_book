@@ -151,32 +151,40 @@ Asan（AddressSanitizer）是一个用于检测C/C++程序中内存错误的工�
 
 ### 安装Asan
 首先确保你的系统上已经安装了支持Asan的编译器（如GCC或Clang）。对于Ubuntu系统，可以使用如下命令来安装Clang和Asan：
+
 ```bash
 sudo apt-get install clang llvm libc++-dev libc++abi-dev
 ```
 
 ### 编译项目
 使用支持Asan的编译器来编译你的项目。通常，这意味着要添加`-fsanitize=address`标志来启用Asan。例如，如果你正在使用g++编译器，可以这样编译你的程序：
+
 ```bash
 g++ -g -fsanitize=address -o myprogram myprogram.cpp
 ```
+
 对于CMake项目，可以添加以下选项：
+
 ```cmake
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 ```
 
 ### 运行程序
 编译完成后，你可以直接运行带有Asan的可执行文件。Asan会在运行时报告任何检测到的内存错误。例如：
+
 ```bash
 ./myprogram
 ```
+
 如果程序中有内存错误，Asan会输出详细的错误信息，并指出错误发生的源码位置。
 
 ### 查看报告
 Asan会输出一些有关内存问题的日志信息到标准错误输出(stderr)。如果需要更详细的报告或者想要控制Asan的行为，可以通过环境变量来配置，例如：
+
 ```bash
 ASAN_OPTIONS=detect_leaks=0 ./myprogram
 ```
+
 这个命令会关闭Asan对内存泄漏的检测。
 
 ### 调试
@@ -189,6 +197,27 @@ ASAN_OPTIONS=detect_leaks=0 ./myprogram
 以上就是使用Asan的基本方法，希望对你有所帮助！如果有具体的问题或者更详细的需求，请随时提问。
 
 
+
+=== 常见死锁
+
+1. AB锁
+2. 当一个对象使用预热，或者队列缓存释放之后实际没有删除对象的情况，或者高并发场景下一个含有锁的对象加锁之后释放掉对象，锁没有释放，并且在另外一个地方尝试加锁(踩栈但是没有崩溃)的情况下，也会出现死锁
+
+==== 排查死锁
+
+
+
+1. 查看堆栈看那些锁在被等待，使用了锁但是没有等待的线程就是拿到锁但是不丢掉锁的线程
+2. 直接找到一直等待的锁，`p mutex` , 查看是哪个线程持有该锁
+
+输出可能类似于：
+
+[source, cpp]
+----
+$1 = {__data = {__lock = 2, __count = 0, __owner = 12345, __nusers = 1, __kind = 0, __spins = 0, __elision = 0, __list = {__prev = 0x0, __next = 0x0}}}
+----
+
+在这个例子中，__owner 字段表示持有锁的线程 ID。你可以将这个线程 ID 与 info threads 命令的输出进行对比，找到对应的线程。
 
 
 

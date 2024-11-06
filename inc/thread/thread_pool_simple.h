@@ -27,7 +27,7 @@ public:
             workers.emplace_back(
                     [this] {
                         for (;;) {
-                            std::function<void()> task;
+                            std::function<void(const std::atomic_bool&)> task;
                             {
                                 std::unique_lock<std::mutex> lock(this->queue_mutex);
                                 this->condition.wait(lock,
@@ -46,7 +46,7 @@ public:
                                 }
                             }
                             if (task) {
-                                task();
+                                task(this->stop);
                                 --this->num_threads_executing;
                             }
                         }
@@ -89,7 +89,7 @@ public:
 
 private:
     std::vector<std::thread> workers;
-    std::queue<std::function<void()>> tasks;
+    std::queue<std::function<void(const std::atomic_bool&)>> tasks;
     std::mutex queue_mutex;
     std::condition_variable condition;
     std::atomic_bool stop;
