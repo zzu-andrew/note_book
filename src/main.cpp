@@ -1,98 +1,78 @@
-#include <cctype>
-#include <string>
 #include <iostream>
-#include <utility>
 #include <vector>
-#include <set>
-#include <map>
-#include <utility>  // for std::forward()
-#include <memory>
-#include <functional>
-#include <algorithm>
-#include <sstream>
-#include <atomic>
-#include <iostream>
-#include <unistd.h>
-#include <cerrno>
-#include <cstring>
-#include <condition_variable>
-#include <algorithm>
-#include <unordered_map>
-#include <list>
+#include <numeric>
+#include <limits>
+#include <vector>
+#include <stack>
+#include <string>
+#include <cctype>
 
 using namespace std;
 
-// 算法复杂度 O(logn)
-// 2. 查询原有数组下标
-
-
-
 class Solution {
 public:
-    // nums 是旋转之后的数组
-    int search(vector<int>& nums, int target) {
-        // 异常情况
-        // 1. 数组为空， 2. ？
-        if (nums.empty()) {
-            return -1;
-        }
 
-
-        // 2. 定位target  O(logn) 算法要求，需要使用二分查找
-        int left = 0;
-        int right = nums.size() - 1;
-        // 先查看中间值
-        int middle = 0;
-        while (left < right) {
-            // 每次循环需要重新定位中间值
-            middle = (left + right) / 2;
-
-            //
-            if (nums[middle] == target) {
-                return middle;
-            }
+    /* Write Code Here */
+    int calculate(vector < string > tokens) {
+        std::stack<int> stack;
 
 
 
-            // 其他情况
+        for (const auto& token : tokens) {
 
-            if (nums[left] <= nums[middle]) {
-                if (target < nums[middle]) {
-                    right = middle ;
+            std::cout << "=======" << token[0] << std::endl;
+            // 正数或者负数两种情况
+            if (isdigit(token[0]) || (token.size() > 1 && isdigit(token[1]))) {
+
+                stack.push(std::stoi(token));
+            } else {
+                std::cout << "------"<< std::endl;
+                int rOp = stack.top();
+                stack.pop();
+                int lOp = stack.top();
+                stack.pop();
+
+                switch (token[0]) {
+                    case '+':
+                        stack.push(rOp + lOp);
+                        break;
+                    case '-':
+                        stack.push(rOp - lOp);
+                        break;
+                    case '*':
+                        stack.push(rOp * lOp);
+                        break;
+                    case '/':
+                        stack.push(rOp / lOp);
+                        break;
+                    default:
+                        std::cerr << "Unexpected error" << std::endl;
                 }
-                else {
-                    left = middle;
-                }
             }
-            // 小于是乱序，大于是有序之后的后半段
-            if (nums[right] )
-
         }
-
-
-
-
-
-
-        return -1;
+        return stack.top();
     }
 };
 
-
-
-
 int main() {
+    int res;
 
-    Solution solution;
+    int tokens_size = 0;
+    cin >> tokens_size;
+    vector<string> tokens;
+    string tokens_item;
+    for(int tokens_i=0; tokens_i<tokens_size; tokens_i++) {
+        getline(cin, tokens_item);
+        tokens.push_back(tokens_item);
+    }
+    for (const auto& token : tokens) {
+        std::cout << "======" << token << std::endl;
+    }
 
-    std::vector<int> num{4,5,6,7,0,1,2};
-
-
-    std::cout << solution.search(num, 0) << std::endl;
-
-
-
-
+    Solution *s = new Solution();
+    res = s->calculate(tokens);
+    cout << res << endl;
 
     return 0;
+
 }

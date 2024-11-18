@@ -947,6 +947,31 @@ DiagramBlock <|-- PlantUmlBlock
 ....
 
 
+[blockdiag]
+....
+blockdiag {
+   A -> B -> C -> D;
+   A -> E -> F -> G;
+}
+....
+
+[actdiag, format="png"]
+....
+actdiag {
+  write -> convert -> image
+
+  lane user {
+     label = "User"
+     write [label = "Writing reST"];
+     image [label = "Get diagram IMAGE"];
+  }
+  lane actdiag {
+     convert [label = "Convert reST to Image"];
+  }
+}
+....
+
+
 ==== 转义直译
 
 - `\`可以将转义字符进行直译
